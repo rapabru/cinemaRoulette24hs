@@ -53,26 +53,36 @@ export const Header: React.FC<HeaderProps> = ({
       )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
-        {/* Brand Logo & Title */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded bg-[var(--bg-panel)] border border-[var(--neon-cyan)] flex items-center justify-center shadow-neon-cyan relative overflow-hidden group">
-            <Tv className="w-6 h-6 text-[var(--neon-cyan)] group-hover:scale-110 transition-transform" />
+        {/* Brand Logo & Title Link to https://cinemaroulette.vercel.app/ */}
+        <a
+          href="https://cinemaroulette.vercel.app/"
+          onClick={() => {
+            if (window.location.hostname.includes('vercel.app') || window.location.hostname === 'localhost') {
+              // Smooth tab switch to catalog
+              setActiveTab('catalog');
+            }
+          }}
+          className="flex items-center gap-3 group cursor-pointer select-none no-underline"
+          title="Ir a https://cinemaroulette.vercel.app/"
+        >
+          <div className="w-10 h-10 rounded bg-[var(--bg-panel)] border border-[var(--neon-cyan)] flex items-center justify-center shadow-neon-cyan relative overflow-hidden group-hover:border-[var(--neon-amber)] transition-colors">
+            <Tv className="w-6 h-6 text-[var(--neon-cyan)] group-hover:scale-110 group-hover:text-[var(--neon-amber)] transition-all" />
             <div className="absolute inset-0 bg-[var(--neon-cyan)]/10 animate-pulse pointer-events-none" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-display text-sm sm:text-base text-neon-amber tracking-wider uppercase">
+              <h1 className="font-display text-sm sm:text-base text-neon-amber tracking-wider uppercase group-hover:text-[var(--neon-cyan)] transition-colors">
                 {t('app.title')}
               </h1>
-              <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono font-bold tracking-widest text-[var(--bg-void)] bg-[var(--neon-cyan)] rounded shadow-neon-cyan uppercase">
+              <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono font-bold tracking-widest text-[var(--bg-void)] bg-[var(--neon-cyan)] rounded shadow-neon-cyan uppercase group-hover:bg-[var(--neon-amber)] transition-colors">
                 {t('app.open_24h')}
               </span>
             </div>
-            <p className="text-[10px] font-mono text-[var(--ink-muted)] tracking-widest uppercase">
+            <p className="text-[10px] font-mono text-[var(--ink-muted)] tracking-widest uppercase group-hover:text-[var(--ink-light)] transition-colors">
               {t('app.subtitle')}
             </p>
           </div>
-        </div>
+        </a>
 
         {/* View Switcher Tabs: Catálogo | La Vi | Historial */}
         <div className="flex items-center gap-1.5 bg-[var(--bg-panel)] p-1 rounded border border-[var(--ink-muted)]/30">
