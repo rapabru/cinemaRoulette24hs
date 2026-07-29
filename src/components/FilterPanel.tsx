@@ -116,7 +116,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         <div className="flex items-center gap-3">
           {resultsCount !== undefined && (
             <span className="text-xs font-mono text-[var(--neon-cyan)] hidden sm:inline font-bold">
-              {resultsCount} {t('filters.results_count')}
+              {resultsCount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")} {t('filters.results_count')}
             </span>
           )}
           <button className="text-[var(--ink-muted)] hover:text-[var(--ink-light)] p-1">
