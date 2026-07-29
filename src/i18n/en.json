@@ -1,0 +1,72 @@
+{
+  "app": {
+    "title": "CYBERCAFÉ 24HS",
+    "subtitle": "MOVIE ROULETTE TERMINAL",
+    "open_24h": "OPEN 24 HOURS",
+    "attribution": "This product uses the TMDB API but is not endorsed or certified by TMDB."
+  },
+  "nav": {
+    "catalog": "Catalog",
+    "watched": "Watched List",
+    "api_key": "API Key",
+    "theme_night": "Night Mode (2 AM)",
+    "theme_midday": "Midday Mode (12 PM)"
+  },
+  "sortear": {
+    "button": "🎰 RANDOM DRAW MOVIE",
+    "again": "🎲 Draw Again",
+    "drawing": "SCANNING NETWORK...",
+    "modal_title": "ROULETTE RESULT",
+    "director": "Director",
+    "cast": "Top Cast",
+    "runtime": "Runtime",
+    "minutes": "min",
+    "rating": "TMDB Rating",
+    "overview": "Overview",
+    "watch_hint": "Available to watch on streaming platforms or video on demand.",
+    "watched_action": "Mark as watched"
+  },
+  "filters": {
+    "title": "CONTROL PANEL",
+    "genres": "Genres",
+    "all_genres": "All Genres",
+    "actor": "Actor / Actress",
+    "actor_placeholder": "Type a name...",
+    "year_range": "Release Year",
+    "language": "Original Language",
+    "all_languages": "Any Language",
+    "min_rating": "Min Rating",
+    "runtime_range": "Runtime (minutes)",
+    "skip_watched": "Skip already watched",
+    "clear_filters": "Clear Filters",
+    "results_count": "Results found"
+  },
+  "context_menu": {
+    "mark_watched": "Watched ✔",
+    "unmark_watched": "Remove from watched",
+    "details": "View details"
+  },
+  "watched": {
+    "title": "WATCHED MOVIES",
+    "empty": "You haven't marked any movies as watched yet.",
+    "empty_hint": "Right-click any movie card in the catalog or draw modal and select \"Watched ✔\".",
+    "total_count": "Total Watched",
+    "search_placeholder": "Search watched movies...",
+    "unmark": "Remove"
+  },
+  "api_modal": {
+    "title": "API KEY CONFIGURATION",
+    "description": "Enter your free The Movie Database (TMDB) API v3 key to access over 1,000,000+ movies.",
+    "get_key_link": "Get free TMDB API Key",
+    "input_label": "API Key (v3 auth):",
+    "placeholder": "e.g. 8a7f9b2c3d...",
+    "save": "Save Key",
+    "use_demo": "Use Demo Key",
+    "current_status": "Status:"
+  },
+  "errors": {
+    "no_results": "No movies found matching your current filters.",
+    "no_results_hint": "Try loosening your filters (expand year range, lower minimum rating, or remove actor).",
+    "no_key": "A TMDB API Key is required to perform searches."
+  }
+}

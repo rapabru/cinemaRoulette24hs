@@ -1,0 +1,72 @@
+{
+  "app": {
+    "title": "CYBERCAFÉ 24HS",
+    "subtitle": "MOVIE ROULETTE TERMINAL",
+    "open_24h": "ABIERTO 24 HS",
+    "attribution": "Este producto utiliza la API de TMDB pero no está respaldado ni certificado por TMDB."
+  },
+  "nav": {
+    "catalog": "Catálogo",
+    "watched": "La Vi (Vistas)",
+    "api_key": "API Key",
+    "theme_night": "Modo Noche (2 AM)",
+    "theme_midday": "Modo Día (12 PM)"
+  },
+  "sortear": {
+    "button": "🎰 SORTEAR PELÍCULA",
+    "again": "🎲 Volver a sortear",
+    "drawing": "BUSCANDO EN LA RED...",
+    "modal_title": "RESULTADO DEL SORTEO",
+    "director": "Dirección",
+    "cast": "Reparto principal",
+    "runtime": "Duración",
+    "minutes": "min",
+    "rating": "Calificación TMDB",
+    "overview": "Sinopsis",
+    "watch_hint": "Disponible para ver en plataformas de streaming o alquiler.",
+    "watched_action": "Marcar como vista"
+  },
+  "filters": {
+    "title": "PANEL DE CONTROL",
+    "genres": "Géneros",
+    "all_genres": "Todos los géneros",
+    "actor": "Actor / Actriz",
+    "actor_placeholder": "Escribe un nombre...",
+    "year_range": "Año de estreno",
+    "language": "Idioma original",
+    "all_languages": "Cualquier idioma",
+    "min_rating": "Calificación mínima",
+    "runtime_range": "Duración (minutos)",
+    "skip_watched": "Omitir ya vistas",
+    "clear_filters": "Limpiar filtros",
+    "results_count": "Resultados encontrados"
+  },
+  "context_menu": {
+    "mark_watched": "La vi ✔",
+    "unmark_watched": "Quitar de vistas",
+    "details": "Ver ficha completa"
+  },
+  "watched": {
+    "title": "PELÍCULAS VISTAS",
+    "empty": "Aún no has marcado ninguna película como vista.",
+    "empty_hint": "Haz clic derecho en cualquier tarjeta del catálogo o en el resultado del sorteo y selecciona \"La vi ✔\".",
+    "total_count": "Total vistas",
+    "search_placeholder": "Buscar en mis películas vistas...",
+    "unmark": "Eliminar"
+  },
+  "api_modal": {
+    "title": "CONFIGURACIÓN DE API KEY",
+    "description": "Ingresa tu API Key gratuita de The Movie Database (TMDB) v3 para acceder a más de 1.000.000 de películas.",
+    "get_key_link": "Obtener API Key gratis en TMDB",
+    "input_label": "Clave API (v3 auth):",
+    "placeholder": "ej. 8a7f9b2c3d...",
+    "save": "Guardar Clave",
+    "use_demo": "Usar clave de prueba (Demo)",
+    "current_status": "Estado:"
+  },
+  "errors": {
+    "no_results": "No se encontraron películas con los filtros seleccionados.",
+    "no_results_hint": "Intenta aflojar los filtros (amplía el rango de años, reduce la calificación mínima o quita el actor).",
+    "no_key": "Se requiere una API Key de TMDB para realizar búsquedas."
+  }
+}

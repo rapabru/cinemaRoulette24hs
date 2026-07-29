@@ -1,0 +1,197 @@
+@import "tailwindcss";
+
+:root {
+  /* Night mode (Cybercafé 2 AM) */
+  --bg-void: #0A0710;
+  --bg-brick: #1B0F1A;
+  --bg-panel: #14101F;
+  --neon-magenta: #FF1F7A;
+  --neon-amber: #FFC400;
+  --neon-red-glow: #FF3B1F;
+  --neon-green: #39FF6A;
+  --neon-cyan: #35E6FF;
+  --ink-light: #F2EAFB;
+  --ink-muted: #9C8FBE;
+  
+  --scanline-opacity: 0.15;
+  --glow-intensity: 1;
+}
+
+html:not(.dark) {
+  /* Midday mode (Cybercafé at midday, blinds half down) */
+  --bg-void: #EDE7E1;
+  --bg-brick: #DFD7CF;
+  --bg-panel: #D1C8BF;
+  --neon-magenta: #D91866;
+  --neon-amber: #D6A200;
+  --neon-red-glow: #D93018;
+  --neon-green: #2BBF52;
+  --neon-cyan: #1CA4B8;
+  --ink-light: #1A1424;
+  --ink-muted: #5C5272;
+
+  --scanline-opacity: 0.05;
+  --glow-intensity: 0.5;
+}
+
+body {
+  background-color: var(--bg-void);
+  color: var(--ink-light);
+  font-family: 'JetBrains Mono', monospace;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(255, 31, 122, 0.12) 0%, transparent 60%),
+    radial-gradient(circle at 85% 90%, rgba(53, 230, 255, 0.08) 0%, transparent 50%),
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.03) 0px, rgba(0,0,0,0.03) 1px, transparent 1px, transparent 2px);
+  background-attachment: fixed;
+}
+
+/* Subtle brick wall texture overlay */
+.brick-wall-bg {
+  background-color: var(--bg-brick);
+  background-image: 
+    linear-gradient(335deg, rgba(0, 0, 0, 0.3) 0px, transparent 100%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 30px 15px, 30px 15px;
+}
+
+/* Neon Text Glow Helpers */
+.text-neon-cyan {
+  color: var(--neon-cyan);
+  text-shadow: 0 0 calc(5px * var(--glow-intensity)) var(--neon-cyan),
+               0 0 calc(12px * var(--glow-intensity)) var(--neon-cyan);
+}
+
+.text-neon-amber {
+  color: var(--neon-amber);
+  text-shadow: 0 0 calc(5px * var(--glow-intensity)) var(--neon-amber),
+               0 0 calc(15px * var(--glow-intensity)) var(--neon-red-glow);
+}
+
+.text-neon-magenta {
+  color: var(--neon-magenta);
+  text-shadow: 0 0 calc(5px * var(--glow-intensity)) var(--neon-magenta),
+               0 0 calc(15px * var(--glow-intensity)) var(--neon-magenta);
+}
+
+.text-neon-green {
+  color: var(--neon-green);
+  text-shadow: 0 0 calc(5px * var(--glow-intensity)) var(--neon-green),
+               0 0 calc(12px * var(--glow-intensity)) var(--neon-green);
+}
+
+/* Signature Neon Marquee Sortear Button */
+.neon-marquee-btn {
+  background: var(--bg-brick);
+  border: 3px solid var(--neon-cyan);
+  color: var(--neon-amber);
+  text-shadow: 0 0 8px var(--neon-red-glow), 0 0 15px var(--neon-amber);
+  box-shadow: 
+    0 0 15px rgba(53, 230, 255, 0.4),
+    0 0 30px rgba(53, 230, 255, 0.2),
+    inset 0 0 15px rgba(255, 31, 122, 0.3);
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: tubeWarmup 1.4s ease-out forwards;
+}
+
+@keyframes tubeWarmup {
+  0% { opacity: 0.3; box-shadow: none; filter: brightness(0.5); }
+  25% { opacity: 1; box-shadow: 0 0 30px var(--neon-cyan); filter: brightness(2); }
+  35% { opacity: 0.5; filter: brightness(0.8); }
+  50% { opacity: 1; box-shadow: 0 0 25px var(--neon-amber); }
+  75% { opacity: 0.8; }
+  100% { opacity: 1; filter: brightness(1); }
+}
+
+.neon-marquee-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  border-color: var(--neon-magenta);
+  color: #FFFFFF;
+  text-shadow: 0 0 12px var(--neon-magenta), 0 0 24px var(--neon-cyan);
+  box-shadow: 
+    0 0 25px var(--neon-cyan),
+    0 0 45px var(--neon-magenta),
+    inset 0 0 20px rgba(53, 230, 255, 0.5);
+}
+
+.neon-marquee-btn:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 0 10px var(--neon-cyan);
+}
+
+/* CRT Monitor Frame & Hover Scanline Overlay */
+.crt-monitor {
+  background: var(--bg-panel);
+  border: 1px solid rgba(156, 143, 190, 0.2);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.crt-monitor::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, var(--scanline-opacity)) 0px,
+    rgba(0, 0, 0, var(--scanline-opacity)) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  z-index: 10;
+}
+
+.crt-monitor:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 15px rgba(53, 230, 255, 0.35);
+  transform: translateY(-3px);
+}
+
+/* CRT Monitor Bezel Corner Markers */
+.crt-bezel-corner {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-color: var(--neon-cyan);
+  z-index: 11;
+  opacity: 0.6;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-void);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-brick);
+  border: 1px solid var(--neon-cyan);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neon-cyan);
+}
+
+/* Terminal Context Menu Styling */
+.terminal-context-menu {
+  background: var(--bg-panel);
+  border: 2px solid var(--neon-cyan);
+  box-shadow: 0 0 15px rgba(53, 230, 255, 0.4), 0 10px 25px rgba(0,0,0,0.8);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neon-marquee-btn, .crt-monitor {
+    animation: none !important;
+    transition: none !important;
+  }
+  .crt-monitor::before {
+    display: none;
+  }
+}
