@@ -103,7 +103,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           {/* Active filters badge count */}
           {filters.genreIds.length > 0 && (
             <span className="px-2 py-0.5 text-[10px] font-mono bg-[var(--neon-magenta)] text-white font-bold rounded-full">
-              {filters.genreIds.length} {t('filters.genres').toLowerCase()}
+              {filters.genreIds.length} {t('filters.genres').toLowerCase()} (OR)
             </span>
           )}
           {filters.actorName && (
@@ -115,7 +115,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
         <div className="flex items-center gap-3">
           {resultsCount !== undefined && (
-            <span className="text-xs font-mono text-[var(--neon-cyan)] hidden sm:inline">
+            <span className="text-xs font-mono text-[var(--neon-cyan)] hidden sm:inline font-bold">
               {resultsCount} {t('filters.results_count')}
             </span>
           )}
@@ -128,11 +128,16 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       {/* Expanded Controls */}
       {isExpanded && (
         <div className="p-4 sm:p-6 space-y-6">
-          {/* Genre Badges (Multi-select) */}
+          {/* Genre Badges (Multi-select OR logic) */}
           <div>
-            <label className="block text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider mb-2.5">
-              {t('filters.genres')}
-            </label>
+            <div className="flex flex-wrap items-baseline justify-between mb-2">
+              <label className="text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider">
+                {t('filters.genres')}
+              </label>
+              <span className="text-[11px] font-mono text-[var(--neon-cyan)] italic">
+                (Seleccionar varios amplía el catálogo con cualquiera de esos géneros)
+              </span>
+            </div>
             <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
               {genres.map((g) => {
                 const isSelected = filters.genreIds.includes(g.id);
@@ -140,7 +145,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   <button
                     key={g.id}
                     onClick={() => toggleGenre(g.id)}
-                    className={`px-3 py-1 rounded text-xs font-mono transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1 rounded text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer ${
                       isSelected
                         ? 'bg-[var(--neon-magenta)] text-white border border-[var(--neon-magenta)] shadow-neon-magenta font-semibold'
                         : 'bg-[var(--bg-void)] border border-[var(--ink-muted)]/30 text-[var(--ink-muted)] hover:border-[var(--neon-cyan)] hover:text-[var(--ink-light)]'
@@ -212,7 +217,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   max={filters.yearTo}
                   value={filters.yearFrom}
                   onChange={(e) => onChange({ ...filters, yearFrom: Number(e.target.value) })}
-                  className="w-1/2 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center"
+                  className="w-1/2 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center font-bold"
                 />
                 <span className="text-[var(--ink-muted)]">-</span>
                 <input
@@ -221,7 +226,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   max={new Date().getFullYear()}
                   value={filters.yearTo}
                   onChange={(e) => onChange({ ...filters, yearTo: Number(e.target.value) })}
-                  className="w-1/2 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center"
+                  className="w-1/2 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center font-bold"
                 />
               </div>
             </div>
@@ -244,28 +249,46 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               </select>
             </div>
 
-            {/* Minimum Rating Slider */}
+            {/* Rating Range (Min & Max Number Inputs) */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider">
-                  {t('filters.min_rating')}
+                  Calificación (Mín y Máx)
                 </label>
                 <span className="text-xs font-mono text-[var(--neon-green)] font-bold">
-                  ★ {filters.minRating} / 10
+                  ★ {filters.minRating} – {filters.maxRating} / 10
                 </span>
               </div>
-              <input
-                type="range"
-                min="0"
-                max="9"
-                step="0.5"
-                value={filters.minRating}
-                onChange={(e) => onChange({ ...filters, minRating: Number(e.target.value) })}
-                className="w-full accent-[var(--neon-cyan)] cursor-pointer"
-              />
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">Mínima</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max={filters.maxRating}
+                    step="0.5"
+                    value={filters.minRating}
+                    onChange={(e) => onChange({ ...filters, minRating: Math.max(0, Math.min(10, Number(e.target.value))) })}
+                    className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center font-bold"
+                  />
+                </div>
+                <span className="text-[var(--ink-muted)] mt-4">-</span>
+                <div className="flex-1">
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">Máxima</span>
+                  <input
+                    type="number"
+                    min={filters.minRating}
+                    max="10"
+                    step="0.5"
+                    value={filters.maxRating}
+                    onChange={(e) => onChange({ ...filters, maxRating: Math.max(0, Math.min(10, Number(e.target.value))) })}
+                    className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center font-bold"
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* Runtime Range */}
+            {/* Runtime Range (Text/Number Inputs) */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider">
@@ -276,41 +299,65 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <input
-                  type="range"
-                  min="0"
-                  max="240"
-                  step="15"
-                  value={filters.minRuntime}
-                  onChange={(e) => onChange({ ...filters, minRuntime: Number(e.target.value) })}
-                  className="w-full accent-[var(--neon-amber)] cursor-pointer"
-                />
+                <div className="flex-1">
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">Desde (min)</span>
+                  <input
+                    type="number"
+                    min="0"
+                    max={filters.maxRuntime}
+                    value={filters.minRuntime}
+                    onChange={(e) => onChange({ ...filters, minRuntime: Math.max(0, Number(e.target.value)) })}
+                    className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center font-bold"
+                  />
+                </div>
+                <span className="text-[var(--ink-muted)] mt-4">-</span>
+                <div className="flex-1">
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">Hasta (min)</span>
+                  <input
+                    type="number"
+                    min={filters.minRuntime}
+                    max="600"
+                    value={filters.maxRuntime}
+                    onChange={(e) => onChange({ ...filters, maxRuntime: Math.max(0, Number(e.target.value)) })}
+                    className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center font-bold"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Skip Watched Switch & Clear Button */}
-            <div className="flex items-center justify-between pt-4 md:col-span-2 lg:col-span-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={filters.skipWatched}
-                  onChange={(e) => onChange({ ...filters, skipWatched: e.target.checked })}
-                  className="sr-only peer"
-                />
-                <div className="w-9 h-5 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 rounded-full peer peer-checked:bg-[var(--neon-cyan)] peer-checked:border-[var(--neon-cyan)] relative transition-all">
-                  <div className="w-3.5 h-3.5 bg-[var(--ink-light)] rounded-full absolute top-0.5 left-0.5 peer-checked:translate-x-4 transition-transform" />
+            {/* High Contrast Skip Watched Toggle Switch & Clear Button */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 md:col-span-2 lg:col-span-1">
+              <button
+                type="button"
+                onClick={() => onChange({ ...filters, skipWatched: !filters.skipWatched })}
+                className={`px-3.5 py-2.5 rounded-lg font-mono text-xs font-bold transition-all flex items-center gap-3 border cursor-pointer ${
+                  filters.skipWatched
+                    ? 'bg-[var(--neon-cyan)] text-[var(--bg-void)] border-[var(--neon-cyan)] shadow-neon-cyan'
+                    : 'bg-red-950/40 text-red-400 border-red-500/60 shadow-sm hover:bg-red-900/40'
+                }`}
+              >
+                {/* Custom High Contrast Track */}
+                <div className={`w-9 h-5 rounded-full relative transition-colors ${
+                  filters.skipWatched ? 'bg-[var(--bg-void)]' : 'bg-red-900/80 border border-red-400/50'
+                }`}>
+                  <div className={`w-3.5 h-3.5 rounded-full absolute top-0.5 transition-transform ${
+                    filters.skipWatched
+                      ? 'left-4 bg-[var(--neon-cyan)] shadow-neon-cyan'
+                      : 'left-0.5 bg-red-400'
+                  }`} />
                 </div>
-                <span className="text-xs font-mono text-[var(--ink-light)]">
-                  {t('filters.skip_watched')}
+
+                <span className="tracking-wider">
+                  {filters.skipWatched ? 'OMITIR VISTAS: SÍ ✔' : 'OMITIR VISTAS: NO ✖'}
                 </span>
-              </label>
+              </button>
 
               <button
                 onClick={() => {
                   setActorSearchQuery('');
                   onReset();
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono text-[var(--neon-magenta)] hover:bg-[var(--neon-magenta)]/10 transition-colors border border-[var(--neon-magenta)]/30"
+                className="flex items-center gap-1.5 px-3 py-2 rounded text-xs font-mono text-[var(--neon-magenta)] hover:bg-[var(--neon-magenta)]/10 transition-colors border border-[var(--neon-magenta)]/30 cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 {t('filters.clear_filters')}

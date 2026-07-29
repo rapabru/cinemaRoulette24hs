@@ -61,6 +61,7 @@ export interface FilterState {
   yearTo: number;
   language: string;
   minRating: number;
+  maxRating: number;
   minRuntime: number;
   maxRuntime: number;
   skipWatched: boolean;
@@ -74,6 +75,7 @@ export const DEFAULT_FILTERS: FilterState = {
   yearTo: new Date().getFullYear(),
   language: '',
   minRating: 0,
+  maxRating: 10,
   minRuntime: 0,
   maxRuntime: 300,
   skipWatched: true,
@@ -185,6 +187,7 @@ function getMockDiscoverResponse(filters: FilterState): DiscoverResponse {
     if (filters.yearFrom && year < filters.yearFrom) return false;
     if (filters.yearTo && year > filters.yearTo) return false;
     if (filters.minRating && movie.vote_average < filters.minRating) return false;
+    if (filters.maxRating !== undefined && filters.maxRating < 10 && movie.vote_average > filters.maxRating) return false;
     if (filters.language && movie.original_language !== filters.language) return false;
     if (filters.genreIds.length > 0) {
       const hasGenre = filters.genreIds.some((gid) => movie.genre_ids.includes(gid));
@@ -219,7 +222,8 @@ export async function discoverMovies(
   };
 
   if (filters.genreIds.length > 0) {
-    params.with_genres = filters.genreIds.join(',');
+    // Pipe-separated values ('28|12') mean OR logic in TMDB discover endpoint (Action OR Adventure)
+    params.with_genres = filters.genreIds.join('|');
   }
   if (filters.actorId) {
     params.with_cast = filters.actorId;
@@ -235,6 +239,9 @@ export async function discoverMovies(
   }
   if (filters.minRating > 0) {
     params['vote_average.gte'] = filters.minRating;
+  }
+  if (filters.maxRating < 10) {
+    params['vote_average.lte'] = filters.maxRating;
   }
   if (filters.minRuntime > 0) {
     params['with_runtime.gte'] = filters.minRuntime;
