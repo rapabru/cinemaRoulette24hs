@@ -53,47 +53,51 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden crt-monitor">
         {/* Sticky Header Bar */}
-        <div className="flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 bg-[var(--bg-brick)] border-b border-[var(--neon-cyan)]/40 gap-2 shrink-0">
-          <div className="flex items-center gap-3">
-            <span className="w-3 h-3 rounded-full bg-[var(--neon-green)] animate-ping" />
-            <h2 className="font-display text-xs sm:text-sm text-[var(--neon-amber)] uppercase tracking-wider line-clamp-1">
-              {movie.title} ({year})
-            </h2>
+        <div className="relative flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 bg-[var(--bg-brick)] border-b border-[var(--neon-cyan)]/40 gap-2 shrink-0 pr-12">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-[var(--neon-green)] animate-ping" />
+              <h2 className="font-display text-xs sm:text-sm text-[var(--neon-amber)] uppercase tracking-wider line-clamp-1">
+                {movie.title} ({year})
+              </h2>
+            </div>
+
+            {/* View Toggle Tabs: Details vs Video Player */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveView('details')}
+                className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeView === 'details'
+                    ? 'bg-[var(--neon-cyan)] text-[var(--bg-void)] shadow-neon-cyan'
+                    : 'bg-[var(--bg-void)] text-[var(--ink-muted)] hover:text-[var(--ink-light)]'
+                }`}
+              >
+                <Info className="w-3.5 h-3.5" />
+                <span>Ficha</span>
+              </button>
+
+              <button
+                onClick={() => setActiveView('player')}
+                className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  activeView === 'player'
+                    ? 'bg-[var(--neon-magenta)] text-white shadow-neon-magenta animate-pulse'
+                    : 'bg-[var(--bg-void)] text-[var(--neon-cyan)] border border-[var(--neon-cyan)]/40 hover:bg-[var(--neon-cyan)]/20'
+                }`}
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>▶ Reproductor</span>
+              </button>
+            </div>
           </div>
 
-          {/* View Toggle Tabs: Details vs Video Player */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setActiveView('details')}
-              className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeView === 'details'
-                  ? 'bg-[var(--neon-cyan)] text-[var(--bg-void)] shadow-neon-cyan'
-                  : 'bg-[var(--bg-void)] text-[var(--ink-muted)] hover:text-[var(--ink-light)]'
-              }`}
-            >
-              <Info className="w-3.5 h-3.5" />
-              <span>Ficha</span>
-            </button>
-
-            <button
-              onClick={() => setActiveView('player')}
-              className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                activeView === 'player'
-                  ? 'bg-[var(--neon-magenta)] text-white shadow-neon-magenta animate-pulse'
-                  : 'bg-[var(--bg-void)] text-[var(--neon-cyan)] border border-[var(--neon-cyan)]/40 hover:bg-[var(--neon-cyan)]/20'
-              }`}
-            >
-              <Play className="w-3.5 h-3.5 fill-current" />
-              <span>▶ Reproductor</span>
-            </button>
-
-            <button
-              onClick={onClose}
-              className="p-1 ml-1 text-[var(--ink-muted)] hover:text-[var(--neon-magenta)] transition-colors rounded cursor-pointer"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
+          {/* Always Fixed Top Right Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-4 sm:right-5 p-1 text-[var(--ink-muted)] hover:text-[var(--neon-magenta)] transition-colors rounded cursor-pointer z-10"
+            title="Cerrar"
+          >
+            <X className="w-6 h-6" />
+          </button>
         </div>
 
         {/* Scrollable Modal Body */}
