@@ -145,12 +145,17 @@ let genresCache: Record<string, Genre[]> = {};
 
 export async function fetchGenres(language: string = 'es'): Promise<Genre[]> {
   const langKey = language === 'en' ? 'en' : 'es';
+  const otherName = language === 'en' ? 'Otro' : 'Otro';
   if (genresCache[language]) return genresCache[language];
   try {
     const data = await tmdbFetch<{ genres: Genre[] }>('/genre/movie/list', { language });
     if (data.genres && data.genres.length > 0) {
-      genresCache[language] = data.genres;
-      return data.genres;
+      const list = [...data.genres];
+      if (!list.some((g) => g.id === 0)) {
+        list.push({ id: 0, name: otherName });
+      }
+      genresCache[language] = list;
+      return list;
     }
     return MOCK_GENRES[langKey] || MOCK_GENRES.es;
   } catch (err) {
@@ -191,7 +196,11 @@ function getMockDiscoverResponse(filters: FilterState): DiscoverResponse {
     if (filters.maxRating !== undefined && filters.maxRating < 10 && movie.vote_average > filters.maxRating) return false;
     if (filters.language && movie.original_language !== filters.language) return false;
     if (filters.genreIds.length > 0) {
-      const hasGenre = filters.genreIds.some((gid) => movie.genre_ids.includes(gid));
+      const includesOtro = filters.genreIds.includes(0);
+      const standardGids = filters.genreIds.filter((id) => id !== 0);
+      const hasGenre =
+        (standardGids.length > 0 && standardGids.some((gid) => movie.genre_ids.includes(gid))) ||
+        (includesOtro && (!movie.genre_ids || movie.genre_ids.length === 0));
       if (!hasGenre) return false;
     }
     return true;
@@ -223,8 +232,14 @@ export async function discoverMovies(
   };
 
   if (filters.genreIds.length > 0) {
-    // Pipe-separated values ('28|12') mean OR logic in TMDB discover endpoint (Action OR Adventure)
-    params.with_genres = filters.genreIds.join('|');
+    const includesOtro = filters.genreIds.includes(0);
+    const standardGids = filters.genreIds.filter((id) => id !== 0);
+
+    // If 'Otro' is selected (or if all standard genres + 'Otro' are selected),
+    // we omit the restrictive with_genres filter so unclassified / 100% of 1,000,000+ movies are included!
+    if (!includesOtro && standardGids.length < 19) {
+      params.with_genres = standardGids.join('|');
+    }
   }
   if (filters.actorId) {
     params.with_cast = filters.actorId;

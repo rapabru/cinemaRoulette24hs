@@ -21,6 +21,7 @@ export const MOCK_GENRES: Record<string, Genre[]> = {
     { id: 53, name: 'Thriller' },
     { id: 10752, name: 'Bélica' },
     { id: 37, name: 'Western' },
+    { id: 0, name: 'Otro' },
   ],
   en: [
     { id: 28, name: 'Action' },
@@ -42,6 +43,7 @@ export const MOCK_GENRES: Record<string, Genre[]> = {
     { id: 53, name: 'Thriller' },
     { id: 10752, name: 'War' },
     { id: 37, name: 'Western' },
+    { id: 0, name: 'Other' },
   ],
 };
 
