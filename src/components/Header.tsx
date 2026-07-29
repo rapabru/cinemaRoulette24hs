@@ -52,13 +52,12 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-4">
         {/* Brand Logo & Title Link to https://cinemaroulette.vercel.app/ */}
         <a
           href="https://cinemaroulette.vercel.app/"
           onClick={() => {
             if (window.location.hostname.includes('vercel.app') || window.location.hostname === 'localhost') {
-              // Smooth tab switch to catalog
               setActiveTab('catalog');
             }
           }}
@@ -85,10 +84,10 @@ export const Header: React.FC<HeaderProps> = ({
         </a>
 
         {/* View Switcher Tabs: Catálogo | La Vi | Historial */}
-        <div className="flex items-center gap-1.5 bg-[var(--bg-panel)] p-1 rounded border border-[var(--ink-muted)]/30">
+        <div className="h-9 flex items-center gap-1.5 bg-[var(--bg-panel)] p-1 rounded-lg border border-[var(--ink-muted)]/30">
           <button
             onClick={() => setActiveTab('catalog')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono font-semibold transition-all ${
+            className={`h-7 flex items-center gap-1.5 px-3 rounded text-xs font-mono font-semibold transition-all cursor-pointer ${
               activeTab === 'catalog'
                 ? 'bg-[var(--neon-magenta)] text-white shadow-neon-magenta'
                 : 'text-[var(--ink-muted)] hover:text-[var(--ink-light)]'
@@ -100,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveTab('watched')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono font-semibold transition-all relative ${
+            className={`h-7 flex items-center gap-1.5 px-3 rounded text-xs font-mono font-semibold transition-all relative cursor-pointer ${
               activeTab === 'watched'
                 ? 'bg-[var(--neon-green)] text-[var(--bg-void)] shadow-neon-green font-bold'
                 : 'text-[var(--ink-muted)] hover:text-[var(--ink-light)]'
@@ -117,7 +116,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveTab('history')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono font-semibold transition-all relative ${
+            className={`h-7 flex items-center gap-1.5 px-3 rounded text-xs font-mono font-semibold transition-all relative cursor-pointer ${
               activeTab === 'history'
                 ? 'bg-[var(--neon-amber)] text-[var(--bg-void)] shadow-neon-amber font-bold'
                 : 'text-[var(--ink-muted)] hover:text-[var(--ink-light)]'
@@ -133,23 +132,23 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* Utilities & Google Auth */}
-        <div className="flex items-center gap-2">
+        {/* Right Utilities & Google Auth (All Fixed Height h-9) */}
+        <div className="flex items-center gap-2.5">
           {/* Google Sign-In Widget */}
           {googleUser ? (
-            <div className="flex items-center gap-2 bg-[var(--bg-panel)] p-1 pl-2 rounded border border-[var(--neon-green)]/60 text-xs font-mono">
+            <div className="h-9 flex items-center gap-2 bg-[var(--bg-panel)] px-2.5 rounded-lg border border-[var(--neon-green)]/60 text-xs font-mono">
               <img
                 src={googleUser.photoURL}
                 alt={googleUser.displayName}
-                className="w-6 h-6 rounded-full border border-[var(--neon-green)]"
+                className="w-5 h-5 rounded-full border border-[var(--neon-green)] shrink-0"
               />
-              <span className="text-[var(--ink-light)] font-semibold hidden md:inline max-w-[120px] truncate">
+              <span className="text-[var(--ink-light)] font-semibold hidden md:inline max-w-[110px] truncate">
                 {googleUser.displayName}
               </span>
               <button
                 onClick={onLogoutGoogle}
                 title="Cerrar Sesión Google"
-                className="p-1 text-[var(--ink-muted)] hover:text-red-400 transition-colors"
+                className="p-1 text-[var(--ink-muted)] hover:text-red-400 transition-colors cursor-pointer shrink-0"
               >
                 <LogOut className="w-3.5 h-3.5" />
               </button>
@@ -157,9 +156,9 @@ export const Header: React.FC<HeaderProps> = ({
           ) : (
             <button
               onClick={onOpenGoogleLogin}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-white hover:bg-gray-100 text-gray-900 font-mono text-xs font-bold transition-all shadow-md"
+              className="h-9 flex items-center justify-center gap-1.5 px-3 rounded-lg bg-white hover:bg-gray-100 text-gray-900 font-mono text-xs font-bold transition-all shadow-md cursor-pointer shrink-0"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -187,29 +186,29 @@ export const Header: React.FC<HeaderProps> = ({
             target="_blank"
             rel="noopener noreferrer"
             title={i18n.language === 'en' ? 'Join Discord — We watch movies together every night!' : 'Únete al Discord — ¡Vemos pelis todas las noches!'}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-[#5865F2] hover:bg-[#4752C4] text-white font-mono text-xs font-bold transition-all shadow-md cursor-pointer animate-pulse hover:animate-none"
+            className="h-9 flex items-center justify-center gap-1.5 px-3 rounded-lg bg-[#5865F2] hover:bg-[#4752C4] text-white font-mono text-xs font-bold transition-all shadow-md cursor-pointer shrink-0 no-underline"
           >
-            <svg className="w-4 h-4 fill-current" viewBox="0 0 127.14 96.36">
+            <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 127.14 96.36">
               <path d="M107.7,8.07A105.15,105.15,0,0,0,81.47,0a72.06,72.06,0,0,0-3.36,6.83A97.68,97.68,0,0,0,49,6.83,72.37,72.37,0,0,0,45.64,0,105.89,105.89,0,0,0,19.39,8.09C2.79,32.65-1.71,56.6.54,80.21h0A105.73,105.73,0,0,0,32.71,96.36,77.7,77.7,0,0,0,39.6,85.25a68.42,68.42,0,0,1-10.85-5.18c.91-.66,1.8-1.34,2.66-2a75.57,75.57,0,0,0,64.32,0c.87.71,1.76,1.39,2.66,2a68.68,68.68,0,0,1-10.87,5.19,77,77,0,0,0,6.89,11.1A105.25,105.25,0,0,0,126.6,80.22c2.72-27.47-5.59-51.27-18.9-72.15ZM42.45,65.69C36.18,65.69,31,60,31,53s5-12.74,11.43-12.74S54,45.92,53.86,53,48.73,65.69,42.45,65.69Zm42.24,0C78.41,65.69,73.25,60,73.25,53s5-12.74,11.44-12.74S96.23,45.92,96.1,53,91,65.69,84.69,65.69Z" />
             </svg>
             <span className="hidden sm:inline">Discord 24HS</span>
           </a>
 
-          {/* Language Toggle */}
+          {/* Language Toggle Button */}
           <button
             onClick={toggleLanguage}
             title="Cambiar Idioma / Switch Language"
-            className="flex items-center gap-1.5 px-2 py-1.5 rounded bg-[var(--bg-panel)] border border-[var(--neon-cyan)]/40 hover:border-[var(--neon-cyan)] text-xs font-mono text-[var(--ink-light)] hover:text-[var(--neon-cyan)] transition-all"
+            className="h-9 flex items-center justify-center gap-1.5 px-2.5 rounded-lg bg-[var(--bg-panel)] border border-[var(--neon-cyan)]/40 hover:border-[var(--neon-cyan)] text-xs font-mono text-[var(--ink-light)] hover:text-[var(--neon-cyan)] transition-all cursor-pointer shrink-0"
           >
-            <Globe className="w-3.5 h-3.5 text-[var(--neon-cyan)]" />
+            <Globe className="w-3.5 h-3.5 text-[var(--neon-cyan)] shrink-0" />
             <span className="font-bold uppercase">{i18n.language}</span>
           </button>
 
-          {/* Theme Toggle */}
+          {/* Theme Toggle Button */}
           <button
             onClick={() => setIsDark(!isDark)}
             title={isDark ? t('nav.theme_midday') : t('nav.theme_night')}
-            className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded bg-[var(--bg-panel)] border border-[var(--neon-amber)]/40 hover:border-[var(--neon-amber)] text-[var(--neon-amber)] hover:shadow-neon-amber transition-all"
+            className="h-9 w-9 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] border border-[var(--neon-amber)]/40 hover:border-[var(--neon-amber)] text-[var(--neon-amber)] hover:shadow-neon-amber transition-all cursor-pointer shrink-0"
           >
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
@@ -218,7 +217,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenApiKeyModal}
             title={t('nav.api_key')}
-            className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded bg-[var(--bg-panel)] border border-[var(--ink-muted)]/40 hover:border-[var(--neon-cyan)] text-[var(--ink-muted)] hover:text-[var(--neon-cyan)] transition-all"
+            className="h-9 w-9 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] border border-[var(--ink-muted)]/40 hover:border-[var(--neon-cyan)] text-[var(--ink-muted)] hover:text-[var(--neon-cyan)] transition-all cursor-pointer shrink-0"
           >
             <Key className="w-4 h-4" />
           </button>
