@@ -24,6 +24,21 @@ import {
 
 import type { WatchedMovie } from './lib/watched';
 
+import {
+  getDrawnHistory,
+  addMovieToHistory,
+  clearDrawnHistory,
+} from './lib/history';
+
+import type { DrawnHistoryItem } from './lib/history';
+
+import {
+  getStoredGoogleUser,
+  saveGoogleUser,
+} from './lib/auth';
+
+import type { GoogleUser } from './lib/auth';
+
 import { Header } from './components/Header';
 import { SortearButton } from './components/SortearButton';
 import { FilterPanel } from './components/FilterPanel';
@@ -31,7 +46,9 @@ import { CatalogGrid } from './components/CatalogGrid';
 import { ContextMenu } from './components/ContextMenu';
 import { RouletteModal } from './components/RouletteModal';
 import { WatchedView } from './components/WatchedView';
+import { DrawHistoryView } from './components/DrawHistoryView';
 import { ApiKeyModal } from './components/ApiKeyModal';
+import { GoogleLoginModal } from './components/GoogleLoginModal';
 import { MOCK_GENRES } from './lib/mockMovies';
 
 export function App() {
@@ -57,7 +74,7 @@ export function App() {
   }, [isDark]);
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<'catalog' | 'watched'>('catalog');
+  const [activeTab, setActiveTab] = useState<'catalog' | 'watched' | 'history'>('catalog');
 
   // Filters state
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
@@ -76,6 +93,13 @@ export function App() {
     () => new Set(watchedList.map((m) => m.id)),
     [watchedList]
   );
+
+  // Draw History state
+  const [historyList, setHistoryList] = useState<DrawnHistoryItem[]>(getDrawnHistory());
+
+  // Google User auth state
+  const [googleUser, setGoogleUser] = useState<GoogleUser | null>(getStoredGoogleUser());
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
 
   // Random Draw Roulette modal state
   const [drawnMovie, setDrawnMovie] = useState<MovieDetails | null>(null);
@@ -123,7 +147,7 @@ export function App() {
     setCurrentPage(1);
   };
 
-  // Perform Random Draw ("Sortear")
+  // Perform Random Draw ("Sortear") and record in history
   const handleSortear = async () => {
     setIsDrawing(true);
     try {
@@ -135,6 +159,16 @@ export function App() {
       if (result) {
         setDrawnMovie(result);
         setIsRouletteOpen(true);
+
+        // Record in Draw History
+        const updatedHistory = addMovieToHistory({
+          id: result.id,
+          title: result.title,
+          poster_path: result.poster_path,
+          release_date: result.release_date,
+          vote_average: result.vote_average,
+        });
+        setHistoryList([...updatedHistory]);
       } else {
         alert(t('errors.no_results'));
       }
@@ -148,6 +182,18 @@ export function App() {
     } finally {
       setIsDrawing(false);
     }
+  };
+
+  // Clear History
+  const handleClearHistory = () => {
+    clearDrawnHistory();
+    setHistoryList([]);
+  };
+
+  // Logout Google
+  const handleLogoutGoogle = () => {
+    saveGoogleUser(null);
+    setGoogleUser(null);
   };
 
   // Toggle Watched Status for any movie object
@@ -185,6 +231,10 @@ export function App() {
           setIsDark={setIsDark}
           onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
           watchedCount={watchedList.length}
+          historyCount={historyList.length}
+          googleUser={googleUser}
+          onOpenGoogleLogin={() => setIsGoogleModalOpen(true)}
+          onLogoutGoogle={handleLogoutGoogle}
         />
 
         {/* Main Content Area */}
@@ -220,12 +270,22 @@ export function App() {
                 onMovieClick={handleSelectMovie}
               />
             </>
-          ) : (
+          ) : activeTab === 'watched' ? (
             /* Watched List View */
             <WatchedView
               watchedList={watchedList}
               onUnmark={(id) => handleToggleWatched({ id, title: '', poster_path: '', release_date: '' })}
               onSelectMovie={handleSelectMovie}
+            />
+          ) : (
+            /* Draw History View */
+            <DrawHistoryView
+              historyList={historyList}
+              watchedMovieIds={watchedMovieIds}
+              onClearHistory={handleClearHistory}
+              onSelectMovie={handleSelectMovie}
+              onToggleWatched={handleToggleWatched}
+              onSortearAgain={handleSortear}
             />
           )}
         </main>
@@ -260,6 +320,13 @@ export function App() {
         isOpen={isApiKeyModalOpen}
         onClose={() => setIsApiKeyModalOpen(false)}
         onKeySaved={loadCatalog}
+      />
+
+      {/* Google Login Modal */}
+      <GoogleLoginModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        onLoginSuccess={(user) => setGoogleUser(user)}
       />
 
       {/* Footer & TMDB Attribution */}
