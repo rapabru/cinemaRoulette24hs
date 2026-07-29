@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, Check } from 'lucide-react';
+import { Star, Check, Play } from 'lucide-react';
 import { getImageUrl } from '../lib/tmdb';
 import type { MovieSummary } from '../lib/tmdb';
 
@@ -50,7 +50,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
         {/* Rating Badge */}
         {movie.vote_average > 0 && (
-          <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded border border-[var(--neon-amber)]/60 text-[var(--neon-amber)] font-mono text-[11px] font-bold flex items-center gap-1 shadow-md">
+          <div className="absolute top-2 right-2 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded border border-[var(--neon-amber)]/60 text-[var(--neon-amber)] font-mono text-[11px] font-bold flex items-center gap-1 shadow-md z-10">
             <Star className="w-3 h-3 fill-[var(--neon-amber)] text-[var(--neon-amber)]" />
             <span>{movie.vote_average.toFixed(1)}</span>
           </div>
@@ -58,20 +58,23 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
         {/* Watched Ribbon/Badge */}
         {isWatched && (
-          <div className="absolute top-2 left-2 bg-[var(--neon-green)] text-[var(--bg-void)] font-mono text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-neon-green">
+          <div className="absolute top-2 left-2 bg-[var(--neon-green)] text-[var(--bg-void)] font-mono text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-neon-green z-10">
             <Check className="w-3 h-3" />
             <span>LA VI</span>
           </div>
         )}
 
-        {/* Hover Hint Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col justify-end text-left">
-          <p className="text-[10px] font-mono text-[var(--neon-cyan)] line-clamp-3 leading-snug">
-            {movie.overview || 'Sin descripción disponible.'}
-          </p>
-          <span className="text-[9px] font-mono text-[var(--ink-muted)] mt-1">
-            (Clic dcho: Marcar "La vi")
+        {/* Hover Cyber Play Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30 opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col items-center justify-center text-center">
+          <div className="w-10 h-10 rounded-full bg-[var(--neon-cyan)] text-[var(--bg-void)] flex items-center justify-center shadow-neon-cyan mb-2 transform group-hover:scale-110 transition-transform">
+            <Play className="w-5 h-5 fill-current ml-0.5" />
+          </div>
+          <span className="font-mono text-xs font-bold text-[var(--neon-cyan)] tracking-wider uppercase mb-1">
+            ▶ Reproducir (VidKing)
           </span>
+          <p className="text-[10px] font-mono text-[var(--ink-light)] line-clamp-2 leading-snug">
+            {movie.overview || 'Ver en el reproductor terminal.'}
+          </p>
         </div>
       </div>
 
