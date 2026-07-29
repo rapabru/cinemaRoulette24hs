@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, UserCheck } from 'lucide-react';
-import { createGoogleSession } from '../lib/auth';
+import { createGoogleSession, getStoredGoogleUser } from '../lib/auth';
 import type { GoogleUser } from '../lib/auth';
 
 interface GoogleLoginModalProps {
@@ -14,23 +14,36 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({
   onClose,
   onLoginSuccess,
 }) => {
-  const [emailInput, setEmailInput] = useState('rapacinibruno@gmail.com');
-  const [nameInput, setNameInput] = useState('Rapa !');
-  const [isEditing, setIsEditing] = useState(false);
+  const existingUser = getStoredGoogleUser();
+  const [emailInput, setEmailInput] = useState(existingUser?.email || '');
+  const [nameInput, setNameInput] = useState(existingUser?.displayName || '');
+
+  useEffect(() => {
+    if (isOpen) {
+      const current = getStoredGoogleUser();
+      if (current) {
+        setEmailInput(current.email);
+        setNameInput(current.displayName);
+      }
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleContinue = () => {
-    const finalEmail = emailInput.trim() || 'rapacinibruno@gmail.com';
-    const finalName = nameInput.trim() || 'Rapa !';
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const finalEmail = emailInput.trim() ? (emailInput.includes('@') ? emailInput : `${emailInput}@gmail.com`) : 'usuario.cine@gmail.com';
+    const finalName = nameInput.trim() || undefined;
     const user = createGoogleSession(finalEmail, finalName);
     onLoginSuccess(user);
     onClose();
   };
 
+  const displayName = nameInput.trim() || (emailInput.trim() ? emailInput.split('@')[0] : 'tu cuenta');
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in select-none">
-      <div className="relative w-full max-w-md bg-[#1e1f22] text-gray-100 rounded-2xl border border-gray-700/80 shadow-2xl overflow-hidden p-6 space-y-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in select-none">
+      <div className="relative w-full max-w-md bg-[#1e1f22] text-gray-100 rounded-2xl border border-gray-700/80 shadow-2xl overflow-hidden p-6 space-y-5">
         {/* Top Header */}
         <div className="flex items-center justify-between border-b border-gray-800 pb-4">
           <div className="flex items-center gap-3">
@@ -54,75 +67,73 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({
               />
             </svg>
             <span className="text-sm font-sans font-medium text-gray-200 truncate">
-              Sign in to cinemaroulette with google.com
+              Sign in with Google
             </span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800"
+            className="p-1 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* User Account Card */}
-        <div className="flex items-center gap-4 p-3 rounded-xl bg-[#2b2d31] border border-gray-700/50">
-          <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500 bg-gray-950 flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-md">
-            <img
-              src={`https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(emailInput)}`}
-              alt={nameInput}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                // Fallback icon
-                (e.target as HTMLElement).style.display = 'none';
-              }}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* User Account Dynamic Card Preview */}
+          <div className="flex items-center gap-3.5 p-3 rounded-xl bg-[#2b2d31] border border-gray-700/50">
+            <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-blue-500 bg-gray-950 flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-md">
+              <img
+                src={`https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(emailInput || 'default')}`}
+                alt="Avatar"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-sans font-semibold text-sm text-white truncate">
+                {displayName}
+              </h3>
+              <p className="font-sans text-xs text-gray-400 truncate">
+                {emailInput || 'Ingresa tu correo abajo'}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-sans font-medium text-gray-300 mb-1">
+              Tu Correo de Gmail:
+            </label>
+            <input
+              type="email"
+              required
+              value={emailInput}
+              onChange={(e) => setEmailInput(e.target.value)}
+              placeholder="tu.cuenta@gmail.com"
+              className="w-full bg-[#1e1f22] border border-gray-700 focus:border-blue-500 text-white font-sans text-xs px-3.5 py-2.5 rounded-lg outline-none transition-all"
             />
           </div>
-          <div className="flex-1 min-w-0">
-            {isEditing ? (
-              <div className="space-y-1.5">
-                <input
-                  type="text"
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  placeholder="Nombre de usuario"
-                  className="w-full bg-[#1e1f22] border border-blue-500 text-white font-sans text-xs px-2.5 py-1 rounded outline-none"
-                />
-                <input
-                  type="email"
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  placeholder="ejemplo@gmail.com"
-                  className="w-full bg-[#1e1f22] border border-gray-600 text-gray-300 font-sans text-xs px-2.5 py-1 rounded outline-none"
-                />
-              </div>
-            ) : (
-              <div>
-                <h3 className="font-sans font-semibold text-sm text-white truncate">
-                  {nameInput}
-                </h3>
-                <p className="font-sans text-xs text-gray-400 truncate">
-                  {emailInput}
-                </p>
-              </div>
-            )}
-          </div>
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            className="text-xs text-blue-400 hover:underline shrink-0 font-sans px-2 py-1"
-          >
-            {isEditing ? 'Guardar' : 'Cambiar'}
-          </button>
-        </div>
 
-        {/* Classic Google Blue Action Button */}
-        <button
-          onClick={handleContinue}
-          className="w-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#104a99] text-white font-sans font-semibold text-sm py-3 px-6 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
-        >
-          <UserCheck className="w-4 h-4" />
-          <span>Continue as {nameInput}</span>
-        </button>
+          <div>
+            <label className="block text-xs font-sans font-medium text-gray-300 mb-1">
+              Tu Nombre de Usuario (Opcional):
+            </label>
+            <input
+              type="text"
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              placeholder="ej. Juan Pérez"
+              className="w-full bg-[#1e1f22] border border-gray-700 focus:border-blue-500 text-white font-sans text-xs px-3.5 py-2.5 rounded-lg outline-none transition-all"
+            />
+          </div>
+
+          {/* Classic Google Blue Action Button */}
+          <button
+            type="submit"
+            className="w-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#104a99] text-white font-sans font-semibold text-sm py-3 px-6 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer mt-2"
+          >
+            <UserCheck className="w-4 h-4" />
+            <span>Continuar como {displayName}</span>
+          </button>
+        </form>
 
         {/* Authentic Google Privacy Disclaimer */}
         <p className="text-[11px] font-sans text-gray-400 leading-relaxed text-left border-t border-gray-800 pt-4">
