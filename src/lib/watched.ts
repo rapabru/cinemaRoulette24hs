@@ -13,7 +13,16 @@ export function getWatchedMovies(): WatchedMovie[] {
   try {
     const raw = localStorage.getItem(WATCHED_STORAGE_KEY);
     if (!raw) return [];
-    return JSON.parse(raw);
+    const list: WatchedMovie[] = JSON.parse(raw);
+    let changed = false;
+    list.forEach((item) => {
+      if (item.id === 102 || item.title.toLowerCase().includes('matrix')) {
+        item.id = 603;
+        changed = true;
+      }
+    });
+    if (changed) saveWatchedMovies(list);
+    return list;
   } catch (err) {
     console.error('Error reading watched list from localStorage:', err);
     return [];

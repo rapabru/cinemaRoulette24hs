@@ -47,7 +47,7 @@ export const MOCK_GENRES: Record<string, Genre[]> = {
 
 export const MOCK_MOVIES: MovieDetails[] = [
   {
-    id: 101,
+    id: 335984,
     title: 'Blade Runner 2049',
     original_title: 'Blade Runner 2049',
     poster_path: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600&auto=format&fit=crop',
@@ -79,7 +79,7 @@ export const MOCK_MOVIES: MovieDetails[] = [
     },
   },
   {
-    id: 102,
+    id: 603,
     title: 'The Matrix',
     original_title: 'The Matrix',
     poster_path: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=600&auto=format&fit=crop',
@@ -111,7 +111,7 @@ export const MOCK_MOVIES: MovieDetails[] = [
     },
   },
   {
-    id: 103,
+    id: 27205,
     title: 'Inception',
     original_title: 'Inception',
     poster_path: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=600&auto=format&fit=crop',
@@ -143,7 +143,7 @@ export const MOCK_MOVIES: MovieDetails[] = [
     },
   },
   {
-    id: 104,
+    id: 680,
     title: 'Pulp Fiction',
     original_title: 'Pulp Fiction',
     poster_path: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=600&auto=format&fit=crop',
@@ -175,7 +175,7 @@ export const MOCK_MOVIES: MovieDetails[] = [
     },
   },
   {
-    id: 105,
+    id: 157336,
     title: 'Interstellar',
     original_title: 'Interstellar',
     poster_path: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=600&auto=format&fit=crop',
@@ -207,7 +207,7 @@ export const MOCK_MOVIES: MovieDetails[] = [
     },
   },
   {
-    id: 106,
+    id: 129,
     title: 'El Viaje de Chihiro',
     original_title: 'Spirited Away',
     poster_path: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?q=80&w=600&auto=format&fit=crop',
@@ -238,7 +238,7 @@ export const MOCK_MOVIES: MovieDetails[] = [
     },
   },
   {
-    id: 107,
+    id: 496243,
     title: 'Parasite',
     original_title: 'Gisaengchung',
     poster_path: 'https://images.unsplash.com/photo-1485846234645-a62644f84728?q=80&w=600&auto=format&fit=crop',
@@ -269,7 +269,7 @@ export const MOCK_MOVIES: MovieDetails[] = [
     },
   },
   {
-    id: 108,
+    id: 57158,
     title: 'Drive',
     original_title: 'Drive',
     poster_path: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?q=80&w=600&auto=format&fit=crop',
@@ -300,7 +300,7 @@ export const MOCK_MOVIES: MovieDetails[] = [
     },
   },
   {
-    id: 109,
+    id: 348,
     title: 'Alien: El Octavo Pasajero',
     original_title: 'Alien',
     poster_path: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?q=80&w=600&auto=format&fit=crop',

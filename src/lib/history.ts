@@ -13,7 +13,16 @@ export function getDrawnHistory(): DrawnHistoryItem[] {
   try {
     const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
     if (!raw) return [];
-    return JSON.parse(raw);
+    const list: DrawnHistoryItem[] = JSON.parse(raw);
+    let changed = false;
+    list.forEach((item) => {
+      if (item.id === 102 || item.title.toLowerCase().includes('matrix')) {
+        item.id = 603;
+        changed = true;
+      }
+    });
+    if (changed) saveDrawnHistory(list);
+    return list;
   } catch (err) {
     console.error('Error reading draw history from localStorage:', err);
     return [];
