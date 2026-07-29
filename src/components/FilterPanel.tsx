@@ -25,30 +25,6 @@ const LANGUAGE_OPTIONS = [
   { code: 'pt', name: 'Português' },
 ];
 
-const COUNTRY_OPTIONS = [
-  { code: '', name: 'Cualquier país de origen' },
-  { code: 'AR', name: '🇦🇷 Argentina' },
-  { code: 'US', name: '🇺🇸 Estados Unidos' },
-  { code: 'ES', name: '🇪🇸 España' },
-  { code: 'MX', name: '🇲🇽 México' },
-  { code: 'FR', name: '🇫🇷 Francia' },
-  { code: 'GB', name: '🇬🇧 Reino Unido' },
-  { code: 'IT', name: '🇮🇹 Italia' },
-  { code: 'DE', name: '🇩🇪 Alemania' },
-  { code: 'JP', name: '🇯🇵 Japón' },
-  { code: 'KR', name: '🇰🇷 Corea del Sur' },
-  { code: 'BR', name: '🇧🇷 Brasil' },
-  { code: 'CL', name: '🇨🇱 Chile' },
-  { code: 'CO', name: '🇨🇴 Colombia' },
-  { code: 'UY', name: '🇺🇾 Uruguay' },
-  { code: 'CA', name: '🇨🇦 Canadá' },
-  { code: 'AU', name: '🇦🇺 Australia' },
-  { code: 'IN', name: '🇮🇳 India' },
-  { code: 'CN', name: '🇨🇳 China' },
-  { code: 'SE', name: '🇸🇪 Suecia' },
-  { code: 'DK', name: '🇩🇰 Dinamarca' },
-];
-
 export const FilterPanel: React.FC<FilterPanelProps> = ({
   filters,
   onChange,
@@ -58,6 +34,31 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(true);
+
+  // Dynamic Country Options according to language
+  const countryOptions = [
+    { code: '', name: i18n.language === 'en' ? 'Any country of origin' : 'Cualquier país de origen' },
+    { code: 'AR', name: '🇦🇷 Argentina' },
+    { code: 'US', name: i18n.language === 'en' ? '🇺🇸 United States' : '🇺🇸 Estados Unidos' },
+    { code: 'ES', name: i18n.language === 'en' ? '🇪🇸 Spain' : '🇪🇸 España' },
+    { code: 'MX', name: i18n.language === 'en' ? '🇲🇽 Mexico' : '🇲🇽 México' },
+    { code: 'FR', name: i18n.language === 'en' ? '🇫🇷 France' : '🇫🇷 Francia' },
+    { code: 'GB', name: i18n.language === 'en' ? '🇬🇧 United Kingdom' : '🇬🇧 Reino Unido' },
+    { code: 'IT', name: i18n.language === 'en' ? '🇮🇹 Italy' : '🇮🇹 Italia' },
+    { code: 'DE', name: i18n.language === 'en' ? '🇩🇪 Germany' : '🇩🇪 Alemania' },
+    { code: 'JP', name: i18n.language === 'en' ? '🇯🇵 Japan' : '🇯🇵 Japón' },
+    { code: 'KR', name: i18n.language === 'en' ? '🇰🇷 South Korea' : '🇰🇷 Corea del Sur' },
+    { code: 'BR', name: i18n.language === 'en' ? '🇧🇷 Brazil' : '🇧🇷 Brasil' },
+    { code: 'CL', name: '🇨🇱 Chile' },
+    { code: 'CO', name: '🇨🇴 Colombia' },
+    { code: 'UY', name: '🇺🇾 Uruguay' },
+    { code: 'CA', name: i18n.language === 'en' ? '🇨🇦 Canada' : '🇨🇦 Canadá' },
+    { code: 'AU', name: '🇦🇺 Australia' },
+    { code: 'IN', name: '🇮🇳 India' },
+    { code: 'CN', name: '🇨🇳 China' },
+    { code: 'SE', name: i18n.language === 'en' ? '🇸🇪 Sweden' : '🇸🇪 Suecia' },
+    { code: 'DK', name: i18n.language === 'en' ? '🇩🇰 Denmark' : '🇩🇰 Dinamarca' },
+  ];
 
   // Actor search state
   const [actorSearchQuery, setActorSearchQuery] = useState(filters.actorName);
@@ -187,7 +188,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           )}
           {filters.country && (
             <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono bg-[var(--neon-green)] text-[var(--bg-void)] font-bold rounded uppercase">
-              País: {filters.country}
+              Country: {filters.country}
             </span>
           )}
         </div>
@@ -214,12 +215,13 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 {t('filters.genres')}
               </label>
               <span className="text-[11px] font-mono text-[var(--neon-cyan)] italic">
-                (Seleccionar varios amplía el catálogo con cualquiera de esos géneros)
+                {t('filters.genre_or_hint')}
               </span>
             </div>
             <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
               {genres.map((g) => {
                 const isSelected = filters.genreIds.includes(g.id);
+                const genreName = g.id === 0 ? (i18n.language === 'en' ? 'Other' : 'Otro') : g.name;
                 return (
                   <button
                     key={g.id}
@@ -231,7 +233,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     }`}
                   >
                     {isSelected && <Check className="w-3 h-3" />}
-                    {g.name}
+                    {genreName}
                   </button>
                 );
               })}
@@ -242,14 +244,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             {/* Director Search Input */}
             <div className="relative">
               <label className="block text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider mb-2">
-                DIRECTOR / DIRECTORA
+                {t('filters.director')}
               </label>
               <div className="relative">
                 <input
                   type="text"
                   value={directorSearchQuery}
                   onChange={(e) => setDirectorSearchQuery(e.target.value)}
-                  placeholder="ej. Christopher Nolan, Tarantino..."
+                  placeholder={t('filters.director_placeholder')}
                   className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 focus:border-[var(--neon-amber)] text-[var(--ink-light)] font-mono text-xs px-3 py-2 pr-8 rounded outline-none transition-all"
                 />
                 <Clapperboard className="w-4 h-4 text-[var(--neon-amber)] absolute right-2.5 top-2.5 pointer-events-none" />
@@ -322,14 +324,14 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             {/* Country of Origin Dropdown */}
             <div>
               <label className="block text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider mb-2">
-                PAÍS DE ORIGEN
+                {t('filters.country')}
               </label>
               <select
                 value={filters.country}
                 onChange={(e) => onChange({ ...filters, country: e.target.value })}
                 className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 focus:border-[var(--neon-amber)] text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none cursor-pointer font-bold"
               >
-                {COUNTRY_OPTIONS.map((opt) => (
+                {countryOptions.map((opt) => (
                   <option key={opt.code} value={opt.code}>
                     {opt.name}
                   </option>
@@ -367,7 +369,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
-                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">Desde (año)</span>
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">{t('filters.from_year')}</span>
                   <input
                     type="number"
                     min="1900"
@@ -379,7 +381,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </div>
                 <span className="text-[var(--ink-muted)] mt-4">-</span>
                 <div className="flex-1">
-                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">Hasta (año)</span>
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">{t('filters.to_year')}</span>
                   <input
                     type="number"
                     min={filters.yearFrom}
@@ -396,7 +398,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             <div>
               <div className="flex justify-between items-center mb-2">
                 <label className="text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider">
-                  Calificación (Mín y Máx)
+                  {t('filters.rating_range')}
                 </label>
                 <span className="text-xs font-mono text-[var(--neon-green)] font-bold">
                   ★ {filters.minRating} – {filters.maxRating} / 10
@@ -404,7 +406,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
-                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">Mínima</span>
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">{t('filters.min_rating_label')}</span>
                   <input
                     type="number"
                     min="0"
@@ -417,7 +419,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </div>
                 <span className="text-[var(--ink-muted)] mt-4">-</span>
                 <div className="flex-1">
-                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">Máxima</span>
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">{t('filters.max_rating_label')}</span>
                   <input
                     type="number"
                     min={filters.minRating}
@@ -443,7 +445,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
-                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">Desde (min)</span>
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">{t('filters.from_min')}</span>
                   <input
                     type="number"
                     min="0"
@@ -455,7 +457,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </div>
                 <span className="text-[var(--ink-muted)] mt-4">-</span>
                 <div className="flex-1">
-                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">Hasta (min)</span>
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">{t('filters.to_min')}</span>
                   <input
                     type="number"
                     min={filters.minRuntime}
@@ -491,7 +493,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </div>
 
                 <span className="tracking-wider">
-                  {filters.skipWatched ? 'OMITIR VISTAS: SÍ ✔' : 'OMITIR VISTAS: NO ✖'}
+                  {filters.skipWatched ? t('filters.skip_watched_yes') : t('filters.skip_watched_no')}
                 </span>
               </button>
 

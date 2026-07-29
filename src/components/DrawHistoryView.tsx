@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { History, Search, Trash2, Calendar, Star, Check, Dices } from 'lucide-react';
 import type { DrawnHistoryItem } from '../lib/history';
 import { getImageUrl } from '../lib/tmdb';
@@ -20,6 +21,7 @@ export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
   onToggleWatched,
   onSortearAgain,
 }) => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredList = historyList.filter((m) =>
@@ -31,17 +33,17 @@ export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
       <div className="my-12 p-8 text-center bg-[var(--bg-panel)] border-2 border-dashed border-[var(--neon-amber)]/40 rounded-xl max-w-xl mx-auto space-y-4">
         <History className="w-12 h-12 text-[var(--neon-amber)] mx-auto animate-pulse" />
         <h3 className="font-display text-sm text-[var(--neon-amber)] uppercase">
-          HISTORIAL DE SORTEOS VACÍO
+          {t('history.empty')}
         </h3>
         <p className="text-xs font-mono text-[var(--ink-muted)] leading-relaxed">
-          Cada vez que presiones el botón "SORTEAR PELÍCULA", los resultados se guardarán automáticamente aquí en tu historial.
+          {t('history.empty_hint')}
         </p>
         <button
           onClick={onSortearAgain}
           className="mt-2 inline-flex items-center gap-2 bg-[var(--neon-amber)] text-[var(--bg-void)] font-bold font-mono text-xs py-2.5 px-4 rounded-lg shadow-neon-amber hover:bg-[var(--neon-amber)]/80 transition-all cursor-pointer"
         >
           <Dices className="w-4 h-4" />
-          <span>¡Probar un Sorteo Ahora!</span>
+          <span>{t('history.try_draw')}</span>
         </button>
       </div>
     );
@@ -57,10 +59,10 @@ export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
           </div>
           <div>
             <h2 className="font-display text-xs sm:text-sm text-[var(--neon-amber)] uppercase tracking-wider">
-              HISTORIAL DE SORTEOS
+              {t('history.title')}
             </h2>
             <p className="text-xs font-mono text-[var(--ink-muted)]">
-              Total sorteados: <strong className="text-[var(--neon-cyan)]">{historyList.length}</strong>
+              {t('history.total_draws')}: <strong className="text-[var(--neon-cyan)]">{historyList.length.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}</strong>
             </p>
           </div>
         </div>
@@ -72,7 +74,7 @@ export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar en el historial..."
+              placeholder={t('history.search_placeholder')}
               className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 focus:border-[var(--neon-amber)] text-[var(--ink-light)] font-mono text-xs px-3 py-2 pl-9 rounded outline-none transition-all"
             />
             <Search className="w-4 h-4 text-[var(--ink-muted)] absolute left-2.5 top-2.5" />
@@ -81,11 +83,11 @@ export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
           {/* Clear History Button */}
           <button
             onClick={onClearHistory}
-            title="Borrar historial"
-            className="p-2 rounded bg-[var(--bg-void)] border border-red-500/30 hover:border-red-500 text-red-400 text-xs font-mono flex items-center gap-1 transition-colors shrink-0"
+            title={t('history.clear')}
+            className="p-2 rounded bg-[var(--bg-void)] border border-red-500/30 hover:border-red-500 text-red-400 text-xs font-mono flex items-center gap-1 transition-colors shrink-0 cursor-pointer"
           >
             <Trash2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Limpiar</span>
+            <span className="hidden sm:inline">{t('history.clear')}</span>
           </button>
         </div>
       </div>

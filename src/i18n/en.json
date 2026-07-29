@@ -8,6 +8,7 @@
   "nav": {
     "catalog": "Catalog",
     "watched": "Watched List",
+    "history": "Draw History",
     "api_key": "API Key",
     "theme_night": "Night Mode (2 AM)",
     "theme_midday": "Midday Mode (12 PM)"
@@ -29,14 +30,27 @@
   "filters": {
     "title": "CONTROL PANEL",
     "genres": "Genres",
+    "genre_or_hint": "(Selecting multiple expands the catalog with any of those genres)",
     "all_genres": "All Genres",
-    "actor": "Actor / Actress",
+    "director": "DIRECTOR",
+    "director_placeholder": "e.g. Christopher Nolan, Tarantino...",
+    "actor": "ACTOR / ACTRESS",
     "actor_placeholder": "Type a name...",
-    "year_range": "Release Year",
-    "language": "Original Language",
+    "country": "COUNTRY OF ORIGIN",
+    "all_countries": "Any country of origin",
+    "year_range": "RELEASE YEAR",
+    "from_year": "From (year)",
+    "to_year": "To (year)",
+    "language": "ORIGINAL LANGUAGE",
     "all_languages": "Any Language",
-    "min_rating": "Min Rating",
-    "runtime_range": "Runtime (minutes)",
+    "rating_range": "RATING (MIN & MAX)",
+    "min_rating_label": "Minimum",
+    "max_rating_label": "Maximum",
+    "runtime_range": "RUNTIME (MINUTES)",
+    "from_min": "From (min)",
+    "to_min": "To (min)",
+    "skip_watched_yes": "SKIP WATCHED: YES ✔",
+    "skip_watched_no": "SKIP WATCHED: NO ✖",
     "skip_watched": "Skip already watched",
     "clear_filters": "Clear Filters",
     "results_count": "Results found"
@@ -54,6 +68,15 @@
     "search_placeholder": "Search watched movies...",
     "unmark": "Remove"
   },
+  "history": {
+    "title": "DRAW HISTORY",
+    "empty": "DRAW HISTORY IS EMPTY",
+    "empty_hint": "Every time you click \"RANDOM DRAW MOVIE\", the results will be automatically saved here in your history.",
+    "try_draw": "Try a Draw Now!",
+    "total_draws": "Total drawn",
+    "search_placeholder": "Search draw history...",
+    "clear": "Clear"
+  },
   "api_modal": {
     "title": "API KEY CONFIGURATION",
     "description": "Enter your free The Movie Database (TMDB) API v3 key to access over 1,000,000+ movies.",
@@ -62,6 +85,7 @@
     "placeholder": "e.g. 8a7f9b2c3d...",
     "save": "Save Key",
     "use_demo": "Use Demo Key",
+    "official_demo": "Add official demo API key",
     "current_status": "Status:"
   },
   "errors": {

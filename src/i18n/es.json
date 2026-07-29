@@ -8,6 +8,7 @@
   "nav": {
     "catalog": "Catálogo",
     "watched": "La Vi (Vistas)",
+    "history": "Historial",
     "api_key": "API Key",
     "theme_night": "Modo Noche (2 AM)",
     "theme_midday": "Modo Día (12 PM)"
@@ -29,14 +30,27 @@
   "filters": {
     "title": "PANEL DE CONTROL",
     "genres": "Géneros",
+    "genre_or_hint": "(Seleccionar varios amplía el catálogo con cualquiera de esos géneros)",
     "all_genres": "Todos los géneros",
-    "actor": "Actor / Actriz",
+    "director": "DIRECTOR / DIRECTORA",
+    "director_placeholder": "ej. Christopher Nolan, Tarantino...",
+    "actor": "ACTOR / ACTRIZ",
     "actor_placeholder": "Escribe un nombre...",
-    "year_range": "Año de estreno",
-    "language": "Idioma original",
+    "country": "PAÍS DE ORIGEN",
+    "all_countries": "Cualquier país de origen",
+    "year_range": "AÑO DE ESTRENO",
+    "from_year": "Desde (año)",
+    "to_year": "Hasta (año)",
+    "language": "IDIOMA ORIGINAL",
     "all_languages": "Cualquier idioma",
-    "min_rating": "Calificación mínima",
-    "runtime_range": "Duración (minutos)",
+    "rating_range": "CALIFICACIÓN (MÍN Y MÁX)",
+    "min_rating_label": "Mínima",
+    "max_rating_label": "Máxima",
+    "runtime_range": "DURACIÓN (MINUTOS)",
+    "from_min": "Desde (min)",
+    "to_min": "Hasta (min)",
+    "skip_watched_yes": "OMITIR VISTAS: SÍ ✔",
+    "skip_watched_no": "OMITIR VISTAS: NO ✖",
     "skip_watched": "Omitir ya vistas",
     "clear_filters": "Limpiar filtros",
     "results_count": "Resultados encontrados"
@@ -54,6 +68,15 @@
     "search_placeholder": "Buscar en mis películas vistas...",
     "unmark": "Eliminar"
   },
+  "history": {
+    "title": "HISTORIAL DE SORTEOS",
+    "empty": "HISTORIAL DE SORTEOS VACÍO",
+    "empty_hint": "Cada vez que presiones el botón \"SORTEAR PELÍCULA\", los resultados se guardarán automáticamente aquí en tu historial.",
+    "try_draw": "¡Probar un Sorteo Ahora!",
+    "total_draws": "Total sorteados",
+    "search_placeholder": "Buscar en el historial...",
+    "clear": "Limpiar"
+  },
   "api_modal": {
     "title": "CONFIGURACIÓN DE API KEY",
     "description": "Ingresa tu API Key gratuita de The Movie Database (TMDB) v3 para acceder a más de 1.000.000 de películas.",
@@ -62,6 +85,7 @@
     "placeholder": "ej. 8a7f9b2c3d...",
     "save": "Guardar Clave",
     "use_demo": "Usar clave de prueba (Demo)",
+    "official_demo": "Agregar API key de prueba oficial",
     "current_status": "Estado:"
   },
   "errors": {

@@ -124,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <History className="w-3.5 h-3.5" />
-            <span>Historial</span>
+            <span>{t('nav.history')}</span>
             {historyCount > 0 && (
               <span className="ml-1 px-1.5 py-0.2 text-[10px] rounded-full bg-[var(--bg-void)] text-[var(--neon-amber)] font-mono font-bold border border-[var(--neon-amber)]">
                 {historyCount}
