@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SlidersHorizontal, ChevronDown, ChevronUp, User, RotateCcw, Check } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown, ChevronUp, User, Clapperboard, RotateCcw, Check } from 'lucide-react';
 import { searchPerson } from '../lib/tmdb';
 import type { Genre, FilterState, PersonResult } from '../lib/tmdb';
 
@@ -41,6 +41,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const [showActorDropdown, setShowActorDropdown] = useState(false);
   const actorSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Director search state
+  const [directorSearchQuery, setDirectorSearchQuery] = useState(filters.directorName);
+  const [directorResults, setDirectorResults] = useState<PersonResult[]>([]);
+  const [showDirectorDropdown, setShowDirectorDropdown] = useState(false);
+  const directorSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Debounced actor search
   useEffect(() => {
     if (actorSearchTimeout.current) clearTimeout(actorSearchTimeout.current);
@@ -67,6 +73,32 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     };
   }, [actorSearchQuery, i18n.language]);
 
+  // Debounced director search
+  useEffect(() => {
+    if (directorSearchTimeout.current) clearTimeout(directorSearchTimeout.current);
+
+    if (!directorSearchQuery.trim()) {
+      setDirectorResults([]);
+      setShowDirectorDropdown(false);
+      if (filters.directorId !== null) {
+        onChange({ ...filters, directorId: null, directorName: '' });
+      }
+      return;
+    }
+
+    if (directorSearchQuery === filters.directorName) return;
+
+    directorSearchTimeout.current = setTimeout(async () => {
+      const results = await searchPerson(directorSearchQuery, i18n.language);
+      setDirectorResults(results);
+      setShowDirectorDropdown(results.length > 0);
+    }, 300);
+
+    return () => {
+      if (directorSearchTimeout.current) clearTimeout(directorSearchTimeout.current);
+    };
+  }, [directorSearchQuery, i18n.language]);
+
   const toggleGenre = (genreId: number) => {
     const isSelected = filters.genreIds.includes(genreId);
     const updated = isSelected
@@ -86,6 +118,19 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     setActorResults([]);
     setShowActorDropdown(false);
     onChange({ ...filters, actorId: null, actorName: '' });
+  };
+
+  const handleSelectDirector = (person: PersonResult) => {
+    setDirectorSearchQuery(person.name);
+    setShowDirectorDropdown(false);
+    onChange({ ...filters, directorId: person.id, directorName: person.name });
+  };
+
+  const handleClearDirector = () => {
+    setDirectorSearchQuery('');
+    setDirectorResults([]);
+    setShowDirectorDropdown(false);
+    onChange({ ...filters, directorId: null, directorName: '' });
   };
 
   return (
@@ -109,6 +154,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           {filters.actorName && (
             <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono bg-[var(--neon-cyan)] text-[var(--bg-void)] font-bold rounded">
               Actor: {filters.actorName}
+            </span>
+          )}
+          {filters.directorName && (
+            <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono bg-[var(--neon-amber)] text-[var(--bg-void)] font-bold rounded">
+              Director: {filters.directorName}
             </span>
           )}
         </div>
@@ -159,7 +209,47 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Director Search Input */}
+            <div className="relative">
+              <label className="block text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider mb-2">
+                DIRECTOR / DIRECTORA
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={directorSearchQuery}
+                  onChange={(e) => setDirectorSearchQuery(e.target.value)}
+                  placeholder="ej. Christopher Nolan, Tarantino..."
+                  className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 focus:border-[var(--neon-amber)] text-[var(--ink-light)] font-mono text-xs px-3 py-2 pr-8 rounded outline-none transition-all"
+                />
+                <Clapperboard className="w-4 h-4 text-[var(--neon-amber)] absolute right-2.5 top-2.5 pointer-events-none" />
+                {directorSearchQuery && (
+                  <button
+                    onClick={handleClearDirector}
+                    className="absolute right-8 top-2 text-xs text-[var(--ink-muted)] hover:text-[var(--neon-magenta)]"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+
+              {/* Autocomplete Dropdown */}
+              {showDirectorDropdown && (
+                <div className="absolute z-30 w-full mt-1 bg-[var(--bg-panel)] border border-[var(--neon-amber)] rounded shadow-neon-amber max-h-48 overflow-y-auto">
+                  {directorResults.map((person) => (
+                    <div
+                      key={person.id}
+                      onClick={() => handleSelectDirector(person)}
+                      className="px-3 py-2 text-xs font-mono text-[var(--ink-light)] hover:bg-[var(--neon-amber)]/20 hover:text-[var(--neon-amber)] cursor-pointer transition-colors border-b border-[var(--ink-muted)]/10 last:border-0"
+                    >
+                      {person.name} <span className="text-[10px] text-[var(--ink-muted)]">({person.known_for_department || 'Director'})</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Actor Search Input */}
             <div className="relative">
               <label className="block text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider mb-2">
@@ -326,7 +416,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
 
             {/* High Contrast Skip Watched Toggle Switch & Clear Button */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 md:col-span-2 lg:col-span-1">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 md:col-span-2 lg:col-span-2">
               <button
                 type="button"
                 onClick={() => onChange({ ...filters, skipWatched: !filters.skipWatched })}
@@ -355,6 +445,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               <button
                 onClick={() => {
                   setActorSearchQuery('');
+                  setDirectorSearchQuery('');
                   onReset();
                 }}
                 className="flex items-center gap-1.5 px-3 py-2 rounded text-xs font-mono text-[var(--neon-magenta)] hover:bg-[var(--neon-magenta)]/10 transition-colors border border-[var(--neon-magenta)]/30 cursor-pointer"

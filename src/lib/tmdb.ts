@@ -58,6 +58,8 @@ export interface FilterState {
   genreIds: number[];
   actorId: number | null;
   actorName: string;
+  directorId: number | null;
+  directorName: string;
   yearFrom: number;
   yearTo: number;
   language: string;
@@ -72,6 +74,8 @@ export const DEFAULT_FILTERS: FilterState = {
   genreIds: [],
   actorId: null,
   actorName: '',
+  directorId: null,
+  directorName: '',
   yearFrom: 1900,
   yearTo: new Date().getFullYear(),
   language: '',
@@ -199,6 +203,12 @@ function getMockDiscoverResponse(filters: FilterState): DiscoverResponse {
     if (filters.minRating && movie.vote_average < filters.minRating) return false;
     if (filters.maxRating !== undefined && filters.maxRating < 10 && movie.vote_average > filters.maxRating) return false;
     if (filters.language && movie.original_language !== filters.language) return false;
+    if (filters.directorId) {
+      const hasDirector = movie.credits?.crew?.some(
+        (c) => c.job === 'Director' && (c.id === filters.directorId || c.name.toLowerCase().includes(filters.directorName.toLowerCase()))
+      );
+      if (!hasDirector) return false;
+    }
     if (filters.genreIds.length > 0) {
       const includesOtro = filters.genreIds.includes(0);
       const standardGids = filters.genreIds.filter((id) => id !== 0);
@@ -247,6 +257,9 @@ export async function discoverMovies(
   }
   if (filters.actorId) {
     params.with_cast = filters.actorId;
+  }
+  if (filters.directorId) {
+    params.with_crew = filters.directorId;
   }
   if (filters.yearFrom) {
     params['primary_release_date.gte'] = `${filters.yearFrom}-01-01`;
