@@ -1,7 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, UserCheck } from 'lucide-react';
-import { createGoogleSession, getStoredGoogleUser } from '../lib/auth';
+import { createGoogleSession, createGoogleSessionFromCredential, getStoredGoogleUser, GOOGLE_CLIENT_ID } from '../lib/auth';
 import type { GoogleUser } from '../lib/auth';
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: { client_id: string; callback: (response: { credential: string }) => void }) => void;
+          renderButton: (parent: HTMLElement, options: Record<string, unknown>) => void;
+          prompt: () => void;
+        };
+      };
+    };
+  }
+}
 
 interface GoogleLoginModalProps {
   isOpen: boolean;
@@ -17,6 +31,8 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({
   const existingUser = getStoredGoogleUser();
   const [emailInput, setEmailInput] = useState(existingUser?.email || '');
   const [nameInput, setNameInput] = useState(existingUser?.displayName || '');
+  const [useManualInput, setUseManualInput] = useState(false);
+  const googleBtnRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -25,12 +41,45 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({
         setEmailInput(current.email);
         setNameInput(current.displayName);
       }
+
+      // Initialize Official Google Identity Services SDK
+      const timer = setTimeout(() => {
+        if (window.google?.accounts?.id && googleBtnRef.current) {
+          try {
+            window.google.accounts.id.initialize({
+              client_id: GOOGLE_CLIENT_ID,
+              callback: (response: { credential: string }) => {
+                if (response?.credential) {
+                  const user = createGoogleSessionFromCredential(response.credential);
+                  onLoginSuccess(user);
+                  onClose();
+                }
+              },
+            });
+
+            googleBtnRef.current.innerHTML = '';
+            window.google.accounts.id.renderButton(googleBtnRef.current, {
+              theme: 'filled_blue',
+              size: 'large',
+              type: 'standard',
+              shape: 'pill',
+              text: 'continue_with',
+              logo_alignment: 'left',
+              width: 320,
+            });
+          } catch (err) {
+            console.error('Error rendering official Google Sign-In button:', err);
+          }
+        }
+      }, 150);
+
+      return () => clearTimeout(timer);
     }
-  }, [isOpen]);
+  }, [isOpen, onLoginSuccess, onClose]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmitManual = (e: React.FormEvent) => {
     e.preventDefault();
     const finalEmail = emailInput.trim() ? (emailInput.includes('@') ? emailInput : `${emailInput}@gmail.com`) : 'usuario.cine@gmail.com';
     const finalName = nameInput.trim() || undefined;
@@ -78,62 +127,76 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* User Account Dynamic Card Preview */}
-          <div className="flex items-center gap-3.5 p-3 rounded-xl bg-[#2b2d31] border border-gray-700/50">
-            <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-blue-500 bg-gray-950 flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-md">
-              <img
-                src={`https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(emailInput || 'default')}`}
-                alt="Avatar"
-                className="w-full h-full object-cover"
+        {/* Official Google Sign-In Button Container */}
+        <div className="py-2 flex flex-col items-center justify-center space-y-3">
+          <div ref={googleBtnRef} className="min-h-[44px] flex items-center justify-center" />
+
+          <button
+            type="button"
+            onClick={() => setUseManualInput(!useManualInput)}
+            className="text-xs font-sans text-gray-400 hover:text-blue-400 underline transition-colors cursor-pointer"
+          >
+            {useManualInput ? '« Usar botón oficial de Google' : '¿Problemas con el botón? Ingresa tu correo a mano'}
+          </button>
+        </div>
+
+        {/* Manual Fallback Input Form */}
+        {useManualInput && (
+          <form onSubmit={handleSubmitManual} className="space-y-4 pt-2 border-t border-gray-800 animate-fade-in">
+            <div className="flex items-center gap-3.5 p-3 rounded-xl bg-[#2b2d31] border border-gray-700/50">
+              <div className="w-10 h-10 rounded-full overflow-hidden border border-blue-500 bg-gray-950 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                <img
+                  src={`https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(emailInput || 'default')}`}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-sans font-semibold text-xs text-white truncate">
+                  {displayName}
+                </h3>
+                <p className="font-sans text-[11px] text-gray-400 truncate">
+                  {emailInput || 'Ingresa tu correo abajo'}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-sans font-medium text-gray-300 mb-1">
+                Tu Correo de Gmail:
+              </label>
+              <input
+                type="email"
+                required
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                placeholder="tu.cuenta@gmail.com"
+                className="w-full bg-[#1e1f22] border border-gray-700 focus:border-blue-500 text-white font-sans text-xs px-3.5 py-2.5 rounded-lg outline-none transition-all"
               />
             </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-sans font-semibold text-sm text-white truncate">
-                {displayName}
-              </h3>
-              <p className="font-sans text-xs text-gray-400 truncate">
-                {emailInput || 'Ingresa tu correo abajo'}
-              </p>
+
+            <div>
+              <label className="block text-xs font-sans font-medium text-gray-300 mb-1">
+                Nombre de Usuario (Opcional):
+              </label>
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                placeholder="ej. Alex Cinefilo"
+                className="w-full bg-[#1e1f22] border border-gray-700 focus:border-blue-500 text-white font-sans text-xs px-3.5 py-2.5 rounded-lg outline-none transition-all"
+              />
             </div>
-          </div>
 
-          <div>
-            <label className="block text-xs font-sans font-medium text-gray-300 mb-1">
-              Tu Correo de Gmail:
-            </label>
-            <input
-              type="email"
-              required
-              value={emailInput}
-              onChange={(e) => setEmailInput(e.target.value)}
-              placeholder="tu.cuenta@gmail.com"
-              className="w-full bg-[#1e1f22] border border-gray-700 focus:border-blue-500 text-white font-sans text-xs px-3.5 py-2.5 rounded-lg outline-none transition-all"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-sans font-medium text-gray-300 mb-1">
-              Tu Nombre de Usuario (Opcional):
-            </label>
-            <input
-              type="text"
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              placeholder="ej. Juan Pérez"
-              className="w-full bg-[#1e1f22] border border-gray-700 focus:border-blue-500 text-white font-sans text-xs px-3.5 py-2.5 rounded-lg outline-none transition-all"
-            />
-          </div>
-
-          {/* Classic Google Blue Action Button */}
-          <button
-            type="submit"
-            className="w-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#104a99] text-white font-sans font-semibold text-sm py-3 px-6 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer mt-2"
-          >
-            <UserCheck className="w-4 h-4" />
-            <span>Continuar como {displayName}</span>
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="w-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#104a99] text-white font-sans font-semibold text-xs py-2.5 px-4 rounded-full shadow-lg flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <UserCheck className="w-4 h-4" />
+              <span>Continuar como {displayName}</span>
+            </button>
+          </form>
+        )}
 
         {/* Authentic Google Privacy Disclaimer */}
         <p className="text-[11px] font-sans text-gray-400 leading-relaxed text-left border-t border-gray-800 pt-4">
