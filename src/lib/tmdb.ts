@@ -82,6 +82,9 @@ export const DEFAULT_FILTERS: FilterState = {
   skipWatched: true,
 };
 
+export const OFFICIAL_DEMO_KEY =
+  'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyNTQwMjhjMDFmYmQ0NzllZmI1ZmUxZjJjYjIxZDgwMyIsIm5iZiI6MTc4NTI5NDg4OS4xNCwic3ViIjoiNmE2OTcwMjljYmRlYjMwMTEzMjQwMmI5Iiwic2NvcGVzIjpbImFwaV9yZWFkIl0sInZlcnNpb24iOjF9.0BT1Bj6_bkCipGn_etrrXOo5-skNLhkce1c7YMjZQr4';
+
 const STORAGE_KEY_API = 'cyber_tmdb_api_key';
 
 export function getStoredApiKey(): string {
@@ -89,7 +92,8 @@ export function getStoredApiKey(): string {
   if (customKey && customKey.trim().length > 0) return customKey.trim();
   const envKey = import.meta.env.VITE_TMDB_API_KEY;
   if (envKey && envKey.trim().length > 0) return envKey.trim();
-  return '';
+  // Default to official TMDB Bearer Token so catalog always works 100%
+  return OFFICIAL_DEMO_KEY;
 }
 
 export function setStoredApiKey(key: string): void {

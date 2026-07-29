@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Key, ExternalLink, X, Check, ShieldAlert } from 'lucide-react';
-import { getStoredApiKey, setStoredApiKey } from '../lib/tmdb';
+import { getStoredApiKey, setStoredApiKey, OFFICIAL_DEMO_KEY } from '../lib/tmdb';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
@@ -27,10 +27,9 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onKey
     }, 600);
   };
 
-  const handleUseDemo = () => {
-    const demoKey = '8a7f9b2c3d4e5f6a7b8c9d0e1f2a3b4c';
-    setApiKeyInput(demoKey);
-    setStoredApiKey(demoKey);
+  const handleUseOfficialDemoKey = () => {
+    setApiKeyInput(OFFICIAL_DEMO_KEY);
+    setStoredApiKey(OFFICIAL_DEMO_KEY);
     setSavedSuccess(true);
     setTimeout(() => {
       setSavedSuccess(false);
@@ -87,35 +86,38 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onKey
           </div>
 
           {savedSuccess && (
-            <div className="flex items-center gap-2 text-xs text-[var(--neon-green)] font-mono py-1">
+            <div className="flex items-center gap-2 text-xs text-[var(--neon-green)] font-mono py-1 font-bold">
               <Check className="w-4 h-4" /> API Key guardada correctamente.
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+          <div className="space-y-3 pt-2">
             <button
               type="submit"
-              className="flex-1 bg-[var(--neon-cyan)] hover:bg-[var(--neon-cyan)]/80 text-[var(--bg-void)] font-bold font-mono text-sm py-2.5 px-4 rounded transition-all flex items-center justify-center gap-2 shadow-neon-cyan"
+              className="w-full bg-[var(--neon-cyan)] hover:bg-[var(--neon-cyan)]/80 text-[var(--bg-void)] font-bold font-mono text-sm py-2.5 px-4 rounded transition-all flex items-center justify-center gap-2 shadow-neon-cyan cursor-pointer"
             >
               <Check className="w-4 h-4" /> {t('api_modal.save')}
             </button>
+
+            {/* Official Demo API Key Button */}
             <button
               type="button"
-              onClick={handleUseDemo}
-              className="border border-[var(--neon-amber)] text-[var(--neon-amber)] hover:bg-[var(--neon-amber)]/10 font-mono text-xs py-2.5 px-4 rounded transition-all"
+              onClick={handleUseOfficialDemoKey}
+              className="w-full bg-[var(--neon-green)] hover:bg-[var(--neon-green)]/80 text-[var(--bg-void)] font-bold font-mono text-xs py-3 px-4 rounded shadow-neon-green flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
-              {t('api_modal.use_demo')}
+              <Check className="w-4 h-4" />
+              <span>Agregar API key de prueba oficial</span>
             </button>
           </div>
         </form>
 
         <div className="mt-6 pt-4 border-t border-[var(--ink-muted)]/20 flex items-center justify-between text-xs text-[var(--ink-muted)] font-mono">
           <span className="flex items-center gap-1.5">
-            <ShieldAlert className="w-3.5 h-3.5 text-[var(--neon-magenta)]" />
+            <ShieldAlert className="w-3.5 h-3.5 text-[var(--neon-green)]" />
             {t('api_modal.current_status')}
           </span>
-          <span className={getStoredApiKey() ? 'text-[var(--neon-green)] font-semibold' : 'text-[var(--neon-amber)]'}>
-            {getStoredApiKey() ? 'API Key Configurada' : 'Usando Demo Key'}
+          <span className="text-[var(--neon-green)] font-semibold">
+            API Key Configurada
           </span>
         </div>
       </div>
