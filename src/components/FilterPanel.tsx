@@ -366,23 +366,29 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="1900"
-                  max={filters.yearTo}
-                  value={filters.yearFrom}
-                  onChange={(e) => onChange({ ...filters, yearFrom: Number(e.target.value) })}
-                  className="w-1/2 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center font-bold"
-                />
-                <span className="text-[var(--ink-muted)]">-</span>
-                <input
-                  type="number"
-                  min={filters.yearFrom}
-                  max={new Date().getFullYear()}
-                  value={filters.yearTo}
-                  onChange={(e) => onChange({ ...filters, yearTo: Number(e.target.value) })}
-                  className="w-1/2 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center font-bold"
-                />
+                <div className="flex-1">
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">Desde (año)</span>
+                  <input
+                    type="number"
+                    min="1900"
+                    max={filters.yearTo}
+                    value={filters.yearFrom}
+                    onChange={(e) => onChange({ ...filters, yearFrom: Number(e.target.value) })}
+                    className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
+                  />
+                </div>
+                <span className="text-[var(--ink-muted)] mt-4">-</span>
+                <div className="flex-1">
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">Hasta (año)</span>
+                  <input
+                    type="number"
+                    min={filters.yearFrom}
+                    max={new Date().getFullYear()}
+                    value={filters.yearTo}
+                    onChange={(e) => onChange({ ...filters, yearTo: Number(e.target.value) })}
+                    className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
+                  />
+                </div>
               </div>
             </div>
 
@@ -406,7 +412,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     step="0.5"
                     value={filters.minRating}
                     onChange={(e) => onChange({ ...filters, minRating: Math.max(0, Math.min(10, Number(e.target.value))) })}
-                    className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center font-bold"
+                    className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
                 <span className="text-[var(--ink-muted)] mt-4">-</span>
@@ -419,7 +425,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     step="0.5"
                     value={filters.maxRating}
                     onChange={(e) => onChange({ ...filters, maxRating: Math.max(0, Math.min(10, Number(e.target.value))) })}
-                    className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center font-bold"
+                    className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
               </div>
@@ -444,7 +450,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     max={filters.maxRuntime}
                     value={filters.minRuntime}
                     onChange={(e) => onChange({ ...filters, minRuntime: Math.max(0, Number(e.target.value)) })}
-                    className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center font-bold"
+                    className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
                 <span className="text-[var(--ink-muted)] mt-4">-</span>
@@ -456,7 +462,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     max="600"
                     value={filters.maxRuntime}
                     onChange={(e) => onChange({ ...filters, maxRuntime: Math.max(0, Number(e.target.value)) })}
-                    className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center font-bold"
+                    className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
               </div>
