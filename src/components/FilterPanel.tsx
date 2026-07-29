@@ -25,6 +25,30 @@ const LANGUAGE_OPTIONS = [
   { code: 'pt', name: 'Português' },
 ];
 
+const COUNTRY_OPTIONS = [
+  { code: '', name: 'Cualquier país de origen' },
+  { code: 'AR', name: '🇦🇷 Argentina' },
+  { code: 'US', name: '🇺🇸 Estados Unidos' },
+  { code: 'ES', name: '🇪🇸 España' },
+  { code: 'MX', name: '🇲🇽 México' },
+  { code: 'FR', name: '🇫🇷 Francia' },
+  { code: 'GB', name: '🇬🇧 Reino Unido' },
+  { code: 'IT', name: '🇮🇹 Italia' },
+  { code: 'DE', name: '🇩🇪 Alemania' },
+  { code: 'JP', name: '🇯🇵 Japón' },
+  { code: 'KR', name: '🇰🇷 Corea del Sur' },
+  { code: 'BR', name: '🇧🇷 Brasil' },
+  { code: 'CL', name: '🇨🇱 Chile' },
+  { code: 'CO', name: '🇨🇴 Colombia' },
+  { code: 'UY', name: '🇺🇾 Uruguay' },
+  { code: 'CA', name: '🇨🇦 Canadá' },
+  { code: 'AU', name: '🇦🇺 Australia' },
+  { code: 'IN', name: '🇮🇳 India' },
+  { code: 'CN', name: '🇨🇳 China' },
+  { code: 'SE', name: '🇸🇪 Suecia' },
+  { code: 'DK', name: '🇩🇰 Dinamarca' },
+];
+
 export const FilterPanel: React.FC<FilterPanelProps> = ({
   filters,
   onChange,
@@ -161,6 +185,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               Director: {filters.directorName}
             </span>
           )}
+          {filters.country && (
+            <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono bg-[var(--neon-green)] text-[var(--bg-void)] font-bold rounded uppercase">
+              País: {filters.country}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
@@ -290,6 +319,42 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               )}
             </div>
 
+            {/* Country of Origin Dropdown */}
+            <div>
+              <label className="block text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider mb-2">
+                PAÍS DE ORIGEN
+              </label>
+              <select
+                value={filters.country}
+                onChange={(e) => onChange({ ...filters, country: e.target.value })}
+                className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 focus:border-[var(--neon-amber)] text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none cursor-pointer font-bold"
+              >
+                {COUNTRY_OPTIONS.map((opt) => (
+                  <option key={opt.code} value={opt.code}>
+                    {opt.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Original Language Dropdown */}
+            <div>
+              <label className="block text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider mb-2">
+                {t('filters.language')}
+              </label>
+              <select
+                value={filters.language}
+                onChange={(e) => onChange({ ...filters, language: e.target.value })}
+                className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 focus:border-[var(--neon-cyan)] text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none cursor-pointer font-bold"
+              >
+                {LANGUAGE_OPTIONS.map((opt) => (
+                  <option key={opt.code} value={opt.code}>
+                    {opt.name || t(opt.nameKey!)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Year Range */}
             <div>
               <div className="flex justify-between items-center mb-2">
@@ -319,24 +384,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   className="w-1/2 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none text-center font-bold"
                 />
               </div>
-            </div>
-
-            {/* Original Language Dropdown */}
-            <div>
-              <label className="block text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider mb-2">
-                {t('filters.language')}
-              </label>
-              <select
-                value={filters.language}
-                onChange={(e) => onChange({ ...filters, language: e.target.value })}
-                className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 focus:border-[var(--neon-cyan)] text-[var(--ink-light)] font-mono text-xs p-2 rounded outline-none cursor-pointer"
-              >
-                {LANGUAGE_OPTIONS.map((opt) => (
-                  <option key={opt.code} value={opt.code}>
-                    {opt.name || t(opt.nameKey!)}
-                  </option>
-                ))}
-              </select>
             </div>
 
             {/* Rating Range (Min & Max Number Inputs) */}

@@ -17,6 +17,7 @@ export interface MovieSummary {
   genre_ids: number[];
   overview: string;
   original_language: string;
+  origin_country?: string[];
 }
 
 export interface CastMember {
@@ -63,6 +64,7 @@ export interface FilterState {
   yearFrom: number;
   yearTo: number;
   language: string;
+  country: string;
   minRating: number;
   maxRating: number;
   minRuntime: number;
@@ -79,6 +81,7 @@ export const DEFAULT_FILTERS: FilterState = {
   yearFrom: 1900,
   yearTo: new Date().getFullYear(),
   language: '',
+  country: '',
   minRating: 0,
   maxRating: 10,
   minRuntime: 0,
@@ -203,6 +206,7 @@ function getMockDiscoverResponse(filters: FilterState): DiscoverResponse {
     if (filters.minRating && movie.vote_average < filters.minRating) return false;
     if (filters.maxRating !== undefined && filters.maxRating < 10 && movie.vote_average > filters.maxRating) return false;
     if (filters.language && movie.original_language !== filters.language) return false;
+    if (filters.country && movie.origin_country && !movie.origin_country.includes(filters.country)) return false;
     if (filters.directorId) {
       const hasDirector = movie.credits?.crew?.some(
         (c) => c.job === 'Director' && (c.id === filters.directorId || c.name.toLowerCase().includes(filters.directorName.toLowerCase()))
@@ -269,6 +273,9 @@ export async function discoverMovies(
   }
   if (filters.language) {
     params.with_original_language = filters.language;
+  }
+  if (filters.country) {
+    params.with_origin_country = filters.country;
   }
   if (filters.minRating > 0) {
     params['vote_average.gte'] = filters.minRating;
