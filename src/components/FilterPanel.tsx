@@ -221,7 +221,12 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
               {genres.map((g) => {
                 const isSelected = filters.genreIds.includes(g.id);
-                const genreName = g.id === 0 ? (i18n.language === 'en' ? 'Other' : 'Otro') : g.name;
+                let genreName = g.name;
+                if (g.id === 0) {
+                  genreName = i18n.language === 'en' ? 'Other' : 'Otro';
+                } else if (i18n.language === 'es' && (g.id === 53 || g.name.toLowerCase() === 'suspense')) {
+                  genreName = 'Suspenso';
+                }
                 return (
                   <button
                     key={g.id}

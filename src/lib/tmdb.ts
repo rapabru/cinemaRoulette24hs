@@ -156,12 +156,17 @@ let genresCache: Record<string, Genre[]> = {};
 
 export async function fetchGenres(language: string = 'es'): Promise<Genre[]> {
   const langKey = language === 'en' ? 'en' : 'es';
-  const otherName = language === 'en' ? 'Otro' : 'Otro';
+  const otherName = language === 'en' ? 'Other' : 'Otro';
   if (genresCache[language]) return genresCache[language];
   try {
     const data = await tmdbFetch<{ genres: Genre[] }>('/genre/movie/list', { language });
     if (data.genres && data.genres.length > 0) {
-      const list = [...data.genres];
+      const list = data.genres.map((g) => {
+        if (language === 'es' && (g.id === 53 || g.name.toLowerCase() === 'suspense')) {
+          return { ...g, name: 'Suspenso' };
+        }
+        return g;
+      });
       if (!list.some((g) => g.id === 0)) {
         list.push({ id: 0, name: otherName });
       }
