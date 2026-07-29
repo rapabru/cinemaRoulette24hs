@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Dices, Check, Star, Clock, Play, Info, Tv } from 'lucide-react';
+import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink } from 'lucide-react';
 import { getImageUrl } from '../lib/tmdb';
 import type { MovieDetails } from '../lib/tmdb';
 
@@ -126,6 +126,18 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   <span>{isLoading ? t('sortear.drawing') : t('sortear.again')}</span>
                 </button>
 
+                <a
+                  href={`https://www.subdivx.com/index.php?buscar=${encodeURIComponent(movie.title)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-2.5 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 bg-[var(--neon-magenta)]/20 hover:bg-[var(--neon-magenta)] text-[var(--neon-magenta)] hover:text-white border border-[var(--neon-magenta)]/40 shadow-sm"
+                  title="Buscar y descargar subtítulos en español para esta película en SubDivX"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Subtítulos (SubDivX)</span>
+                  <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                </a>
+
                 <button
                   onClick={() => onToggleWatched(movie)}
                   className={`px-4 py-2.5 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer ${
@@ -235,14 +247,28 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   </p>
                 </div>
 
-                {/* Direct Play Banner Action */}
-                <button
-                  onClick={() => setActiveView('player')}
-                  className="w-full bg-[var(--neon-cyan)] hover:bg-[var(--neon-cyan)]/80 text-[var(--bg-void)] font-mono text-xs font-bold py-3 px-4 rounded-lg shadow-neon-cyan flex items-center justify-center gap-2 transition-all cursor-pointer"
-                >
-                  <Play className="w-4 h-4 fill-[var(--bg-void)]" />
-                  <span>▶ REPRODUCIR PELÍCULA EN VIVO (VidKing)</span>
-                </button>
+                {/* Direct Play Banner & Subtitles Actions */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    onClick={() => setActiveView('player')}
+                    className="flex-1 bg-[var(--neon-cyan)] hover:bg-[var(--neon-cyan)]/80 text-[var(--bg-void)] font-mono text-xs font-bold py-3 px-4 rounded-lg shadow-neon-cyan flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <Play className="w-4 h-4 fill-[var(--bg-void)]" />
+                    <span>▶ REPRODUCIR EN VIVO (VidKing)</span>
+                  </button>
+
+                  <a
+                    href={`https://www.subdivx.com/index.php?buscar=${encodeURIComponent(movie.title)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 bg-[var(--neon-magenta)]/20 hover:bg-[var(--neon-magenta)] text-[var(--neon-magenta)] hover:text-white border border-[var(--neon-magenta)]/40 shadow-sm"
+                    title="Buscar y descargar subtítulos en español para esta película en SubDivX"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Subtítulos (SubDivX)</span>
+                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                  </a>
+                </div>
 
                 {/* Bottom Quick Actions */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t border-[var(--bg-brick)]">
