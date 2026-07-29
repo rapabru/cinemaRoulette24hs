@@ -1,12 +1,14 @@
 # 🎰 CYBERCAFÉ 24HS — Movie Roulette & Streaming Terminal
 
 [![Vercel Deployment](https://img.shields.io/badge/Vercel-Live_App-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://cinemaroulette.vercel.app)
+[![Discord Community](https://img.shields.io/badge/Discord-Join_Community_24HS-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/dfSD65dgx9)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-rapabru%2FcinemaRoulette24hs-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/rapabru/cinemaRoulette24hs)
 [![TMDB API](https://img.shields.io/badge/TMDB-v4_v3_API-01b4e4?style=for-the-badge&logo=themoviedatabase&logoColor=white)](https://www.themoviedb.org/)
 
 A high-performance, desktop-style web application for movie discovery, advanced filter composition, random draw ("Sortear"), streaming video playback, Spanish subtitle downloads, draw history tracking, and official Google OAuth 2.0 authentication — wrapped in a nostalgic 2 AM neon cybercafé aesthetic.
 
-👉 **Live URL**: [https://cinemaroulette.vercel.app](https://cinemaroulette.vercel.app)
+👉 **Live URL**: [https://cinemaroulette.vercel.app](https://cinemaroulette.vercel.app)  
+💬 **Discord Cybercafé 24HS (We watch movies together every night)**: [https://discord.gg/dfSD65dgx9](https://discord.gg/dfSD65dgx9)
 
 ---
 
