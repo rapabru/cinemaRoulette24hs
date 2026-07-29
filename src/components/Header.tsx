@@ -183,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Discord Cybercafé 24HS Invitation Link */}
           <a
-            href="https://discord.gg/dfSD65dgx9"
+            href="https://discord.gg/dfSD65dgx"
             target="_blank"
             rel="noopener noreferrer"
             title={i18n.language === 'en' ? 'Join Discord — We watch movies together every night!' : 'Únete al Discord — ¡Vemos pelis todas las noches!'}

@@ -310,7 +310,7 @@ export function App() {
             </div>
 
             <a
-              href="https://discord.gg/dfSD65dgx9"
+              href="https://discord.gg/dfSD65dgx"
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2 rounded-lg bg-[#5865F2] hover:bg-[#4752C4] text-white font-mono text-xs font-bold transition-all shadow-md flex items-center gap-2 shrink-0 no-underline cursor-pointer"
