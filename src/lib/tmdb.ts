@@ -40,6 +40,7 @@ export interface MovieDetails extends MovieSummary {
   status: string;
   budget: number;
   revenue: number;
+  imdb_id?: string | null;
   credits?: {
     cast: CastMember[];
     crew: CrewMember[];

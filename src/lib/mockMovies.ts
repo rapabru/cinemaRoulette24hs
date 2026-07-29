@@ -67,6 +67,7 @@ export const MOCK_MOVIES: MovieDetails[] = [
     status: 'Released',
     budget: 150000000,
     revenue: 259200000,
+    imdb_id: 'tt1856101',
     credits: {
       cast: [
         { id: 1, name: 'Ryan Gosling', character: 'K', profile_path: null },
@@ -99,6 +100,7 @@ export const MOCK_MOVIES: MovieDetails[] = [
     status: 'Released',
     budget: 63000000,
     revenue: 463500000,
+    imdb_id: 'tt0133093',
     credits: {
       cast: [
         { id: 5, name: 'Keanu Reeves', character: 'Neo', profile_path: null },

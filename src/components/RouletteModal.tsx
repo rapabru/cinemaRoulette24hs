@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink } from 'lucide-react';
+import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film } from 'lucide-react';
 import { getImageUrl } from '../lib/tmdb';
 import type { MovieDetails } from '../lib/tmdb';
 
@@ -27,6 +27,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const [activeView, setActiveView] = useState<'details' | 'player'>(initialMode);
+  const [playerProvider, setPlayerProvider] = useState<'vidking' | 'playimdb'>('vidking');
 
   if (!isOpen || !movie) return null;
 
@@ -35,8 +36,18 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   const topCast = movie.credits?.cast?.slice(0, 4).map((c) => c.name).join(', ') || 'N/A';
   const posterUrl = getImageUrl(movie.poster_path, 'w500');
 
-  // VidKing Embed URL for Movie (TMDB ID)
+  // Option 1: VidKing Embed URL (TMDB ID)
   const vidkingEmbedUrl = `https://www.vidking.net/embed/movie/${movie.id}?color=35E6FF`;
+
+  // Option 2: PlayIMDB Embed URL (IMDB ID, or fallbacks)
+  const imdbId = movie.imdb_id;
+  const playImdbEmbedUrl = imdbId
+    ? `https://www.playimdb.com/es-es/title/${imdbId}/`
+    : `https://www.playimdb.com/title/tt${movie.id}/`;
+
+  const playImdbDirectUrl = imdbId
+    ? `https://www.playimdb.com/es-es/title/${imdbId}/`
+    : `https://www.google.com/search?q=playimdb+${encodeURIComponent(movie.title)}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
@@ -50,7 +61,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
             </h2>
           </div>
 
-          {/* View Toggle Tabs: Details vs VidKing Player */}
+          {/* View Toggle Tabs: Details vs Video Player */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActiveView('details')}
@@ -88,31 +99,85 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
         {/* Scrollable Modal Body */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
           {activeView === 'player' ? (
-            /* VidKing Video Player View */
+            /* Video Player View (Option 1: VidKing vs Option 2: PlayIMDB) */
             <div className="space-y-4">
-              <div className="relative aspect-video w-full max-h-[58vh] rounded-xl overflow-hidden border-2 border-[var(--neon-cyan)] shadow-neon-cyan bg-black mx-auto">
-                <iframe
-                  src={vidkingEmbedUrl}
-                  className="w-full h-full border-0"
-                  allowFullScreen
-                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                  title={`VidKing Player - ${movie.title}`}
-                />
-              </div>
-
-              <div className="flex flex-wrap items-center justify-between text-xs font-mono text-[var(--ink-muted)] px-1 gap-2">
-                <span className="flex items-center gap-1.5 text-[var(--neon-cyan)] font-bold">
-                  <Tv className="w-4 h-4" /> Terminal VidKing Activo
+              {/* Option Selector Toolbar */}
+              <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-[var(--bg-brick)] rounded-lg border border-[var(--neon-cyan)]/30 text-xs font-mono">
+                <span className="text-[var(--ink-muted)] font-bold uppercase tracking-wider">
+                  Servidores de Reproducción:
                 </span>
-
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setActiveView('details')}
-                    className="text-[var(--neon-amber)] hover:underline font-bold"
+                    onClick={() => setPlayerProvider('vidking')}
+                    className={`px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      playerProvider === 'vidking'
+                        ? 'bg-[var(--neon-cyan)] text-[var(--bg-void)] shadow-neon-cyan'
+                        : 'bg-[var(--bg-void)] text-[var(--ink-muted)] hover:text-[var(--ink-light)] border border-[var(--ink-muted)]/30'
+                    }`}
                   >
-                    Ficha Técnica
+                    <Tv className="w-3.5 h-3.5" />
+                    <span>Opción 1: VidKing</span>
+                  </button>
+
+                  <button
+                    onClick={() => setPlayerProvider('playimdb')}
+                    className={`px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      playerProvider === 'playimdb'
+                        ? 'bg-[var(--neon-amber)] text-[var(--bg-void)] shadow-neon-amber'
+                        : 'bg-[var(--bg-void)] text-[var(--ink-muted)] hover:text-[var(--ink-light)] border border-[var(--ink-muted)]/30'
+                    }`}
+                  >
+                    <Film className="w-3.5 h-3.5" />
+                    <span>Opción 2: PlayIMDB</span>
                   </button>
                 </div>
+              </div>
+
+              {/* Player Iframe Display */}
+              {playerProvider === 'vidking' ? (
+                <div className="relative aspect-video w-full max-h-[58vh] rounded-xl overflow-hidden border-2 border-[var(--neon-cyan)] shadow-neon-cyan bg-black mx-auto">
+                  <iframe
+                    src={vidkingEmbedUrl}
+                    className="w-full h-full border-0"
+                    allowFullScreen
+                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    title={`VidKing Player - ${movie.title}`}
+                  />
+                </div>
+              ) : (
+                <div className="relative aspect-video w-full max-h-[58vh] rounded-xl overflow-hidden border-2 border-[var(--neon-amber)] shadow-neon-amber bg-black mx-auto">
+                  <iframe
+                    src={playImdbEmbedUrl}
+                    className="w-full h-full border-0"
+                    allowFullScreen
+                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    title={`PlayIMDB Player - ${movie.title}`}
+                  />
+                </div>
+              )}
+
+              {/* Status & Subtitle Bar */}
+              <div className="flex flex-wrap items-center justify-between text-xs font-mono text-[var(--ink-muted)] px-1 gap-2">
+                <span className={`flex items-center gap-1.5 font-bold ${
+                  playerProvider === 'vidking' ? 'text-[var(--neon-cyan)]' : 'text-[var(--neon-amber)]'
+                }`}>
+                  <Tv className="w-4 h-4" />
+                  {playerProvider === 'vidking'
+                    ? 'Terminal Opción 1: VidKing Activo'
+                    : `Terminal Opción 2: PlayIMDB Activo ${imdbId ? `(${imdbId})` : ''}`}
+                </span>
+
+                {playerProvider === 'playimdb' && (
+                  <a
+                    href={playImdbDirectUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--neon-amber)] hover:underline flex items-center gap-1 font-bold"
+                  >
+                    <span>Abrir en PlayIMDB externa</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
               </div>
 
               {/* Bottom Quick Action Bar inside Player View */}
@@ -247,25 +312,41 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   </p>
                 </div>
 
-                {/* Direct Play Banner & Subtitles Actions */}
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <button
-                    onClick={() => setActiveView('player')}
-                    className="flex-1 bg-[var(--neon-cyan)] hover:bg-[var(--neon-cyan)]/80 text-[var(--bg-void)] font-mono text-xs font-bold py-3 px-4 rounded-lg shadow-neon-cyan flex items-center justify-center gap-2 transition-all cursor-pointer"
-                  >
-                    <Play className="w-4 h-4 fill-[var(--bg-void)]" />
-                    <span>▶ REPRODUCIR EN VIVO (VidKing)</span>
-                  </button>
+                {/* Direct Play Banners & Subtitles Actions */}
+                <div className="space-y-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      onClick={() => {
+                        setPlayerProvider('vidking');
+                        setActiveView('player');
+                      }}
+                      className="flex-1 bg-[var(--neon-cyan)] hover:bg-[var(--neon-cyan)]/80 text-[var(--bg-void)] font-mono text-xs font-bold py-2.5 px-3 rounded-lg shadow-neon-cyan flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    >
+                      <Play className="w-4 h-4 fill-[var(--bg-void)]" />
+                      <span>▶ Opción 1: VidKing</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setPlayerProvider('playimdb');
+                        setActiveView('player');
+                      }}
+                      className="flex-1 bg-[var(--neon-amber)] hover:bg-[var(--neon-amber)]/80 text-[var(--bg-void)] font-mono text-xs font-bold py-2.5 px-3 rounded-lg shadow-neon-amber flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    >
+                      <Film className="w-4 h-4 fill-[var(--bg-void)]" />
+                      <span>▶ Opción 2: PlayIMDB</span>
+                    </button>
+                  </div>
 
                   <a
                     href={`https://www.subdivx.com/index.php?buscar=${encodeURIComponent(movie.title)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 bg-[var(--neon-magenta)]/20 hover:bg-[var(--neon-magenta)] text-[var(--neon-magenta)] hover:text-white border border-[var(--neon-magenta)]/40 shadow-sm"
+                    className="w-full py-2.5 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 bg-[var(--neon-magenta)]/20 hover:bg-[var(--neon-magenta)] text-[var(--neon-magenta)] hover:text-white border border-[var(--neon-magenta)]/40 shadow-sm"
                     title="Buscar y descargar subtítulos en español para esta película en SubDivX"
                   >
                     <Download className="w-4 h-4" />
-                    <span>Subtítulos (SubDivX)</span>
+                    <span>Descargar Subtítulos en SubDivX</span>
                     <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                   </a>
                 </div>
