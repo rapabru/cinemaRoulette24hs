@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SlidersHorizontal, ChevronDown, ChevronUp, User, Clapperboard, RotateCcw, Check } from 'lucide-react';
-import { searchPerson } from '../lib/tmdb';
+import { searchPerson, ALL_INDUSTRY_KEYS } from '../lib/tmdb';
 import type { Genre, FilterState, PersonResult } from '../lib/tmdb';
 
 interface FilterPanelProps {
@@ -58,6 +58,18 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     { code: 'CN', name: '🇨🇳 China' },
     { code: 'SE', name: i18n.language === 'en' ? '🇸🇪 Sweden' : '🇸🇪 Suecia' },
     { code: 'DK', name: i18n.language === 'en' ? '🇩🇰 Denmark' : '🇩🇰 Dinamarca' },
+  ];
+
+  // Industry options with labels
+  const industryList = [
+    { key: 'hollywood', label: i18n.language === 'en' ? '🎬 Hollywood (USA)' : '🎬 Hollywood (EE.UU.)' },
+    { key: 'argentina', label: i18n.language === 'en' ? '🇦🇷 Argentine Cinema' : '🇦🇷 Cine Argentino' },
+    { key: 'espanol', label: i18n.language === 'en' ? '🇪🇸 Spanish Cinema' : '🇪🇸 Cine Español' },
+    { key: 'europeo', label: i18n.language === 'en' ? '🇪🇺 European Cinema' : '🇪🇺 Cine Europeo' },
+    { key: 'asiatico', label: i18n.language === 'en' ? '⛩️ Asian Cinema' : '⛩️ Cine Asiático (Japón, Corea, India, China)' },
+    { key: 'latin', label: i18n.language === 'en' ? '🌮 Latin Cinema' : '🌮 Cine Latinoamericano' },
+    { key: 'shortFilms', label: i18n.language === 'en' ? '🎞️ Short Films (<45m)' : '🎞️ Cortometrajes (Cortos < 45m)' },
+    { key: 'others', label: i18n.language === 'en' ? '🌐 Others / Indie' : '🌐 Otros / Independiente' },
   ];
 
   // Actor search state
@@ -130,6 +142,15 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       ? filters.genreIds.filter((id) => id !== genreId)
       : [...filters.genreIds, genreId];
     onChange({ ...filters, genreIds: updated });
+  };
+
+  const toggleIndustry = (key: string) => {
+    const current = filters.selectedIndustries || ALL_INDUSTRY_KEYS;
+    const isChecked = current.includes(key);
+    const updated = isChecked
+      ? current.filter((k) => k !== key)
+      : [...current, key];
+    onChange({ ...filters, selectedIndustries: updated });
   };
 
   const handleSelectActor = (person: PersonResult) => {
@@ -208,6 +229,42 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       {/* Expanded Controls */}
       {isExpanded && (
         <div className="p-4 sm:p-6 space-y-6">
+          {/* Film Industries & Categories Pre-checked Badges */}
+          <div>
+            <div className="flex flex-wrap items-baseline justify-between mb-2">
+              <label className="text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider">
+                INDUSTRIAS CINEMATOGRÁFICAS / CATEGORÍAS
+              </label>
+              <span className="text-[11px] font-mono text-[var(--neon-green)] italic">
+                (Opciones pre-marcadas por defecto)
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {industryList.map((ind) => {
+                const isChecked = (filters.selectedIndustries || ALL_INDUSTRY_KEYS).includes(ind.key);
+                return (
+                  <button
+                    key={ind.key}
+                    type="button"
+                    onClick={() => toggleIndustry(ind.key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all flex items-center gap-2 cursor-pointer border ${
+                      isChecked
+                        ? 'bg-[var(--bg-void)] text-[var(--neon-green)] border-[var(--neon-green)] shadow-neon-green font-bold'
+                        : 'bg-[var(--bg-void)] text-[var(--ink-muted)] border-[var(--ink-muted)]/30 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center text-[10px] ${
+                      isChecked ? 'border-[var(--neon-green)] bg-[var(--neon-green)] text-[var(--bg-void)] font-bold' : 'border-[var(--ink-muted)]'
+                    }`}>
+                      {isChecked && '✓'}
+                    </span>
+                    <span>{ind.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Genre Badges (Multi-select OR logic) */}
           <div>
             <div className="flex flex-wrap items-baseline justify-between mb-2">

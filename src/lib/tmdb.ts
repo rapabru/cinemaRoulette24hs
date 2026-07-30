@@ -55,6 +55,17 @@ export interface PersonResult {
   profile_path: string | null;
 }
 
+export const ALL_INDUSTRY_KEYS = [
+  'hollywood',
+  'argentina',
+  'espanol',
+  'europeo',
+  'asiatico',
+  'latin',
+  'shortFilms',
+  'others',
+];
+
 export interface FilterState {
   genreIds: number[];
   actorId: number | null;
@@ -70,6 +81,7 @@ export interface FilterState {
   minRuntime: number;
   maxRuntime: number;
   skipWatched: boolean;
+  selectedIndustries: string[];
 }
 
 export const DEFAULT_FILTERS: FilterState = {
@@ -82,11 +94,12 @@ export const DEFAULT_FILTERS: FilterState = {
   yearTo: new Date().getFullYear(),
   language: '',
   country: '',
-  minRating: 0,
+  minRating: 6,
   maxRating: 10,
-  minRuntime: 0,
+  minRuntime: 60,
   maxRuntime: 300,
   skipWatched: true,
+  selectedIndustries: [...ALL_INDUSTRY_KEYS],
 };
 
 export const OFFICIAL_DEMO_KEY =
@@ -279,17 +292,51 @@ export async function discoverMovies(
   if (filters.language) {
     params.with_original_language = filters.language;
   }
+
+  // Country filtering logic combining country dropdown and selected industries
   if (filters.country) {
     params.with_origin_country = filters.country;
+  } else if (filters.selectedIndustries && filters.selectedIndustries.length < ALL_INDUSTRY_KEYS.length) {
+    const countryMap: Record<string, string[]> = {
+      hollywood: ['US'],
+      argentina: ['AR'],
+      espanol: ['ES'],
+      europeo: ['FR', 'IT', 'DE', 'GB', 'SE', 'DK', 'NL', 'BE', 'PL'],
+      asiatico: ['JP', 'KR', 'IN', 'CN', 'HK', 'TW'],
+      latin: ['MX', 'BR', 'CL', 'CO', 'UY', 'PE'],
+    };
+
+    const targetCountries = new Set<string>();
+    filters.selectedIndustries.forEach((ind) => {
+      if (countryMap[ind]) {
+        countryMap[ind].forEach((c) => targetCountries.add(c));
+      }
+    });
+
+    if (targetCountries.size > 0 && !filters.selectedIndustries.includes('others')) {
+      params.with_origin_country = Array.from(targetCountries).join('|');
+    }
   }
+
+  // Short films logic
+  const hasShorts = !filters.selectedIndustries || filters.selectedIndustries.includes('shortFilms');
+  let effectiveMinRuntime = filters.minRating !== undefined ? filters.minRuntime : 60;
+  if (!hasShorts && effectiveMinRuntime < 45) {
+    effectiveMinRuntime = 45; // Exclude short films if shortFilms checkbox is unchecked
+  }
+
+  if (effectiveMinRuntime > 0) {
+    params['vote_average.gte'] = filters.minRating > 0 ? filters.minRating : 6;
+  }
+
   if (filters.minRating > 0) {
     params['vote_average.gte'] = filters.minRating;
   }
   if (filters.maxRating < 10) {
     params['vote_average.lte'] = filters.maxRating;
   }
-  if (filters.minRuntime > 0) {
-    params['with_runtime.gte'] = filters.minRuntime;
+  if (effectiveMinRuntime > 0) {
+    params['with_runtime.gte'] = effectiveMinRuntime;
   }
   if (filters.maxRuntime < 300) {
     params['with_runtime.lte'] = filters.maxRuntime;

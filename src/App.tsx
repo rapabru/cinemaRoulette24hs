@@ -241,9 +241,6 @@ export function App() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           {activeTab === 'catalog' ? (
             <>
-              {/* Signature Marquee "Sortear" Button */}
-              <SortearButton onDraw={handleSortear} isLoading={isDrawing} />
-
               {/* Control Filter Panel */}
               <FilterPanel
                 filters={filters}
@@ -255,6 +252,9 @@ export function App() {
                 onReset={handleResetFilters}
                 resultsCount={resultsCount}
               />
+
+              {/* Signature Marquee "Sortear" Button (Positioned Below Filter Panel) */}
+              <SortearButton onDraw={handleSortear} isLoading={isDrawing} />
 
               {/* Movie Catalog Grid */}
               <CatalogGrid
