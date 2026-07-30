@@ -283,11 +283,14 @@ export async function discoverMovies(
   if (filters.directorId) {
     params.with_crew = filters.directorId;
   }
-  if (filters.yearFrom) {
-    params['primary_release_date.gte'] = `${filters.yearFrom}-01-01`;
+  const currentYear = new Date().getFullYear();
+  if (filters.yearFrom && filters.yearFrom > 1900) {
+    const formattedYearFrom = Math.max(1, filters.yearFrom).toString().padStart(4, '0');
+    params['primary_release_date.gte'] = `${formattedYearFrom}-01-01`;
   }
-  if (filters.yearTo) {
-    params['primary_release_date.lte'] = `${filters.yearTo}-12-31`;
+  if (filters.yearTo && filters.yearTo < currentYear) {
+    const formattedYearTo = filters.yearTo.toString().padStart(4, '0');
+    params['primary_release_date.lte'] = `${formattedYearTo}-12-31`;
   }
   if (filters.language) {
     params.with_original_language = filters.language;
