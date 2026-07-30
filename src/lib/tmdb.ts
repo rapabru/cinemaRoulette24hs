@@ -318,15 +318,11 @@ export async function discoverMovies(
     }
   }
 
-  // Short films logic
+  // Short films & runtime logic
   const hasShorts = !filters.selectedIndustries || filters.selectedIndustries.includes('shortFilms');
-  let effectiveMinRuntime = filters.minRating !== undefined ? filters.minRuntime : 60;
+  let effectiveMinRuntime = filters.minRuntime || 0;
   if (!hasShorts && effectiveMinRuntime < 45) {
     effectiveMinRuntime = 45; // Exclude short films if shortFilms checkbox is unchecked
-  }
-
-  if (effectiveMinRuntime > 0) {
-    params['vote_average.gte'] = filters.minRating > 0 ? filters.minRating : 6;
   }
 
   if (filters.minRating > 0) {
