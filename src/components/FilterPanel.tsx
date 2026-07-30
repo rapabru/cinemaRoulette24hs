@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SlidersHorizontal, ChevronDown, ChevronUp, User, Clapperboard, RotateCcw, Check } from 'lucide-react';
-import { searchPerson, ALL_INDUSTRY_KEYS } from '../lib/tmdb';
+import { searchPerson } from '../lib/tmdb';
 import type { Genre, FilterState, PersonResult } from '../lib/tmdb';
 
 interface FilterPanelProps {
@@ -144,8 +144,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     onChange({ ...filters, genreIds: updated });
   };
 
+  const DEFAULT_BASE_INDUSTRIES = ['hollywood', 'argentina', 'espanol', 'europeo', 'latin'];
+
   const toggleIndustry = (key: string) => {
-    const current = filters.selectedIndustries || ALL_INDUSTRY_KEYS;
+    const current = filters.selectedIndustries || DEFAULT_BASE_INDUSTRIES;
     const isChecked = current.includes(key);
     const updated = isChecked
       ? current.filter((k) => k !== key)
@@ -241,7 +243,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             </div>
             <div className="flex flex-wrap gap-2">
               {industryList.map((ind) => {
-                const isChecked = (filters.selectedIndustries || ALL_INDUSTRY_KEYS).includes(ind.key);
+                const isChecked = (filters.selectedIndustries || DEFAULT_BASE_INDUSTRIES).includes(ind.key);
                 return (
                   <button
                     key={ind.key}

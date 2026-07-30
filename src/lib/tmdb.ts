@@ -99,7 +99,7 @@ export const DEFAULT_FILTERS: FilterState = {
   minRuntime: 60,
   maxRuntime: 300,
   skipWatched: true,
-  selectedIndustries: [...ALL_INDUSTRY_KEYS],
+  selectedIndustries: ['hollywood', 'argentina', 'espanol', 'europeo', 'latin'],
 };
 
 export const OFFICIAL_DEMO_KEY =
