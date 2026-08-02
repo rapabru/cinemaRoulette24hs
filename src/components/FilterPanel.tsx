@@ -482,12 +482,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         if (!isNaN(num)) onChange({ ...filters, yearFrom: num });
                       }
                     }}
-                    onBlur={() => {
-                      if (!yearFromInput || parseInt(yearFromInput, 10) < 1) {
-                        setYearFromInput('1900');
-                        onChange({ ...filters, yearFrom: 1900 });
-                      }
-                    }}
                     className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
@@ -509,13 +503,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         if (!isNaN(num)) onChange({ ...filters, yearTo: num });
                       }
                     }}
-                    onBlur={() => {
-                      if (!yearToInput || parseInt(yearToInput, 10) < 1) {
-                        const currentYear = new Date().getFullYear();
-                        setYearToInput(String(currentYear));
-                        onChange({ ...filters, yearTo: currentYear });
-                      }
-                    }}
                     className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
@@ -529,7 +516,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   {t('filters.rating_range')}
                 </label>
                 <span className="text-xs font-mono text-[var(--neon-green)] font-bold">
-                  ★ {filters.minRating} – {filters.maxRating} / 10
+                  ★ {filters.minRating || 0} – {filters.maxRating || 10} / 10
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -548,12 +535,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       } else {
                         const num = parseFloat(raw);
                         if (!isNaN(num)) onChange({ ...filters, minRating: Math.max(0, Math.min(10, num)) });
-                      }
-                    }}
-                    onBlur={() => {
-                      if (minRatingInput === '') {
-                        setMinRatingInput('0');
-                        onChange({ ...filters, minRating: 0 });
                       }
                     }}
                     className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
@@ -577,12 +558,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                         if (!isNaN(num)) onChange({ ...filters, maxRating: Math.max(0, Math.min(10, num)) });
                       }
                     }}
-                    onBlur={() => {
-                      if (maxRatingInput === '') {
-                        setMaxRatingInput('10');
-                        onChange({ ...filters, maxRating: 10 });
-                      }
-                    }}
                     className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
@@ -596,7 +571,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   {t('filters.runtime_range')}
                 </label>
                 <span className="text-xs font-mono text-[var(--neon-amber)] font-bold">
-                  {filters.minRuntime}m – {filters.maxRuntime >= 300 ? '300m+' : `${filters.maxRuntime}m`}
+                  {filters.minRuntime || 0}m – {!filters.maxRuntime || filters.maxRuntime >= 300 ? '300m+' : `${filters.maxRuntime}m`}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -615,12 +590,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       } else {
                         const num = parseInt(raw, 10);
                         if (!isNaN(num)) onChange({ ...filters, minRuntime: Math.max(0, num) });
-                      }
-                    }}
-                    onBlur={() => {
-                      if (minRuntimeInput === '') {
-                        setMinRuntimeInput('0');
-                        onChange({ ...filters, minRuntime: 0 });
                       }
                     }}
                     className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
@@ -642,12 +611,6 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                       } else {
                         const num = parseInt(raw, 10);
                         if (!isNaN(num)) onChange({ ...filters, maxRuntime: Math.max(0, num) });
-                      }
-                    }}
-                    onBlur={() => {
-                      if (maxRuntimeInput === '') {
-                        setMaxRuntimeInput('300');
-                        onChange({ ...filters, maxRuntime: 300 });
                       }
                     }}
                     className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
