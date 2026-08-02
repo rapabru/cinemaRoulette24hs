@@ -84,6 +84,39 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const [showDirectorDropdown, setShowDirectorDropdown] = useState(false);
   const directorSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Local string states for numeric inputs so user can delete all digits and type completely from scratch
+  const [yearFromInput, setYearFromInput] = useState<string>(String(filters.yearFrom ?? '1900'));
+  const [yearToInput, setYearToInput] = useState<string>(String(filters.yearTo ?? new Date().getFullYear()));
+  const [minRatingInput, setMinRatingInput] = useState<string>(String(filters.minRating ?? '6'));
+  const [maxRatingInput, setMaxRatingInput] = useState<string>(String(filters.maxRating ?? '10'));
+  const [minRuntimeInput, setMinRuntimeInput] = useState<string>(String(filters.minRuntime ?? '60'));
+  const [maxRuntimeInput, setMaxRuntimeInput] = useState<string>(String(filters.maxRuntime ?? '300'));
+
+  // Sync local inputs when filters object changes from external actions (like reset)
+  useEffect(() => {
+    setYearFromInput(filters.yearFrom ? String(filters.yearFrom) : '');
+  }, [filters.yearFrom]);
+
+  useEffect(() => {
+    setYearToInput(filters.yearTo ? String(filters.yearTo) : '');
+  }, [filters.yearTo]);
+
+  useEffect(() => {
+    setMinRatingInput(filters.minRating !== undefined ? String(filters.minRating) : '0');
+  }, [filters.minRating]);
+
+  useEffect(() => {
+    setMaxRatingInput(filters.maxRating !== undefined ? String(filters.maxRating) : '10');
+  }, [filters.maxRating]);
+
+  useEffect(() => {
+    setMinRuntimeInput(filters.minRuntime !== undefined ? String(filters.minRuntime) : '0');
+  }, [filters.minRuntime]);
+
+  useEffect(() => {
+    setMaxRuntimeInput(filters.maxRuntime !== undefined ? String(filters.maxRuntime) : '300');
+  }, [filters.maxRuntime]);
+
   // Debounced actor search
   useEffect(() => {
     if (actorSearchTimeout.current) clearTimeout(actorSearchTimeout.current);
@@ -428,18 +461,33 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                   {t('filters.year_range')}
                 </label>
                 <span className="text-xs font-mono text-[var(--neon-amber)] font-bold">
-                  {filters.yearFrom} – {filters.yearTo}
+                  {filters.yearFrom || 1900} – {filters.yearTo || new Date().getFullYear()}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
                   <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">{t('filters.from_year')}</span>
                   <input
-                    type="number"
-                    min="1900"
-                    max={filters.yearTo}
-                    value={filters.yearFrom}
-                    onChange={(e) => onChange({ ...filters, yearFrom: Number(e.target.value) })}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="1900"
+                    value={yearFromInput}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/\D/g, '');
+                      setYearFromInput(raw);
+                      if (raw === '') {
+                        onChange({ ...filters, yearFrom: 0 });
+                      } else {
+                        const num = parseInt(raw, 10);
+                        if (!isNaN(num)) onChange({ ...filters, yearFrom: num });
+                      }
+                    }}
+                    onBlur={() => {
+                      if (!yearFromInput || parseInt(yearFromInput, 10) < 1) {
+                        setYearFromInput('1900');
+                        onChange({ ...filters, yearFrom: 1900 });
+                      }
+                    }}
                     className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
@@ -447,11 +495,27 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 <div className="flex-1">
                   <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">{t('filters.to_year')}</span>
                   <input
-                    type="number"
-                    min={filters.yearFrom}
-                    max={new Date().getFullYear()}
-                    value={filters.yearTo}
-                    onChange={(e) => onChange({ ...filters, yearTo: Number(e.target.value) })}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="2026"
+                    value={yearToInput}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/\D/g, '');
+                      setYearToInput(raw);
+                      if (raw === '') {
+                        onChange({ ...filters, yearTo: 0 });
+                      } else {
+                        const num = parseInt(raw, 10);
+                        if (!isNaN(num)) onChange({ ...filters, yearTo: num });
+                      }
+                    }}
+                    onBlur={() => {
+                      if (!yearToInput || parseInt(yearToInput, 10) < 1) {
+                        const currentYear = new Date().getFullYear();
+                        setYearToInput(String(currentYear));
+                        onChange({ ...filters, yearTo: currentYear });
+                      }
+                    }}
                     className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
@@ -472,12 +536,26 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 <div className="flex-1">
                   <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">{t('filters.min_rating_label')}</span>
                   <input
-                    type="number"
-                    min="0"
-                    max={filters.maxRating}
-                    step="0.5"
-                    value={filters.minRating}
-                    onChange={(e) => onChange({ ...filters, minRating: Math.max(0, Math.min(10, Number(e.target.value))) })}
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0"
+                    value={minRatingInput}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9.]/g, '');
+                      setMinRatingInput(raw);
+                      if (raw === '') {
+                        onChange({ ...filters, minRating: 0 });
+                      } else {
+                        const num = parseFloat(raw);
+                        if (!isNaN(num)) onChange({ ...filters, minRating: Math.max(0, Math.min(10, num)) });
+                      }
+                    }}
+                    onBlur={() => {
+                      if (minRatingInput === '') {
+                        setMinRatingInput('0');
+                        onChange({ ...filters, minRating: 0 });
+                      }
+                    }}
                     className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
@@ -485,12 +563,26 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 <div className="flex-1">
                   <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">{t('filters.max_rating_label')}</span>
                   <input
-                    type="number"
-                    min={filters.minRating}
-                    max="10"
-                    step="0.5"
-                    value={filters.maxRating}
-                    onChange={(e) => onChange({ ...filters, maxRating: Math.max(0, Math.min(10, Number(e.target.value))) })}
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="10"
+                    value={maxRatingInput}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9.]/g, '');
+                      setMaxRatingInput(raw);
+                      if (raw === '') {
+                        onChange({ ...filters, maxRating: 10 });
+                      } else {
+                        const num = parseFloat(raw);
+                        if (!isNaN(num)) onChange({ ...filters, maxRating: Math.max(0, Math.min(10, num)) });
+                      }
+                    }}
+                    onBlur={() => {
+                      if (maxRatingInput === '') {
+                        setMaxRatingInput('10');
+                        onChange({ ...filters, maxRating: 10 });
+                      }
+                    }}
                     className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
@@ -511,11 +603,26 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 <div className="flex-1">
                   <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">{t('filters.from_min')}</span>
                   <input
-                    type="number"
-                    min="0"
-                    max={filters.maxRuntime}
-                    value={filters.minRuntime}
-                    onChange={(e) => onChange({ ...filters, minRuntime: Math.max(0, Number(e.target.value)) })}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={minRuntimeInput}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/\D/g, '');
+                      setMinRuntimeInput(raw);
+                      if (raw === '') {
+                        onChange({ ...filters, minRuntime: 0 });
+                      } else {
+                        const num = parseInt(raw, 10);
+                        if (!isNaN(num)) onChange({ ...filters, minRuntime: Math.max(0, num) });
+                      }
+                    }}
+                    onBlur={() => {
+                      if (minRuntimeInput === '') {
+                        setMinRuntimeInput('0');
+                        onChange({ ...filters, minRuntime: 0 });
+                      }
+                    }}
                     className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
@@ -523,11 +630,26 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 <div className="flex-1">
                   <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">{t('filters.to_min')}</span>
                   <input
-                    type="number"
-                    min={filters.minRuntime}
-                    max="600"
-                    value={filters.maxRuntime}
-                    onChange={(e) => onChange({ ...filters, maxRuntime: Math.max(0, Number(e.target.value)) })}
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="300"
+                    value={maxRuntimeInput}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/\D/g, '');
+                      setMaxRuntimeInput(raw);
+                      if (raw === '') {
+                        onChange({ ...filters, maxRuntime: 300 });
+                      } else {
+                        const num = parseInt(raw, 10);
+                        if (!isNaN(num)) onChange({ ...filters, maxRuntime: Math.max(0, num) });
+                      }
+                    }}
+                    onBlur={() => {
+                      if (maxRuntimeInput === '') {
+                        setMaxRuntimeInput('300');
+                        onChange({ ...filters, maxRuntime: 300 });
+                      }
+                    }}
                     className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
