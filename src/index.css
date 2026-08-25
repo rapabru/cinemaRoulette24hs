@@ -186,8 +186,55 @@ body {
   font-family: 'JetBrains Mono', monospace;
 }
 
+/* Generic fade-in used by modals & popovers */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Catalog card staggered entrance */
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-card-enter {
+  animation: cardEnter 0.4s ease-out both;
+}
+
+/* Slot machine reel spin (looping strip, duplicated content, -50% = seamless loop) */
+@keyframes reelSpin {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+.reel-spin-track {
+  animation: reelSpin 2.4s linear infinite;
+}
+
+/* Result reveal flash when the reel stops on the drawn movie */
+@keyframes resultFlash {
+  0% { opacity: 0; transform: scale(0.92); filter: brightness(1); }
+  35% { opacity: 1; filter: brightness(2.2); }
+  100% { opacity: 1; transform: scale(1); filter: brightness(1); }
+}
+.animate-result-flash {
+  animation: resultFlash 0.45s ease-out both;
+}
+
+/* Header marquee ticker (duplicated content, -50% = seamless loop) */
+@keyframes marqueeScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  animation: marqueeScroll 22s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .neon-marquee-btn, .crt-monitor {
+  .neon-marquee-btn, .crt-monitor, .animate-fade-in, .animate-card-enter,
+  .reel-spin-track, .animate-result-flash, .marquee-track {
     animation: none !important;
     transition: none !important;
   }

@@ -6,9 +6,11 @@ import {
   DEFAULT_FILTERS,
   fetchGenres,
   discoverMovies,
+  searchMovies,
   fetchMovieDetails,
   performRandomDraw,
 } from './lib/tmdb';
+import { playWinChime } from './lib/sound';
 
 import type {
   Genre,
@@ -40,6 +42,7 @@ import {
 import type { GoogleUser } from './lib/auth';
 
 import { Header } from './components/Header';
+import { MarqueeTicker } from './components/MarqueeTicker';
 import { SortearButton } from './components/SortearButton';
 import { FilterPanel } from './components/FilterPanel';
 import { CatalogGrid } from './components/CatalogGrid';
@@ -79,6 +82,9 @@ export function App() {
   // Filters state
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [genres, setGenres] = useState<Genre[]>(MOCK_GENRES.es);
+
+  // Title/keyword search state ("la lupa") — bypasses discover filters when active
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Catalog state
   const [movies, setMovies] = useState<MovieSummary[]>([]);
@@ -121,11 +127,13 @@ export function App() {
     fetchGenres(i18n.language).then(setGenres);
   }, [i18n.language]);
 
-  // Load catalog movies whenever filters, page, or language change
+  // Load catalog movies whenever filters, search query, page, or language change
   const loadCatalog = useCallback(async () => {
     setIsLoadingCatalog(true);
     try {
-      const data = await discoverMovies(filters, currentPage, i18n.language);
+      const data = searchQuery.trim()
+        ? await searchMovies(searchQuery, currentPage, i18n.language)
+        : await discoverMovies(filters, currentPage, i18n.language);
       setMovies(data.results || []);
       setTotalPages(data.total_pages || 1);
       setResultsCount(data.total_results || 0);
@@ -135,7 +143,7 @@ export function App() {
     } finally {
       setIsLoadingCatalog(false);
     }
-  }, [filters, currentPage, i18n.language]);
+  }, [filters, searchQuery, currentPage, i18n.language]);
 
   useEffect(() => {
     loadCatalog();
@@ -147,18 +155,28 @@ export function App() {
     setCurrentPage(1);
   };
 
-  // Perform Random Draw ("Sortear") and record in history
+  // Update title/keyword search ("la lupa")
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+  };
+
+  // Perform Random Draw ("Sortear") and record in history.
+  // Opens the roulette modal immediately so the slot-machine reel (RouletteModal, isLoading=true)
+  // is visible while the real draw resolves, with a minimum spin duration so it always registers.
   const handleSortear = async () => {
     setIsDrawing(true);
+    setIsRouletteOpen(true);
     try {
-      const result = await performRandomDraw(
-        filters,
-        watchedMovieIds,
-        i18n.language
-      );
+      const minSpinDelay = new Promise((resolve) => setTimeout(resolve, 1200));
+      const [result] = await Promise.all([
+        performRandomDraw(filters, watchedMovieIds, i18n.language, 0, searchQuery),
+        minSpinDelay,
+      ]);
+
       if (result) {
         setDrawnMovie(result);
-        setIsRouletteOpen(true);
+        playWinChime();
 
         // Record in Draw History
         const updatedHistory = addMovieToHistory({
@@ -167,13 +185,16 @@ export function App() {
           poster_path: result.poster_path,
           release_date: result.release_date,
           vote_average: result.vote_average,
+          genre_ids: result.genres?.map((g) => g.id),
         });
         setHistoryList([...updatedHistory]);
       } else {
+        if (!drawnMovie) setIsRouletteOpen(false);
         alert(t('errors.no_results'));
       }
     } catch (err: any) {
       console.error('Error during random draw:', err);
+      if (!drawnMovie) setIsRouletteOpen(false);
       if (err?.message === 'INVALID_API_KEY' || err?.message === 'NO_API_KEY') {
         setIsApiKeyModalOpen(true);
       } else {
@@ -237,6 +258,9 @@ export function App() {
           onLogoutGoogle={handleLogoutGoogle}
         />
 
+        {/* Neon Marquee Ticker */}
+        <MarqueeTicker historyList={historyList} />
+
         {/* Main Content Area */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
           {activeTab === 'catalog' ? (
@@ -251,6 +275,8 @@ export function App() {
                 genres={genres}
                 onReset={handleResetFilters}
                 resultsCount={resultsCount}
+                searchQuery={searchQuery}
+                onSearchChange={handleSearchChange}
               />
 
               {/* Signature Marquee "Sortear" Button (Positioned Below Filter Panel) */}
@@ -282,6 +308,7 @@ export function App() {
             <DrawHistoryView
               historyList={historyList}
               watchedMovieIds={watchedMovieIds}
+              genres={genres}
               onClearHistory={handleClearHistory}
               onSelectMovie={handleSelectMovie}
               onToggleWatched={handleToggleWatched}
@@ -344,6 +371,7 @@ export function App() {
         isWatched={drawnMovie ? watchedMovieIds.has(drawnMovie.id) : false}
         onToggleWatched={handleToggleWatched}
         isLoading={isDrawing}
+        posterPool={movies.map((m) => m.poster_path)}
       />
 
       {/* API Key Modal */}

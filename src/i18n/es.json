@@ -5,13 +5,18 @@
     "open_24h": "ABIERTO 24 HS",
     "attribution": "Este producto utiliza la API de TMDB pero no está respaldado ni certificado por TMDB."
   },
+  "marquee": {
+    "label": "Cartelera de sorteos recientes"
+  },
   "nav": {
     "catalog": "Catálogo",
     "watched": "La Vi (Vistas)",
     "history": "Historial",
     "api_key": "API Key",
     "theme_night": "Modo Noche (2 AM)",
-    "theme_midday": "Modo Día (12 PM)"
+    "theme_midday": "Modo Día (12 PM)",
+    "sound_on": "Sonido activado (click para silenciar)",
+    "sound_off": "Sonido silenciado (click para activar)"
   },
   "sortear": {
     "button": "🎰 SORTEAR PELÍCULA",
@@ -25,7 +30,9 @@
     "rating": "Calificación TMDB",
     "overview": "Sinopsis",
     "watch_hint": "Disponible para ver en plataformas de streaming o alquiler.",
-    "watched_action": "Marcar como vista"
+    "watched_action": "Marcar como vista",
+    "trailer": "Tráiler",
+    "watch_providers": "Dónde ver"
   },
   "filters": {
     "title": "PANEL DE CONTROL",
@@ -53,7 +60,9 @@
     "skip_watched_no": "OMITIR VISTAS: NO ✖",
     "skip_watched": "Omitir ya vistas",
     "clear_filters": "Limpiar filtros",
-    "results_count": "Resultados encontrados"
+    "results_count": "Resultados encontrados",
+    "search_placeholder": "🔍 Buscar película por título...",
+    "search_active_hint": "Búsqueda por título activa: los demás filtros no aplican hasta que la borres."
   },
   "context_menu": {
     "mark_watched": "La vi ✔",
@@ -75,7 +84,10 @@
     "try_draw": "¡Probar un Sorteo Ahora!",
     "total_draws": "Total sorteados",
     "search_placeholder": "Buscar en el historial...",
-    "clear": "Limpiar"
+    "clear": "Limpiar",
+    "stat_total": "Total sorteados",
+    "stat_avg_rating": "Rating promedio",
+    "stat_top_genre": "Género más sorteado"
   },
   "api_modal": {
     "title": "CONFIGURACIÓN DE API KEY",

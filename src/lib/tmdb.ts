@@ -34,6 +34,26 @@ export interface CrewMember {
   department: string;
 }
 
+export interface VideoItem {
+  key: string;
+  site: string;
+  type: string;
+  name: string;
+}
+
+export interface WatchProviderEntry {
+  provider_id: number;
+  provider_name: string;
+  logo_path: string;
+}
+
+export interface WatchProvidersRegion {
+  link?: string;
+  flatrate?: WatchProviderEntry[];
+  rent?: WatchProviderEntry[];
+  buy?: WatchProviderEntry[];
+}
+
 export interface MovieDetails extends MovieSummary {
   genres: Genre[];
   runtime: number | null;
@@ -45,6 +65,12 @@ export interface MovieDetails extends MovieSummary {
   credits?: {
     cast: CastMember[];
     crew: CrewMember[];
+  };
+  videos?: {
+    results: VideoItem[];
+  };
+  'watch/providers'?: {
+    results: Record<string, WatchProvidersRegion>;
   };
 }
 
@@ -127,6 +153,32 @@ export function getImageUrl(path: string | null, size: 'w185' | 'w342' | 'w500' 
   if (!path) return 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=500&auto=format&fit=crop';
   if (path.startsWith('http')) return path; // Support direct URLs from mock items
   return `${IMAGE_BASE_URL}${size}${path}`;
+}
+
+/** Finds the best YouTube trailer URL for a movie, if any was returned by TMDB. */
+export function getTrailerVideo(details: MovieDetails): VideoItem | null {
+  const results = details.videos?.results || [];
+  const trailer =
+    results.find((v) => v.site === 'YouTube' && v.type === 'Trailer') ||
+    results.find((v) => v.site === 'YouTube' && v.type === 'Teaser');
+  return trailer || null;
+}
+
+/**
+ * Watch providers for a region, preferring the given country, falling back to
+ * Argentina (the app's home audience) and then the US.
+ */
+export function getWatchProviders(details: MovieDetails, preferredCountry?: string): WatchProvidersRegion | null {
+  const regions = details['watch/providers']?.results;
+  if (!regions) return null;
+  const candidates = [preferredCountry, 'AR', 'US'].filter(Boolean) as string[];
+  for (const code of candidates) {
+    const region = regions[code];
+    if (region && (region.flatrate?.length || region.rent?.length || region.buy?.length)) {
+      return region;
+    }
+  }
+  return null;
 }
 
 async function tmdbFetch<T>(endpoint: string, params: Record<string, string | number | boolean | undefined> = {}): Promise<T> {
@@ -349,6 +401,50 @@ export async function discoverMovies(
   }
 }
 
+/**
+ * Free-text title search ("la lupa"). Unlike discoverMovies, TMDB's /search/movie
+ * endpoint does not accept genre/rating/runtime/etc. filters — it only matches on title.
+ */
+function getMockSearchResponse(query: string): DiscoverResponse {
+  const lowered = query.trim().toLowerCase();
+  const filtered = MOCK_MOVIES.filter((movie) => movie.title.toLowerCase().includes(lowered));
+  return {
+    page: 1,
+    results: filtered,
+    total_pages: 1,
+    total_results: filtered.length,
+    isMockFallback: true,
+  };
+}
+
+export async function searchMovies(
+  query: string,
+  page: number = 1,
+  language: string = 'es'
+): Promise<DiscoverResponse> {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return { page: 1, results: [], total_pages: 1, total_results: 0 };
+  }
+
+  const apiKey = getStoredApiKey();
+  if (!apiKey) {
+    return getMockSearchResponse(trimmed);
+  }
+
+  try {
+    return await tmdbFetch<DiscoverResponse>('/search/movie', {
+      query: trimmed,
+      page,
+      language,
+      include_adult: false,
+    });
+  } catch (err) {
+    console.warn('TMDB search request failed. Falling back to local demo catalog.', err);
+    return getMockSearchResponse(trimmed);
+  }
+}
+
 export async function fetchMovieDetails(id: number, language: string = 'es'): Promise<MovieDetails> {
   const apiKey = getStoredApiKey();
   if (!apiKey) {
@@ -359,7 +455,7 @@ export async function fetchMovieDetails(id: number, language: string = 'es'): Pr
   try {
     let details = await tmdbFetch<MovieDetails>(`/movie/${id}`, {
       language,
-      append_to_response: 'credits',
+      append_to_response: 'credits,videos,watch/providers',
     });
 
     // 1. Fallback to English overview if Spanish overview is missing/empty
@@ -410,9 +506,14 @@ export async function performRandomDraw(
   filters: FilterState,
   watchedMovieIds: Set<number>,
   language: string = 'es',
-  retryCount: number = 0
+  retryCount: number = 0,
+  searchQuery: string = ''
 ): Promise<MovieDetails | null> {
-  const initial = await discoverMovies(filters, 1, language);
+  const trimmedQuery = searchQuery.trim();
+  const fetchPage = (page: number) =>
+    trimmedQuery ? searchMovies(trimmedQuery, page, language) : discoverMovies(filters, page, language);
+
+  const initial = await fetchPage(1);
 
   if (!initial || initial.results.length === 0) {
     return null;
@@ -424,7 +525,7 @@ export async function performRandomDraw(
   let targetPageResults = initial.results;
   if (randomPage !== 1 && !initial.isMockFallback) {
     try {
-      const pageData = await discoverMovies(filters, randomPage, language);
+      const pageData = await fetchPage(randomPage);
       if (pageData.results.length > 0) {
         targetPageResults = pageData.results;
       }
@@ -437,7 +538,7 @@ export async function performRandomDraw(
   const selectedMovieSummary = targetPageResults[randomIndex];
 
   if (filters.skipWatched && watchedMovieIds.has(selectedMovieSummary.id) && retryCount < 5) {
-    return performRandomDraw(filters, watchedMovieIds, language, retryCount + 1);
+    return performRandomDraw(filters, watchedMovieIds, language, retryCount + 1, searchQuery);
   }
 
   return fetchMovieDetails(selectedMovieSummary.id, language);

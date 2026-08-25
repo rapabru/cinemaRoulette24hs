@@ -4,6 +4,7 @@ export interface DrawnHistoryItem {
   poster_path: string | null;
   release_date: string;
   vote_average?: number;
+  genre_ids?: number[];
   drawnAt: string;
 }
 
@@ -43,9 +44,10 @@ export function addMovieToHistory(movie: {
   poster_path: string | null;
   release_date: string;
   vote_average?: number;
+  genre_ids?: number[];
 }): DrawnHistoryItem[] {
   const list = getDrawnHistory();
-  
+
   // Prepend new drawn movie (limit history to last 100 items)
   const newItem: DrawnHistoryItem = {
     id: movie.id,
@@ -53,6 +55,7 @@ export function addMovieToHistory(movie: {
     poster_path: movie.poster_path,
     release_date: movie.release_date || '',
     vote_average: movie.vote_average,
+    genre_ids: movie.genre_ids,
     drawnAt: new Date().toISOString(),
   };
 

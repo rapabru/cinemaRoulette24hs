@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Star, Check, Play } from 'lucide-react';
 import { getImageUrl } from '../lib/tmdb';
 import type { MovieSummary } from '../lib/tmdb';
@@ -8,6 +8,7 @@ interface MovieCardProps {
   isWatched: boolean;
   onContextMenu: (e: React.MouseEvent, movie: MovieSummary) => void;
   onClick: (movie: MovieSummary) => void;
+  entranceDelayMs?: number;
 }
 
 export const MovieCard: React.FC<MovieCardProps> = ({
@@ -15,9 +16,11 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   isWatched,
   onContextMenu,
   onClick,
+  entranceDelayMs = 0,
 }) => {
   const year = movie.release_date ? movie.release_date.split('-')[0] : '';
   const posterUrl = getImageUrl(movie.poster_path, 'w500');
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   const handleRightClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -28,8 +31,9 @@ export const MovieCard: React.FC<MovieCardProps> = ({
     <div
       onClick={() => onClick(movie)}
       onContextMenu={handleRightClick}
+      style={{ animationDelay: `${entranceDelayMs}ms` }}
       className={`
-        crt-monitor group cursor-pointer select-none flex flex-col justify-between
+        crt-monitor group cursor-pointer select-none flex flex-col justify-between animate-card-enter
         ${isWatched ? 'opacity-70 grayscale-[0.3]' : ''}
       `}
     >
@@ -45,7 +49,10 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           src={posterUrl}
           alt={movie.title}
           loading="lazy"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          onLoad={() => setImgLoaded(true)}
+          className={`w-full h-full object-cover group-hover:scale-105 transition-transform transition-opacity duration-300 ${
+            imgLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
         />
 
         {/* Rating Badge */}

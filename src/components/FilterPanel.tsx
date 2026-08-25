@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SlidersHorizontal, ChevronDown, ChevronUp, User, Clapperboard, RotateCcw, Check } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown, ChevronUp, User, Clapperboard, RotateCcw, Check, Search, X } from 'lucide-react';
 import { searchPerson } from '../lib/tmdb';
 import type { Genre, FilterState, PersonResult } from '../lib/tmdb';
 
@@ -10,6 +10,8 @@ interface FilterPanelProps {
   genres: Genre[];
   onReset: () => void;
   resultsCount?: number;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
 }
 
 const LANGUAGE_OPTIONS = [
@@ -31,9 +33,32 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   genres,
   onReset,
   resultsCount,
+  searchQuery,
+  onSearchChange,
 }) => {
   const { t, i18n } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(true);
+  const isSearchActive = searchQuery.trim().length > 0;
+
+  // Title/keyword search ("la lupa") — debounced free-text search against /search/movie
+  const [titleSearchInput, setTitleSearchInput] = useState(searchQuery);
+  const titleSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    setTitleSearchInput(searchQuery);
+  }, [searchQuery]);
+
+  const handleTitleSearchChange = (value: string) => {
+    setTitleSearchInput(value);
+    if (titleSearchTimeout.current) clearTimeout(titleSearchTimeout.current);
+    titleSearchTimeout.current = setTimeout(() => onSearchChange(value), 300);
+  };
+
+  const handleClearTitleSearch = () => {
+    if (titleSearchTimeout.current) clearTimeout(titleSearchTimeout.current);
+    setTitleSearchInput('');
+    onSearchChange('');
+  };
 
   // Dynamic Country Options according to language
   const countryOptions = [
@@ -261,9 +286,40 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
         </div>
       </div>
 
+      {/* Title/Keyword Search ("la lupa") — always visible, even collapsed */}
+      <div className="px-4 sm:px-6 py-3 border-t border-[var(--bg-brick)]/60">
+        <div className="relative">
+          <Search className="w-4 h-4 text-[var(--neon-cyan)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            value={titleSearchInput}
+            onChange={(e) => handleTitleSearchChange(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            placeholder={t('filters.search_placeholder')}
+            className="w-full bg-[var(--bg-void)] border border-[var(--neon-cyan)]/40 focus:border-[var(--neon-cyan)] text-[var(--ink-light)] font-mono text-xs pl-9 pr-8 py-2.5 rounded-lg outline-none transition-all"
+          />
+          {titleSearchInput && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleClearTitleSearch();
+              }}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--ink-muted)] hover:text-[var(--neon-magenta)] cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        {isSearchActive && (
+          <p className="text-[11px] font-mono text-[var(--neon-amber)] mt-1.5">
+            {t('filters.search_active_hint')}
+          </p>
+        )}
+      </div>
+
       {/* Expanded Controls */}
       {isExpanded && (
-        <div className="p-4 sm:p-6 space-y-6">
+        <div className={`p-4 sm:p-6 space-y-6 transition-opacity ${isSearchActive ? 'opacity-40 pointer-events-none' : ''}`}>
           {/* Film Industries & Categories Pre-checked Badges */}
           <div>
             <div className="flex flex-wrap items-baseline justify-between mb-2">

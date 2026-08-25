@@ -64,13 +64,14 @@ export const CatalogGrid: React.FC<CatalogGridProps> = ({
     <div className="my-6">
       {/* Movie Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
-        {movies.map((movie) => (
+        {movies.map((movie, index) => (
           <MovieCard
             key={movie.id}
             movie={movie}
             isWatched={watchedMovieIds.has(movie.id)}
             onContextMenu={onContextMenu}
             onClick={onMovieClick}
+            entranceDelayMs={Math.min(index * 30, 400)}
           />
         ))}
       </div>

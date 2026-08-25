@@ -1,21 +1,46 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { History, Search, Trash2, Calendar, Star, Check, Dices } from 'lucide-react';
+import { History, Search, Trash2, Calendar, Star, Check, Dices, BarChart3 } from 'lucide-react';
 import type { DrawnHistoryItem } from '../lib/history';
 import { getImageUrl } from '../lib/tmdb';
+import type { Genre } from '../lib/tmdb';
 
 interface DrawHistoryViewProps {
   historyList: DrawnHistoryItem[];
   watchedMovieIds: Set<number>;
+  genres: Genre[];
   onClearHistory: () => void;
   onSelectMovie: (id: number) => void;
   onToggleWatched: (movie: { id: number; title: string; poster_path: string | null; release_date: string }) => void;
   onSortearAgain: () => void;
 }
 
+/** Animates a number counting up from 0 to `target` over `durationMs`. */
+function useCountUp(target: number, durationMs = 700): number {
+  const [value, setValue] = useState(0);
+  const frame = useRef<number | null>(null);
+
+  useEffect(() => {
+    const start = performance.now();
+    const from = 0;
+    const tick = (now: number) => {
+      const progress = Math.min((now - start) / durationMs, 1);
+      setValue(Math.round(from + (target - from) * progress));
+      if (progress < 1) frame.current = requestAnimationFrame(tick);
+    };
+    frame.current = requestAnimationFrame(tick);
+    return () => {
+      if (frame.current) cancelAnimationFrame(frame.current);
+    };
+  }, [target, durationMs]);
+
+  return value;
+}
+
 export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
   historyList,
   watchedMovieIds,
+  genres,
   onClearHistory,
   onSelectMovie,
   onToggleWatched,
@@ -27,6 +52,30 @@ export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
   const filteredList = historyList.filter((m) =>
     m.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const ratedEntries = historyList.filter((m) => (m.vote_average || 0) > 0);
+  const avgRatingRaw = ratedEntries.length
+    ? ratedEntries.reduce((sum, m) => sum + (m.vote_average || 0), 0) / ratedEntries.length
+    : 0;
+
+  const genreCounts = new Map<number, number>();
+  historyList.forEach((m) => {
+    (m.genre_ids || []).forEach((gid) => {
+      genreCounts.set(gid, (genreCounts.get(gid) || 0) + 1);
+    });
+  });
+  let topGenreId: number | null = null;
+  let topGenreCount = 0;
+  genreCounts.forEach((count, gid) => {
+    if (count > topGenreCount) {
+      topGenreCount = count;
+      topGenreId = gid;
+    }
+  });
+  const topGenreName = topGenreId !== null ? genres.find((g) => g.id === topGenreId)?.name : undefined;
+
+  const totalCountUp = useCountUp(historyList.length);
+  const avgRatingCountUp = useCountUp(Math.round(avgRatingRaw * 10)) / 10;
 
   if (historyList.length === 0) {
     return (
@@ -89,6 +138,36 @@ export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
             <Trash2 className="w-4 h-4" />
             <span className="hidden sm:inline">{t('history.clear')}</span>
           </button>
+        </div>
+      </div>
+
+      {/* Stat Tiles */}
+      <div className="grid grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-[var(--bg-panel)] border border-[var(--neon-cyan)]/30 rounded-xl p-3 sm:p-4 text-center">
+          <p className="text-xl sm:text-2xl font-display text-[var(--neon-cyan)]">{totalCountUp}</p>
+          <p className="text-[10px] sm:text-[11px] font-mono text-[var(--ink-muted)] uppercase tracking-wider mt-1 flex items-center justify-center gap-1">
+            <BarChart3 className="w-3 h-3" />
+            {t('history.stat_total')}
+          </p>
+        </div>
+
+        <div className="bg-[var(--bg-panel)] border border-[var(--neon-amber)]/30 rounded-xl p-3 sm:p-4 text-center">
+          <p className="text-xl sm:text-2xl font-display text-[var(--neon-amber)]">
+            {avgRatingRaw > 0 ? avgRatingCountUp.toFixed(1) : '—'}
+          </p>
+          <p className="text-[10px] sm:text-[11px] font-mono text-[var(--ink-muted)] uppercase tracking-wider mt-1 flex items-center justify-center gap-1">
+            <Star className="w-3 h-3" />
+            {t('history.stat_avg_rating')}
+          </p>
+        </div>
+
+        <div className="bg-[var(--bg-panel)] border border-[var(--neon-magenta)]/30 rounded-xl p-3 sm:p-4 text-center">
+          <p className="text-sm sm:text-base font-display text-[var(--neon-magenta)] line-clamp-1">
+            {topGenreName || '—'}
+          </p>
+          <p className="text-[10px] sm:text-[11px] font-mono text-[var(--ink-muted)] uppercase tracking-wider mt-1">
+            {t('history.stat_top_genre')}
+          </p>
         </div>
       </div>
 

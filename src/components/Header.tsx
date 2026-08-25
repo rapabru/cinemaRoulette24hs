@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Film, Eye, History, Moon, Sun, Globe, Key, Tv, ShieldAlert, LogOut } from 'lucide-react';
+import { Film, Eye, History, Moon, Sun, Globe, Key, Tv, ShieldAlert, LogOut, Volume2, VolumeX } from 'lucide-react';
 import { getStoredApiKey } from '../lib/tmdb';
+import { isSoundEnabled, setSoundEnabled } from '../lib/sound';
 import type { GoogleUser } from '../lib/auth';
 
 interface HeaderProps {
@@ -31,10 +32,17 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
   const hasKey = Boolean(getStoredApiKey());
+  const [soundOn, setSoundOn] = useState(isSoundEnabled());
 
   const toggleLanguage = () => {
     const nextLang = i18n.language === 'es' ? 'en' : 'es';
     i18n.changeLanguage(nextLang);
+  };
+
+  const toggleSound = () => {
+    const next = !soundOn;
+    setSoundEnabled(next);
+    setSoundOn(next);
   };
 
   return (
@@ -165,6 +173,15 @@ export const Header: React.FC<HeaderProps> = ({
             className="h-9 w-9 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] border border-[var(--neon-amber)]/40 hover:border-[var(--neon-amber)] text-[var(--neon-amber)] hover:shadow-neon-amber transition-all cursor-pointer shrink-0"
           >
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+
+          {/* 3b. Sound Toggle Button */}
+          <button
+            onClick={toggleSound}
+            title={soundOn ? t('nav.sound_on') : t('nav.sound_off')}
+            className="h-9 w-9 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] border border-[var(--neon-cyan)]/40 hover:border-[var(--neon-cyan)] text-[var(--neon-cyan)] hover:shadow-neon-cyan transition-all cursor-pointer shrink-0"
+          >
+            {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
           </button>
 
           {/* 4. API Key Modal Button */}

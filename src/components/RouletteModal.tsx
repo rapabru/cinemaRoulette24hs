@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film } from 'lucide-react';
-import { getImageUrl } from '../lib/tmdb';
+import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video } from 'lucide-react';
+import { getImageUrl, getTrailerVideo, getWatchProviders } from '../lib/tmdb';
 import type { MovieDetails } from '../lib/tmdb';
+import { SlotReel } from './SlotReel';
 
 interface RouletteModalProps {
   movie: MovieDetails | null;
@@ -13,6 +14,7 @@ interface RouletteModalProps {
   onToggleWatched: (movie: MovieDetails) => void;
   isLoading: boolean;
   initialMode?: 'details' | 'player';
+  posterPool?: (string | null)[];
 }
 
 export const RouletteModal: React.FC<RouletteModalProps> = ({
@@ -24,12 +26,30 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   onToggleWatched,
   isLoading,
   initialMode = 'details',
+  posterPool = [],
 }) => {
   const { t } = useTranslation();
   const [activeView, setActiveView] = useState<'details' | 'player'>(initialMode);
-  const [playerProvider, setPlayerProvider] = useState<'vidking' | 'playimdb'>('vidking');
+  const [playerProvider, setPlayerProvider] = useState<'vidking' | 'playimdb' | 'trailer'>('vidking');
 
-  if (!isOpen || !movie) return null;
+  if (!isOpen) return null;
+
+  // Sorteo en curso: mostrar el carrete tragamonedas en vez de la ficha (o la anterior, en un re-sorteo)
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+        <div className="relative w-full max-w-sm bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden crt-monitor">
+          <SlotReel posterPaths={posterPool} />
+        </div>
+      </div>
+    );
+  }
+
+  if (!movie) return null;
+
+  const trailer = getTrailerVideo(movie);
+  const trailerEmbedUrl = trailer ? `https://www.youtube.com/embed/${trailer.key}?autoplay=1` : null;
+  const watchProviders = getWatchProviders(movie);
 
   const year = movie.release_date ? movie.release_date.split('-')[0] : '';
   const director = movie.credits?.crew?.find((c) => c.job === 'Director')?.name || 'N/A';
@@ -51,7 +71,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden crt-monitor">
+      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden crt-monitor animate-result-flash">
         {/* Sticky Header Bar */}
         <div className="relative flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 bg-[var(--bg-brick)] border-b border-[var(--neon-cyan)]/40 gap-2 shrink-0 pr-12">
           <div className="flex flex-wrap items-center gap-3">
@@ -134,6 +154,20 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     <Film className="w-3.5 h-3.5" />
                     <span>Opción 2: PlayIMDB</span>
                   </button>
+
+                  {trailerEmbedUrl && (
+                    <button
+                      onClick={() => setPlayerProvider('trailer')}
+                      className={`px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        playerProvider === 'trailer'
+                          ? 'bg-[var(--neon-magenta)] text-white shadow-neon-magenta'
+                          : 'bg-[var(--bg-void)] text-[var(--ink-muted)] hover:text-[var(--ink-light)] border border-[var(--ink-muted)]/30'
+                      }`}
+                    >
+                      <Video className="w-3.5 h-3.5" />
+                      <span>{t('sortear.trailer')}</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -148,7 +182,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     title={`VidKing Player - ${movie.title}`}
                   />
                 </div>
-              ) : (
+              ) : playerProvider === 'playimdb' ? (
                 <div className="relative aspect-video w-full max-h-[58vh] rounded-xl overflow-hidden border-2 border-[var(--neon-amber)] shadow-neon-amber bg-black mx-auto">
                   <iframe
                     src={playImdbEmbedUrl}
@@ -158,17 +192,33 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     title={`PlayIMDB Player - ${movie.title}`}
                   />
                 </div>
-              )}
+              ) : trailerEmbedUrl ? (
+                <div className="relative aspect-video w-full max-h-[58vh] rounded-xl overflow-hidden border-2 border-[var(--neon-magenta)] shadow-neon-magenta bg-black mx-auto">
+                  <iframe
+                    src={trailerEmbedUrl}
+                    className="w-full h-full border-0"
+                    allowFullScreen
+                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    title={`Trailer - ${movie.title}`}
+                  />
+                </div>
+              ) : null}
 
               {/* Status & Subtitle Bar */}
               <div className="flex flex-wrap items-center justify-between text-xs font-mono text-[var(--ink-muted)] px-1 gap-2">
                 <span className={`flex items-center gap-1.5 font-bold ${
-                  playerProvider === 'vidking' ? 'text-[var(--neon-cyan)]' : 'text-[var(--neon-amber)]'
+                  playerProvider === 'vidking'
+                    ? 'text-[var(--neon-cyan)]'
+                    : playerProvider === 'playimdb'
+                      ? 'text-[var(--neon-amber)]'
+                      : 'text-[var(--neon-magenta)]'
                 }`}>
-                  <Tv className="w-4 h-4" />
+                  {playerProvider === 'trailer' ? <Video className="w-4 h-4" /> : <Tv className="w-4 h-4" />}
                   {playerProvider === 'vidking'
                     ? 'Terminal Opción 1: VidKing Activo'
-                    : `Terminal Opción 2: PlayIMDB Activo ${imdbId ? `(${imdbId})` : ''}`}
+                    : playerProvider === 'playimdb'
+                      ? `Terminal Opción 2: PlayIMDB Activo ${imdbId ? `(${imdbId})` : ''}`
+                      : `${t('sortear.trailer')} — YouTube`}
                 </span>
 
                 {playerProvider === 'playimdb' && (
@@ -296,6 +346,29 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   ))}
                 </div>
 
+                {/* Watch Providers ("Dónde ver") */}
+                {watchProviders && (watchProviders.flatrate?.length || watchProviders.rent?.length || watchProviders.buy?.length) ? (
+                  <div className="border-t border-[var(--bg-brick)] pt-3">
+                    <h4 className="text-xs font-mono uppercase text-[var(--ink-muted)] mb-2">
+                      {t('sortear.watch_providers')}
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {[...(watchProviders.flatrate || []), ...(watchProviders.rent || []), ...(watchProviders.buy || [])]
+                        .filter((p, i, arr) => arr.findIndex((x) => x.provider_id === p.provider_id) === i)
+                        .slice(0, 8)
+                        .map((provider) => (
+                          <img
+                            key={provider.provider_id}
+                            src={getImageUrl(provider.logo_path, 'w185')}
+                            alt={provider.provider_name}
+                            title={provider.provider_name}
+                            className="w-9 h-9 rounded-lg border border-[var(--ink-muted)]/30 object-cover"
+                          />
+                        ))}
+                    </div>
+                  </div>
+                ) : null}
+
                 {/* Director & Cast */}
                 <div className="space-y-1 text-xs font-mono text-[var(--ink-light)] border-t border-[var(--bg-brick)] pt-3">
                   <p>
@@ -340,6 +413,19 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                       <Film className="w-4 h-4 fill-[var(--bg-void)]" />
                       <span>▶ Opción 2: PlayIMDB</span>
                     </button>
+
+                    {trailerEmbedUrl && (
+                      <button
+                        onClick={() => {
+                          setPlayerProvider('trailer');
+                          setActiveView('player');
+                        }}
+                        className="flex-1 bg-[var(--neon-magenta)] hover:bg-[var(--neon-magenta)]/80 text-white font-mono text-xs font-bold py-2.5 px-3 rounded-lg shadow-neon-magenta flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      >
+                        <Video className="w-4 h-4" />
+                        <span>▶ {t('sortear.trailer')}</span>
+                      </button>
+                    )}
                   </div>
 
                   <a

@@ -5,13 +5,18 @@
     "open_24h": "OPEN 24 HOURS",
     "attribution": "This product uses the TMDB API but is not endorsed or certified by TMDB."
   },
+  "marquee": {
+    "label": "Recent draws ticker"
+  },
   "nav": {
     "catalog": "Catalog",
     "watched": "Watched List",
     "history": "Draw History",
     "api_key": "API Key",
     "theme_night": "Night Mode (2 AM)",
-    "theme_midday": "Midday Mode (12 PM)"
+    "theme_midday": "Midday Mode (12 PM)",
+    "sound_on": "Sound on (click to mute)",
+    "sound_off": "Sound muted (click to unmute)"
   },
   "sortear": {
     "button": "🎰 RANDOM DRAW MOVIE",
@@ -25,7 +30,9 @@
     "rating": "TMDB Rating",
     "overview": "Overview",
     "watch_hint": "Available to watch on streaming platforms or video on demand.",
-    "watched_action": "Mark as watched"
+    "watched_action": "Mark as watched",
+    "trailer": "Trailer",
+    "watch_providers": "Where to Watch"
   },
   "filters": {
     "title": "CONTROL PANEL",
@@ -53,7 +60,9 @@
     "skip_watched_no": "SKIP WATCHED: NO ✖",
     "skip_watched": "Skip already watched",
     "clear_filters": "Clear Filters",
-    "results_count": "Results found"
+    "results_count": "Results found",
+    "search_placeholder": "🔍 Search movie by title...",
+    "search_active_hint": "Title search active: other filters won't apply until you clear it."
   },
   "context_menu": {
     "mark_watched": "Watched ✔",
@@ -75,7 +84,10 @@
     "try_draw": "Try a Draw Now!",
     "total_draws": "Total drawn",
     "search_placeholder": "Search draw history...",
-    "clear": "Clear"
+    "clear": "Clear",
+    "stat_total": "Total drawn",
+    "stat_avg_rating": "Average rating",
+    "stat_top_genre": "Most drawn genre"
   },
   "api_modal": {
     "title": "API KEY CONFIGURATION",
