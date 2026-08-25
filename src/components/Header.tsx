@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Film, Eye, History, Moon, Sun, Globe, Key, Tv, ShieldAlert, LogOut, Volume2, VolumeX } from 'lucide-react';
 import { getStoredApiKey } from '../lib/tmdb';
-import { isSoundEnabled, setSoundEnabled } from '../lib/sound';
+import { isSoundEnabled, setSoundEnabled, SOUND_CHANGED_EVENT } from '../lib/sound';
 import type { GoogleUser } from '../lib/auth';
 
 interface HeaderProps {
@@ -33,6 +33,12 @@ export const Header: React.FC<HeaderProps> = ({
   const { t, i18n } = useTranslation();
   const hasKey = Boolean(getStoredApiKey());
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
+
+  useEffect(() => {
+    const handler = (e: Event) => setSoundOn((e as CustomEvent<boolean>).detail);
+    window.addEventListener(SOUND_CHANGED_EVENT, handler);
+    return () => window.removeEventListener(SOUND_CHANGED_EVENT, handler);
+  }, []);
 
   const toggleLanguage = () => {
     const nextLang = i18n.language === 'es' ? 'en' : 'es';

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Eye, Search, Trash2, Calendar, Star } from 'lucide-react';
 import type { WatchedMovie } from '../lib/watched';
 import { getImageUrl } from '../lib/tmdb';
+import { ExportButtons } from './ExportButtons';
 
 interface WatchedViewProps {
   watchedList: WatchedMovie[];
@@ -54,16 +55,30 @@ export const WatchedView: React.FC<WatchedViewProps> = ({
           </div>
         </div>
 
-        {/* Search Input */}
-        <div className="relative w-full sm:w-72">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t('watched.search_placeholder')}
-            className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 focus:border-[var(--neon-green)] text-[var(--ink-light)] font-mono text-xs px-3 py-2 pl-9 rounded outline-none transition-all"
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          {/* Search Input */}
+          <div className="relative flex-1 sm:w-64">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t('watched.search_placeholder')}
+              className="w-full bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 focus:border-[var(--neon-green)] text-[var(--ink-light)] font-mono text-xs px-3 py-2 pl-9 rounded outline-none transition-all"
+            />
+            <Search className="w-4 h-4 text-[var(--ink-muted)] absolute left-2.5 top-2.5" />
+          </div>
+
+          {/* Export Buttons */}
+          <ExportButtons
+            title={t('watched.title')}
+            filenamePrefix="peliculas_vistas"
+            rows={watchedList.map((m) => ({
+              title: m.title,
+              year: m.release_date ? m.release_date.split('-')[0] : '',
+              rating: m.vote_average ? m.vote_average.toFixed(1) : 'N/A',
+              dateLabel: new Date(m.dateWatched).toLocaleDateString(),
+            }))}
           />
-          <Search className="w-4 h-4 text-[var(--ink-muted)] absolute left-2.5 top-2.5" />
         </div>
       </div>
 

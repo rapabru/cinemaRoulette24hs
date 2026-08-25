@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video } from 'lucide-react';
+import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft } from 'lucide-react';
 import { getImageUrl, getTrailerVideo, getWatchProviders } from '../lib/tmdb';
 import type { MovieDetails } from '../lib/tmdb';
+import { fetchOmdbRatings } from '../lib/omdb';
+import type { OmdbRatings } from '../lib/omdb';
 import { SlotReel } from './SlotReel';
+import { BackgroundAudioPlayer } from './BackgroundAudioPlayer';
 
 interface RouletteModalProps {
   movie: MovieDetails | null;
@@ -15,6 +18,9 @@ interface RouletteModalProps {
   isLoading: boolean;
   initialMode?: 'details' | 'player';
   posterPool?: (string | null)[];
+  onSelectMovie?: (id: number) => void;
+  canGoBack?: boolean;
+  onGoBack?: () => void;
 }
 
 export const RouletteModal: React.FC<RouletteModalProps> = ({
@@ -27,10 +33,16 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   isLoading,
   initialMode = 'details',
   posterPool = [],
+  onSelectMovie,
+  canGoBack = false,
+  onGoBack,
 }) => {
   const { t } = useTranslation();
   const [activeView, setActiveView] = useState<'details' | 'player'>(initialMode);
   const [playerProvider, setPlayerProvider] = useState<'vidking' | 'playimdb' | 'trailer'>('vidking');
+  const [justShared, setJustShared] = useState(false);
+  const [omdbRatings, setOmdbRatings] = useState<OmdbRatings | null>(null);
+  const [omdbStatus, setOmdbStatus] = useState<'idle' | 'loading' | 'done' | 'unavailable'>('idle');
 
   // Brief "landing" beat between the spin ending and the result appearing, so the
   // cut doesn't always land at a random, sometimes-jarring point mid-blur.
@@ -46,6 +58,13 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     }
     wasLoadingRef.current = isLoading;
   }, [isLoading]);
+
+  // Reset the on-demand OMDb ratings whenever the displayed movie changes
+  // (redraw, or navigating via the recommendations carousel).
+  useEffect(() => {
+    setOmdbRatings(null);
+    setOmdbStatus('idle');
+  }, [movie?.id]);
 
   if (!isOpen) return null;
 
@@ -80,9 +99,52 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     ? `https://www.playimdb.com/es-es/title/${imdbId}/`
     : `https://www.playimdb.com/title/tt${movie.id}/`;
 
+  const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${movie.title} ${year} película`)}`;
+
   const playImdbDirectUrl = imdbId
     ? `https://www.playimdb.com/es-es/title/${imdbId}/`
     : `https://www.google.com/search?q=playimdb+${encodeURIComponent(movie.title)}`;
+
+  const handleShare = async () => {
+    const genreNames = movie.genres?.map((g) => g.name).join(', ');
+    const tmdbUrl = `https://www.themoviedb.org/movie/${movie.id}`;
+    const shareText = [
+      `🎰 ${movie.title} (${year})`,
+      movie.vote_average > 0 ? `⭐ ${movie.vote_average.toFixed(1)}/10` : null,
+      genreNames || null,
+      tmdbUrl,
+    ]
+      .filter(Boolean)
+      .join('\n');
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: movie.title, text: shareText, url: tmdbUrl });
+        return;
+      } catch {
+        // user cancelled or share failed, fall through to clipboard copy
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setJustShared(true);
+      setTimeout(() => setJustShared(false), 1500);
+    } catch {
+      // clipboard unavailable, silently ignore
+    }
+  };
+
+  const handleFetchOmdbRatings = async () => {
+    if (!movie.imdb_id) {
+      setOmdbStatus('unavailable');
+      return;
+    }
+    setOmdbStatus('loading');
+    const result = await fetchOmdbRatings(movie.imdb_id);
+    setOmdbRatings(result);
+    setOmdbStatus(result ? 'done' : 'unavailable');
+  };
 
   return (
     <div
@@ -140,6 +202,17 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
             <X className="w-6 h-6" />
           </button>
         </div>
+
+        {/* Big "Back" bar — appears after drilling into a recommendation or a marquee title */}
+        {canGoBack && onGoBack && (
+          <button
+            onClick={onGoBack}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-[var(--neon-magenta)]/15 hover:bg-[var(--neon-magenta)]/30 border-b-2 border-[var(--neon-magenta)] text-[var(--neon-magenta)] font-display text-xs sm:text-sm uppercase tracking-wider transition-colors cursor-pointer shrink-0"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>{t('sortear.go_back')}</span>
+          </button>
+        )}
 
         {/* Scrollable Modal Body */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
@@ -278,6 +351,18 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                 </a>
 
+                <a
+                  href={googleSearchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-2.5 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 bg-[var(--neon-cyan)]/20 hover:bg-[var(--neon-cyan)] text-[var(--neon-cyan)] hover:text-[var(--bg-void)] border border-[var(--neon-cyan)]/40 shadow-sm"
+                  title={t('sortear.search_google')}
+                >
+                  <Search className="w-4 h-4" />
+                  <span>{t('sortear.search_google')}</span>
+                  <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                </a>
+
                 <button
                   onClick={() => onToggleWatched(movie)}
                   className={`px-4 py-2.5 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer ${
@@ -353,6 +438,48 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   <div className="uppercase font-bold text-[var(--ink-muted)] bg-[var(--bg-void)] px-2.5 py-1 rounded border border-[var(--ink-muted)]/30">
                     {movie.original_language}
                   </div>
+
+                  {/* On-demand extra ratings from OMDb (IMDb / Rotten Tomatoes / Metacritic) */}
+                  {omdbStatus === 'idle' && (
+                    <button
+                      onClick={handleFetchOmdbRatings}
+                      className="flex items-center gap-1 text-[var(--ink-muted)] hover:text-[var(--neon-amber)] bg-[var(--bg-void)] px-2.5 py-1 rounded border border-[var(--ink-muted)]/30 hover:border-[var(--neon-amber)]/60 transition-colors cursor-pointer"
+                    >
+                      <Star className="w-3.5 h-3.5" />
+                      <span>{t('sortear.extra_ratings')}</span>
+                    </button>
+                  )}
+
+                  {omdbStatus === 'loading' && (
+                    <div className="flex items-center gap-1 text-[var(--ink-muted)] bg-[var(--bg-void)] px-2.5 py-1 rounded border border-[var(--ink-muted)]/30 animate-pulse">
+                      <span>{t('sortear.extra_ratings_loading')}</span>
+                    </div>
+                  )}
+
+                  {omdbStatus === 'unavailable' && (
+                    <div className="text-[var(--ink-muted)] bg-[var(--bg-void)] px-2.5 py-1 rounded border border-[var(--ink-muted)]/30 italic">
+                      {t('sortear.extra_ratings_unavailable')}
+                    </div>
+                  )}
+
+                  {omdbStatus === 'done' && omdbRatings?.imdbRating && (
+                    <div className="flex items-center gap-1 text-[var(--neon-cyan)] bg-[var(--bg-void)] px-2.5 py-1 rounded border border-[var(--neon-cyan)]/40 font-bold">
+                      <Star className="w-3.5 h-3.5 fill-[var(--neon-cyan)]" />
+                      <span>IMDb {omdbRatings.imdbRating}</span>
+                    </div>
+                  )}
+
+                  {omdbStatus === 'done' && omdbRatings?.rottenTomatoes && (
+                    <div className="flex items-center gap-1 text-[var(--neon-red-glow)] bg-[var(--bg-void)] px-2.5 py-1 rounded border border-[var(--neon-red-glow)]/40 font-bold">
+                      <span>🍅 {omdbRatings.rottenTomatoes}</span>
+                    </div>
+                  )}
+
+                  {omdbStatus === 'done' && omdbRatings?.metascore && (
+                    <div className="flex items-center gap-1 text-[var(--neon-green)] bg-[var(--bg-void)] px-2.5 py-1 rounded border border-[var(--neon-green)]/40 font-bold">
+                      <span>Metacritic {omdbRatings.metascore}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Genre Tags */}
@@ -410,6 +537,36 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   </p>
                 </div>
 
+                {/* Recommendations / Similar Movies Carousel */}
+                {onSelectMovie && movie.recommendations?.results && movie.recommendations.results.length > 0 && (
+                  <div className="border-t border-[var(--bg-brick)] pt-3">
+                    <h4 className="text-xs font-mono uppercase text-[var(--ink-muted)] mb-2">
+                      {t('sortear.recommendations')}
+                    </h4>
+                    <div className="flex gap-2.5 overflow-x-auto pb-1">
+                      {movie.recommendations.results.slice(0, 10).map((rec) => (
+                        <button
+                          key={rec.id}
+                          onClick={() => onSelectMovie(rec.id)}
+                          title={rec.title}
+                          className="shrink-0 w-16 sm:w-20 text-left cursor-pointer group"
+                        >
+                          <div className="w-16 sm:w-20 aspect-[2/3] rounded-lg overflow-hidden border border-[var(--ink-muted)]/30 group-hover:border-[var(--neon-cyan)] transition-colors">
+                            <img
+                              src={getImageUrl(rec.poster_path, 'w185')}
+                              alt={rec.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <p className="mt-1 text-[10px] font-mono text-[var(--ink-muted)] group-hover:text-[var(--ink-light)] line-clamp-2 leading-snug">
+                            {rec.title}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Direct Play Banners & Subtitles Actions */}
                 <div className="space-y-2">
                   <div className="flex flex-col sm:flex-row gap-2">
@@ -460,6 +617,18 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     <span>Descargar Subtítulos en SubDivX</span>
                     <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                   </a>
+
+                  <a
+                    href={googleSearchUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-2.5 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 bg-[var(--neon-cyan)]/20 hover:bg-[var(--neon-cyan)] text-[var(--neon-cyan)] hover:text-[var(--bg-void)] border border-[var(--neon-cyan)]/40 shadow-sm"
+                    title={t('sortear.search_google')}
+                  >
+                    <Search className="w-4 h-4" />
+                    <span>{t('sortear.search_google')}</span>
+                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                  </a>
                 </div>
 
                 {/* Bottom Quick Actions */}
@@ -471,6 +640,14 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   >
                     <Dices className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                     <span>{isLoading ? t('sortear.drawing') : t('sortear.again')}</span>
+                  </button>
+
+                  <button
+                    onClick={handleShare}
+                    className="px-4 py-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border border-[var(--neon-magenta)]/40 text-[var(--neon-magenta)] hover:bg-[var(--neon-magenta)]/20 cursor-pointer"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    <span>{justShared ? t('sortear.shared_copied') : t('sortear.share')}</span>
                   </button>
 
                   <button
@@ -490,6 +667,16 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
           )}
         </div>
       </div>
+
+      {/* Invisible background audio: theme/scene (YouTube search) or trailer fallback,
+          only while looking at the ficha (not mid-spin, not while the video player is playing its own audio) */}
+      <BackgroundAudioPlayer
+        movieId={movie.id}
+        title={movie.title}
+        year={year}
+        trailerKey={trailer?.key || null}
+        active={activeView === 'details'}
+      />
     </div>
   );
 };

@@ -8,6 +8,14 @@
   "marquee": {
     "label": "Recent draws ticker"
   },
+  "export": {
+    "txt": "Download as TXT",
+    "csv": "Download as CSV (Excel)",
+    "pdf": "Download as PDF",
+    "txt_label": "TXT",
+    "csv_label": "Excel",
+    "pdf_label": "PDF"
+  },
   "nav": {
     "catalog": "Catalog",
     "watched": "Watched List",
@@ -33,7 +41,15 @@
     "watched_action": "Mark as watched",
     "trailer": "Trailer",
     "watch_providers": "Where to Watch",
-    "view_last_drawn": "🎬 View last drawn movie"
+    "view_last_drawn": "🎬 View last drawn movie",
+    "share": "Share",
+    "shared_copied": "Copied! ✔",
+    "recommendations": "More like this",
+    "extra_ratings": "View extra ratings",
+    "extra_ratings_loading": "Looking up...",
+    "extra_ratings_unavailable": "No extra data available",
+    "search_google": "Search on Google",
+    "go_back": "← Back to previous movie"
   },
   "filters": {
     "title": "CONTROL PANEL",
@@ -63,7 +79,9 @@
     "clear_filters": "Clear Filters",
     "results_count": "Results found",
     "search_placeholder": "🔍 Search movie by title...",
-    "search_active_hint": "Title search active: other filters won't apply until you clear it."
+    "search_active_hint": "Title search active: other filters won't apply until you clear it.",
+    "save_preset": "Save current filters",
+    "preset_name_prompt": "Name for this saved filter:"
   },
   "context_menu": {
     "mark_watched": "Watched ✔",
@@ -99,7 +117,22 @@
     "save": "Save Key",
     "use_demo": "Use Demo Key",
     "official_demo": "Add official demo API key",
-    "current_status": "Status:"
+    "current_status": "Status:",
+    "omdb_title": "EXTRA RATINGS (OMDb) — OPTIONAL",
+    "omdb_description": "Add your own free OMDb API key to see IMDb, Rotten Tomatoes and Metacritic ratings for each drawn movie.",
+    "omdb_get_key_link": "Get a free OMDb API key",
+    "omdb_input_label": "OMDb API Key:",
+    "omdb_placeholder": "e.g. a1b2c3d4",
+    "omdb_save": "Save OMDb Key",
+    "omdb_use_demo": "Use official demo key (OMDb)",
+    "omdb_saved": "OMDb key saved successfully.",
+    "youtube_title": "BACKGROUND AUDIO (YOUTUBE) — OPTIONAL",
+    "youtube_description": "Add your own free YouTube Data API key so that, while viewing a movie's card, its theme song or a classic scene is searched and played in the background. Without a key (or if nothing is found), the trailer's audio plays instead. The free quota is small (~100 searches/day), so your own key is more reliable.",
+    "youtube_get_key_link": "Get a free key on Google Cloud (YouTube Data API v3)",
+    "youtube_input_label": "YouTube Data API Key:",
+    "youtube_placeholder": "e.g. AIzaSy...",
+    "youtube_save": "Save YouTube Key",
+    "youtube_saved": "YouTube key saved successfully."
   },
   "errors": {
     "no_results": "No movies found matching your current filters.",

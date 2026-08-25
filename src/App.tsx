@@ -42,6 +42,7 @@ import {
 import type { GoogleUser } from './lib/auth';
 
 import { Header } from './components/Header';
+import { FloatingMuteButton } from './components/FloatingMuteButton';
 import { MarqueeTicker } from './components/MarqueeTicker';
 import { SortearButton } from './components/SortearButton';
 import { FilterPanel } from './components/FilterPanel';
@@ -114,6 +115,9 @@ export function App() {
   // Snapshot of poster paths for the slot-machine reel, frozen once per draw so it
   // doesn't get reshuffled mid-spin by unrelated re-renders of App.
   const [spinPosterPool, setSpinPosterPool] = useState<(string | null)[]>([]);
+  // Back-navigation stack: movies visited before drilling into a recommendation
+  // or a marquee title while the modal was already open on a different movie.
+  const [movieBackStack, setMovieBackStack] = useState<MovieDetails[]>([]);
 
   // Context Menu state
   const [contextMenu, setContextMenu] = useState<{
@@ -170,6 +174,7 @@ export function App() {
   const handleSortear = async () => {
     setIsDrawing(true);
     setIsRouletteOpen(true);
+    setMovieBackStack([]);
     setSpinPosterPool(movies.map((m) => m.poster_path));
     try {
       const minSpinDelay = new Promise((resolve) => setTimeout(resolve, 1200));
@@ -238,16 +243,32 @@ export function App() {
     if (historyList.length > 0) handleSelectMovie(historyList[0].id);
   };
 
-  // Open details from card or context menu
+  // Open details from card, context menu, recommendations carousel, or marquee.
+  // If the modal is already open on a different movie, push it onto the back
+  // stack first so the user can return to it with the "Volver" button.
   const handleSelectMovie = async (movieSummary: MovieSummary | number) => {
     const id = typeof movieSummary === 'number' ? movieSummary : movieSummary.id;
     try {
       const details = await fetchMovieDetails(id, i18n.language);
+      if (isRouletteOpen && drawnMovie && drawnMovie.id !== id) {
+        setMovieBackStack((stack) => [...stack, drawnMovie]);
+      } else {
+        setMovieBackStack([]);
+      }
       setDrawnMovie(details);
       setIsRouletteOpen(true);
     } catch (err) {
       console.error('Error fetching movie details:', err);
     }
+  };
+
+  // Return to the previously viewed movie in the back stack, no re-fetch needed.
+  const handleGoBack = () => {
+    setMovieBackStack((stack) => {
+      if (stack.length === 0) return stack;
+      setDrawnMovie(stack[stack.length - 1]);
+      return stack.slice(0, -1);
+    });
   };
 
   return (
@@ -268,10 +289,11 @@ export function App() {
         />
 
         {/* Neon Marquee Ticker */}
-        <MarqueeTicker historyList={historyList} />
+        <MarqueeTicker historyList={historyList} onSelectMovie={handleSelectMovie} />
 
         {/* Main Content Area */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+          <div key={activeTab} className="animate-channel-change">
           {activeTab === 'catalog' ? (
             <>
               {/* Control Filter Panel */}
@@ -336,6 +358,7 @@ export function App() {
               onSortearAgain={handleSortear}
             />
           )}
+          </div>
 
           {/* Discord Community Banner */}
           <div className="my-8 p-4 sm:p-5 bg-[var(--bg-panel)] border-2 border-[#5865F2]/60 hover:border-[#5865F2] rounded-xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 transition-all">
@@ -370,6 +393,9 @@ export function App() {
         </main>
       </div>
 
+      {/* Floating Site-wide Mute Button */}
+      <FloatingMuteButton />
+
       {/* Right-click Context Menu */}
       {contextMenu && (
         <ContextMenu
@@ -393,6 +419,9 @@ export function App() {
         onToggleWatched={handleToggleWatched}
         isLoading={isDrawing}
         posterPool={spinPosterPool}
+        onSelectMovie={handleSelectMovie}
+        canGoBack={movieBackStack.length > 0}
+        onGoBack={handleGoBack}
       />
 
       {/* API Key Modal */}

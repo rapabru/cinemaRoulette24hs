@@ -24,8 +24,11 @@ export function isSoundEnabled(): boolean {
   return stored === 'on';
 }
 
+export const SOUND_CHANGED_EVENT = 'cyber-sound-changed';
+
 export function setSoundEnabled(enabled: boolean): void {
   localStorage.setItem(SOUND_STORAGE_KEY, enabled ? 'on' : 'off');
+  window.dispatchEvent(new CustomEvent(SOUND_CHANGED_EVENT, { detail: enabled }));
 }
 
 function playTone(freq: number, startOffset: number, duration: number, ctx: AudioContext, gainValue: number) {

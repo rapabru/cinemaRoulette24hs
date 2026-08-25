@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SlidersHorizontal, ChevronDown, ChevronUp, User, Clapperboard, RotateCcw, Check, Search, X } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown, ChevronUp, User, Clapperboard, RotateCcw, Check, Search, X, Bookmark, Plus } from 'lucide-react';
 import { searchPerson } from '../lib/tmdb';
 import type { Genre, FilterState, PersonResult } from '../lib/tmdb';
+import { getPresets, savePreset, deletePreset } from '../lib/presets';
+import type { FilterPreset } from '../lib/presets';
 
 interface FilterPanelProps {
   filters: FilterState;
@@ -58,6 +60,19 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     if (titleSearchTimeout.current) clearTimeout(titleSearchTimeout.current);
     setTitleSearchInput('');
     onSearchChange('');
+  };
+
+  // Saved filter presets
+  const [presets, setPresets] = useState<FilterPreset[]>(getPresets());
+
+  const handleSavePreset = () => {
+    const name = prompt(t('filters.preset_name_prompt'));
+    if (!name || !name.trim()) return;
+    setPresets(savePreset(name.trim(), filters));
+  };
+
+  const handleDeletePreset = (name: string) => {
+    setPresets(deletePreset(name));
   };
 
   // Dynamic Country Options according to language
@@ -315,6 +330,50 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             {t('filters.search_active_hint')}
           </p>
         )}
+      </div>
+
+      {/* Saved Filter Presets */}
+      <div className="px-4 sm:px-6 pb-3 flex flex-wrap items-center gap-2">
+        {presets.map((preset) => (
+          <span
+            key={preset.name}
+            className="pl-2.5 pr-1.5 py-1 rounded-full text-xs font-mono flex items-center gap-1.5 bg-[var(--bg-void)] border border-[var(--neon-cyan)]/40 text-[var(--ink-light)]"
+          >
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange(preset.filters);
+              }}
+              className="flex items-center gap-1.5 cursor-pointer hover:text-[var(--neon-cyan)] transition-colors"
+            >
+              <Bookmark className="w-3 h-3 text-[var(--neon-cyan)]" />
+              {preset.name}
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeletePreset(preset.name);
+              }}
+              className="text-[var(--ink-muted)] hover:text-[var(--neon-magenta)] cursor-pointer"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </span>
+        ))}
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSavePreset();
+          }}
+          className="px-2.5 py-1 rounded-full text-xs font-mono flex items-center gap-1.5 bg-[var(--bg-void)] border border-[var(--ink-muted)]/30 text-[var(--ink-muted)] hover:border-[var(--neon-cyan)] hover:text-[var(--neon-cyan)] transition-colors cursor-pointer"
+        >
+          <Plus className="w-3 h-3" />
+          {t('filters.save_preset')}
+        </button>
       </div>
 
       {/* Expanded Controls */}

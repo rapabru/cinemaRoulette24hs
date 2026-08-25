@@ -4,6 +4,7 @@ import { History, Search, Trash2, Calendar, Star, Check, Dices, BarChart3 } from
 import type { DrawnHistoryItem } from '../lib/history';
 import { getImageUrl } from '../lib/tmdb';
 import type { Genre } from '../lib/tmdb';
+import { ExportButtons } from './ExportButtons';
 
 interface DrawHistoryViewProps {
   historyList: DrawnHistoryItem[];
@@ -128,6 +129,18 @@ export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
             />
             <Search className="w-4 h-4 text-[var(--ink-muted)] absolute left-2.5 top-2.5" />
           </div>
+
+          {/* Export Buttons */}
+          <ExportButtons
+            title={t('history.title')}
+            filenamePrefix="historial_sorteos"
+            rows={historyList.map((m) => ({
+              title: m.title,
+              year: m.release_date ? m.release_date.split('-')[0] : '',
+              rating: m.vote_average ? m.vote_average.toFixed(1) : 'N/A',
+              dateLabel: new Date(m.drawnAt).toLocaleString(),
+            }))}
+          />
 
           {/* Clear History Button */}
           <button

@@ -8,6 +8,14 @@
   "marquee": {
     "label": "Cartelera de sorteos recientes"
   },
+  "export": {
+    "txt": "Descargar como TXT",
+    "csv": "Descargar como CSV (Excel)",
+    "pdf": "Descargar como PDF",
+    "txt_label": "TXT",
+    "csv_label": "Excel",
+    "pdf_label": "PDF"
+  },
   "nav": {
     "catalog": "Catálogo",
     "watched": "La Vi (Vistas)",
@@ -33,7 +41,15 @@
     "watched_action": "Marcar como vista",
     "trailer": "Tráiler",
     "watch_providers": "Dónde ver",
-    "view_last_drawn": "🎬 Ver última película sorteada"
+    "view_last_drawn": "🎬 Ver última película sorteada",
+    "share": "Compartir",
+    "shared_copied": "¡Copiado! ✔",
+    "recommendations": "Más como esta",
+    "extra_ratings": "Ver ratings extra",
+    "extra_ratings_loading": "Buscando...",
+    "extra_ratings_unavailable": "Sin datos extra disponibles",
+    "search_google": "Buscarla en Google",
+    "go_back": "← Volver a la película anterior"
   },
   "filters": {
     "title": "PANEL DE CONTROL",
@@ -63,7 +79,9 @@
     "clear_filters": "Limpiar filtros",
     "results_count": "Resultados encontrados",
     "search_placeholder": "🔍 Buscar película por título...",
-    "search_active_hint": "Búsqueda por título activa: los demás filtros no aplican hasta que la borres."
+    "search_active_hint": "Búsqueda por título activa: los demás filtros no aplican hasta que la borres.",
+    "save_preset": "Guardar filtro actual",
+    "preset_name_prompt": "Nombre para este filtro guardado:"
   },
   "context_menu": {
     "mark_watched": "La vi ✔",
@@ -99,7 +117,22 @@
     "save": "Guardar Clave",
     "use_demo": "Usar clave de prueba (Demo)",
     "official_demo": "Agregar API key de prueba oficial",
-    "current_status": "Estado:"
+    "current_status": "Estado:",
+    "omdb_title": "RATINGS EXTRA (OMDb) — OPCIONAL",
+    "omdb_description": "Agregá tu propia clave gratis de OMDb para ver el rating de IMDb, Rotten Tomatoes y Metacritic en cada película sorteada.",
+    "omdb_get_key_link": "Obtener clave gratis en OMDb",
+    "omdb_input_label": "Clave API de OMDb:",
+    "omdb_placeholder": "ej. a1b2c3d4",
+    "omdb_save": "Guardar Clave OMDb",
+    "omdb_use_demo": "Usar clave de prueba oficial (OMDb)",
+    "omdb_saved": "Clave de OMDb guardada correctamente.",
+    "youtube_title": "AUDIO DE FONDO (YOUTUBE) — OPCIONAL",
+    "youtube_description": "Agregá tu propia clave gratis de YouTube Data API para que, al ver una ficha, se busque y suene de fondo el tema principal o una escena clásica de la película. Sin clave (o si no encuentra nada), suena el audio del tráiler. La cuota gratis es chica (~100 búsquedas/día), así que con una clave propia es más confiable.",
+    "youtube_get_key_link": "Obtener clave gratis en Google Cloud (YouTube Data API v3)",
+    "youtube_input_label": "Clave de YouTube Data API:",
+    "youtube_placeholder": "ej. AIzaSy...",
+    "youtube_save": "Guardar Clave de YouTube",
+    "youtube_saved": "Clave de YouTube guardada correctamente."
   },
   "errors": {
     "no_results": "No se encontraron películas con los filtros seleccionados.",

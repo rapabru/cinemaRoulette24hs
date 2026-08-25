@@ -231,10 +231,25 @@ body {
 .marquee-track {
   animation: marqueeScroll 22s linear infinite;
 }
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* "Channel change" flicker when switching tabs (Catálogo / La Vi / Historial) */
+@keyframes channelChange {
+  0% { opacity: 0; filter: brightness(3) contrast(1.5); transform: scaleY(0.92); }
+  15% { opacity: 1; filter: brightness(0.3); transform: scaleY(1.03); }
+  30% { filter: brightness(2.2); transform: scaleY(0.99); }
+  50% { filter: brightness(0.6); transform: scaleY(1); }
+  100% { opacity: 1; filter: brightness(1); transform: scaleY(1); }
+}
+.animate-channel-change {
+  animation: channelChange 0.35s ease-out both;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .neon-marquee-btn, .crt-monitor, .animate-fade-in, .animate-card-enter,
-  .reel-spin-track, .animate-result-flash, .marquee-track {
+  .reel-spin-track, .animate-result-flash, .marquee-track, .animate-channel-change {
     animation: none !important;
     transition: none !important;
   }

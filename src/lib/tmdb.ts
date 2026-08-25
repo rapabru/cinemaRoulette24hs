@@ -72,6 +72,9 @@ export interface MovieDetails extends MovieSummary {
   'watch/providers'?: {
     results: Record<string, WatchProvidersRegion>;
   };
+  recommendations?: {
+    results: MovieSummary[];
+  };
 }
 
 export interface PersonResult {
@@ -455,7 +458,7 @@ export async function fetchMovieDetails(id: number, language: string = 'es'): Pr
   try {
     let details = await tmdbFetch<MovieDetails>(`/movie/${id}`, {
       language,
-      append_to_response: 'credits,videos,watch/providers',
+      append_to_response: 'credits,videos,watch/providers,recommendations',
     });
 
     // 1. Fallback to English overview if Spanish overview is missing/empty
