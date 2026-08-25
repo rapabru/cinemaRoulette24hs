@@ -6,6 +6,8 @@ import { playReelTick } from '../lib/sound';
 
 interface SlotReelProps {
   posterPaths: (string | null)[];
+  /** True during the brief "landing" transition once the real result is known, just before it's revealed. */
+  paused?: boolean;
 }
 
 const MIN_TILES = 14;
@@ -22,7 +24,7 @@ function buildReelTiles(posterPaths: (string | null)[]): string[] {
   return tiles.slice(0, MIN_TILES);
 }
 
-export const SlotReel: React.FC<SlotReelProps> = ({ posterPaths }) => {
+export const SlotReel: React.FC<SlotReelProps> = ({ posterPaths, paused = false }) => {
   const { t } = useTranslation();
 
   // Freeze the shuffled tile order for the lifetime of this spin
@@ -32,17 +34,21 @@ export const SlotReel: React.FC<SlotReelProps> = ({ posterPaths }) => {
   const tickTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
+    if (paused) return;
     tickTimer.current = setInterval(() => playReelTick(), 150);
     return () => {
       if (tickTimer.current) clearInterval(tickTimer.current);
     };
-  }, []);
+  }, [paused]);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-5 py-10 sm:py-14 px-4">
+    <div className={`flex flex-col items-center justify-center gap-5 py-10 sm:py-14 px-4 transition-opacity duration-300 ${paused ? 'opacity-60' : 'opacity-100'}`}>
       <div className="relative w-48 sm:w-56 aspect-[2/3] rounded-xl overflow-hidden border-2 border-[var(--neon-cyan)] shadow-neon-cyan bg-black">
         {doubledTiles.length > 0 ? (
-          <div className="reel-spin-track absolute top-0 left-0 w-full flex flex-col">
+          <div
+            className="reel-spin-track absolute top-0 left-0 w-full flex flex-col"
+            style={paused ? { animationPlayState: 'paused' } : undefined}
+          >
             {doubledTiles.map((path, i) => (
               <img
                 key={i}

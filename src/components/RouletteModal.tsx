@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video } from 'lucide-react';
 import { getImageUrl, getTrailerVideo, getWatchProviders } from '../lib/tmdb';
@@ -32,14 +32,29 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   const [activeView, setActiveView] = useState<'details' | 'player'>(initialMode);
   const [playerProvider, setPlayerProvider] = useState<'vidking' | 'playimdb' | 'trailer'>('vidking');
 
+  // Brief "landing" beat between the spin ending and the result appearing, so the
+  // cut doesn't always land at a random, sometimes-jarring point mid-blur.
+  const [isLanding, setIsLanding] = useState(false);
+  const wasLoadingRef = useRef(isLoading);
+
+  useEffect(() => {
+    if (wasLoadingRef.current && !isLoading) {
+      setIsLanding(true);
+      const timer = setTimeout(() => setIsLanding(false), 250);
+      wasLoadingRef.current = isLoading;
+      return () => clearTimeout(timer);
+    }
+    wasLoadingRef.current = isLoading;
+  }, [isLoading]);
+
   if (!isOpen) return null;
 
-  // Sorteo en curso: mostrar el carrete tragamonedas en vez de la ficha (o la anterior, en un re-sorteo)
-  if (isLoading) {
+  // Sorteo en curso (o recién terminado): mostrar el carrete tragamonedas en vez de la ficha
+  if (isLoading || isLanding) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-        <div className="relative w-full max-w-sm bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden crt-monitor">
-          <SlotReel posterPaths={posterPool} />
+        <div className="relative w-full max-w-sm bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden">
+          <SlotReel posterPaths={posterPool} paused={isLanding} />
         </div>
       </div>
     );
@@ -70,8 +85,14 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     : `https://www.google.com/search?q=playimdb+${encodeURIComponent(movie.title)}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden crt-monitor animate-result-flash">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden animate-result-flash"
+      >
         {/* Sticky Header Bar */}
         <div className="relative flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 bg-[var(--bg-brick)] border-b border-[var(--neon-cyan)]/40 gap-2 shrink-0 pr-12">
           <div className="flex flex-wrap items-center gap-3">

@@ -111,6 +111,9 @@ export function App() {
   const [drawnMovie, setDrawnMovie] = useState<MovieDetails | null>(null);
   const [isRouletteOpen, setIsRouletteOpen] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
+  // Snapshot of poster paths for the slot-machine reel, frozen once per draw so it
+  // doesn't get reshuffled mid-spin by unrelated re-renders of App.
+  const [spinPosterPool, setSpinPosterPool] = useState<(string | null)[]>([]);
 
   // Context Menu state
   const [contextMenu, setContextMenu] = useState<{
@@ -167,6 +170,7 @@ export function App() {
   const handleSortear = async () => {
     setIsDrawing(true);
     setIsRouletteOpen(true);
+    setSpinPosterPool(movies.map((m) => m.poster_path));
     try {
       const minSpinDelay = new Promise((resolve) => setTimeout(resolve, 1200));
       const [result] = await Promise.all([
@@ -229,6 +233,11 @@ export function App() {
     setWatchedList([...updatedList]);
   };
 
+  // Reopen the last drawn movie's card without drawing again
+  const handleShowLastDrawn = () => {
+    if (historyList.length > 0) handleSelectMovie(historyList[0].id);
+  };
+
   // Open details from card or context menu
   const handleSelectMovie = async (movieSummary: MovieSummary | number) => {
     const id = typeof movieSummary === 'number' ? movieSummary : movieSummary.id;
@@ -281,6 +290,18 @@ export function App() {
 
               {/* Signature Marquee "Sortear" Button (Positioned Below Filter Panel) */}
               <SortearButton onDraw={handleSortear} isLoading={isDrawing} />
+
+              {/* Quick access back to the last drawn movie, without drawing again */}
+              {historyList.length > 0 && (
+                <div className="w-full flex justify-center -mt-2 mb-4">
+                  <button
+                    onClick={handleShowLastDrawn}
+                    className="text-xs font-mono text-[var(--neon-cyan)] hover:text-[var(--neon-amber)] underline underline-offset-2 transition-colors cursor-pointer"
+                  >
+                    {t('sortear.view_last_drawn')}
+                  </button>
+                </div>
+              )}
 
               {/* Movie Catalog Grid */}
               <CatalogGrid
@@ -371,7 +392,7 @@ export function App() {
         isWatched={drawnMovie ? watchedMovieIds.has(drawnMovie.id) : false}
         onToggleWatched={handleToggleWatched}
         isLoading={isDrawing}
-        posterPool={movies.map((m) => m.poster_path)}
+        posterPool={spinPosterPool}
       />
 
       {/* API Key Modal */}

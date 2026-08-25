@@ -32,7 +32,8 @@
     "watch_hint": "Disponible para ver en plataformas de streaming o alquiler.",
     "watched_action": "Marcar como vista",
     "trailer": "Tráiler",
-    "watch_providers": "Dónde ver"
+    "watch_providers": "Dónde ver",
+    "view_last_drawn": "🎬 Ver última película sorteada"
   },
   "filters": {
     "title": "PANEL DE CONTROL",

@@ -116,16 +116,16 @@ export const DEFAULT_FILTERS: FilterState = {
   actorName: '',
   directorId: null,
   directorName: '',
-  yearFrom: 1900,
+  yearFrom: 2005,
   yearTo: new Date().getFullYear(),
-  language: '',
+  language: 'en',
   country: '',
   minRating: 6,
-  maxRating: 10,
+  maxRating: 9,
   minRuntime: 60,
   maxRuntime: 300,
   skipWatched: true,
-  selectedIndustries: ['hollywood', 'argentina', 'espanol', 'europeo', 'latin'],
+  selectedIndustries: ['hollywood'],
 };
 
 export const OFFICIAL_DEMO_KEY =
