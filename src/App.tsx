@@ -44,6 +44,7 @@ import type { GoogleUser } from './lib/auth';
 import { Header } from './components/Header';
 import { VolumeControl } from './components/VolumeControl';
 import { MarqueeTicker } from './components/MarqueeTicker';
+import { ScrollDownArrow } from './components/ScrollDownArrow';
 import { SortearButton } from './components/SortearButton';
 import { FilterPanel } from './components/FilterPanel';
 import { CatalogGrid } from './components/CatalogGrid';
@@ -291,9 +292,12 @@ export function App() {
         {/* Neon Marquee Ticker */}
         <MarqueeTicker onSelectMovie={handleSelectMovie} />
 
+        {/* Scroll-down invitation */}
+        <ScrollDownArrow targetId="main-content-start" />
+
         {/* Main Content Area */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-          <div key={activeTab} className="animate-channel-change">
+          <div id="main-content-start" key={activeTab} className="animate-channel-change">
           {activeTab === 'catalog' ? (
             <>
               {/* Control Filter Panel */}

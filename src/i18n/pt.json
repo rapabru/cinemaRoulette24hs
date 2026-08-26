@@ -6,7 +6,8 @@
     "attribution": "Este produto utiliza a API do TMDB mas não é endossado nem certificado pelo TMDB.",
     "discord_heading": "🎬 DISCORD DO CYBERCAFÉ 24HS",
     "discord_description": "Junte-se à comunidade cinéfila! Assistimos filmes juntos ao vivo todas as noites.",
-    "discord_join": "Entrar no Discord"
+    "discord_join": "Entrar no Discord",
+    "scroll_down_hint": "Descubra o catálogo"
   },
   "marquee": {
     "label": "Painel de sorteios recentes",
@@ -47,6 +48,7 @@
     "watched_action": "Marcar como visto",
     "trailer": "Trailer",
     "watch_providers": "Onde assistir",
+    "watch_here": "Assistir no Cybercafé 24hs",
     "view_last_drawn": "🎬 Ver último filme sorteado",
     "share": "Compartilhar",
     "shared_copied": "Copiado! ✔",

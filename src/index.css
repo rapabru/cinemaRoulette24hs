@@ -10,9 +10,10 @@
   --neon-red-glow: #FF3B1F;
   --neon-green: #39FF6A;
   --neon-cyan: #35E6FF;
+  --neon-blue: #2151FF;
   --ink-light: #F2EAFB;
   --ink-muted: #9C8FBE;
-  
+
   --scanline-opacity: 0.15;
   --glow-intensity: 1;
 }
@@ -27,6 +28,7 @@ html:not(.dark) {
   --neon-red-glow: #D93018;
   --neon-green: #2BBF52;
   --neon-cyan: #1CA4B8;
+  --neon-blue: #1740C4;
   --ink-light: #1A1424;
   --ink-muted: #5C5272;
 
@@ -78,6 +80,18 @@ body {
   color: var(--neon-green);
   text-shadow: 0 0 calc(5px * var(--glow-intensity)) var(--neon-green),
                0 0 calc(12px * var(--glow-intensity)) var(--neon-green);
+}
+
+.text-neon-red {
+  color: var(--neon-red-glow);
+  text-shadow: 0 0 calc(5px * var(--glow-intensity)) var(--neon-red-glow),
+               0 0 calc(12px * var(--glow-intensity)) var(--neon-red-glow);
+}
+
+.text-neon-blue {
+  color: var(--neon-blue);
+  text-shadow: 0 0 calc(5px * var(--glow-intensity)) var(--neon-blue),
+               0 0 calc(12px * var(--glow-intensity)) var(--neon-blue);
 }
 
 /* Signature Neon Marquee Sortear Button */

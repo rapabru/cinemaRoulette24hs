@@ -28,6 +28,7 @@ export const BackgroundAudioPlayer: React.FC<BackgroundAudioPlayerProps> = ({
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
   const [volume, setVolumeState] = useState(getVolume());
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const fadeInDoneRef = useRef(false);
 
   useEffect(() => {
     const soundHandler = (e: Event) => setSoundOn((e as CustomEvent<boolean>).detail);
@@ -52,23 +53,56 @@ export const BackgroundAudioPlayer: React.FC<BackgroundAudioPlayerProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [movieId]);
 
-  // Live-control mute/volume via the YouTube IFrame postMessage API instead of
-  // remounting the iframe, so dragging the volume slider doesn't restart playback.
+  // Fade the volume in from 0 whenever a new video starts, instead of jumping
+  // straight to the target level — so the background audio doesn't startle
+  // whoever's browsing. Reads sound/volume live (not as deps) so it always
+  // eases into whatever the current setting is by the time it finishes.
   useEffect(() => {
     if (!videoId) return;
+    fadeInDoneRef.current = false;
     const sendCommand = (func: string, args: unknown[] = []) => {
       iframeRef.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
     };
-    const sync = () => {
-      sendCommand(soundOn ? 'unMute' : 'mute');
-      sendCommand('setVolume', [volume]);
+
+    const steps = 20;
+    const stepDurationMs = 1500 / steps;
+    let step = 0;
+    let stepTimer: ReturnType<typeof setTimeout>;
+
+    const tick = () => {
+      step++;
+      const target = isSoundEnabled() ? getVolume() : 0;
+      sendCommand('unMute');
+      sendCommand('setVolume', [Math.round((target * step) / steps)]);
+      if (step < steps) {
+        stepTimer = setTimeout(tick, stepDurationMs);
+      } else {
+        fadeInDoneRef.current = true;
+        if (!isSoundEnabled()) sendCommand('mute');
+      }
     };
-    sync();
     // The embed only starts accepting commands once its internal player script is
     // ready, which isn't observable without loading the full IFrame API — a short
-    // retry after load covers that window without needing the extra script.
-    const timer = setTimeout(sync, 600);
-    return () => clearTimeout(timer);
+    // delay before the fade covers that window without needing the extra script.
+    const startTimer = setTimeout(tick, 600);
+
+    return () => {
+      clearTimeout(startTimer);
+      clearTimeout(stepTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [videoId]);
+
+  // Live-control mute/volume via the YouTube IFrame postMessage API instead of
+  // remounting the iframe, so dragging the volume slider doesn't restart playback.
+  // Skipped until the initial fade-in finishes, so it doesn't cut the fade short.
+  useEffect(() => {
+    if (!videoId || !fadeInDoneRef.current) return;
+    const sendCommand = (func: string, args: unknown[] = []) => {
+      iframeRef.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
+    };
+    sendCommand(soundOn ? 'unMute' : 'mute');
+    sendCommand('setVolume', [volume]);
   }, [videoId, soundOn, volume]);
 
   if (!active || !videoId) return null;

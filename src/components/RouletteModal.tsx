@@ -529,28 +529,35 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   ))}
                 </div>
 
-                {/* Watch Providers ("Dónde ver") */}
-                {watchProviders && (watchProviders.flatrate?.length || watchProviders.rent?.length || watchProviders.buy?.length) ? (
-                  <div className="border-t border-[var(--bg-brick)] pt-3">
-                    <h4 className="text-xs font-mono uppercase text-[var(--ink-muted)] mb-2">
-                      {t('sortear.watch_providers')}
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {[...(watchProviders.flatrate || []), ...(watchProviders.rent || []), ...(watchProviders.buy || [])]
+                {/* Watch Providers ("Dónde ver") — our own player is always the first option */}
+                <div className="border-t border-[var(--bg-brick)] pt-3">
+                  <h4 className="text-xs font-mono uppercase text-[var(--ink-muted)] mb-2">
+                    {t('sortear.watch_providers')}
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => setActiveView('player')}
+                      title={t('sortear.watch_here')}
+                      className="w-9 h-9 rounded-lg border-2 border-[var(--neon-cyan)] bg-[var(--bg-void)] flex items-center justify-center shadow-neon-cyan hover:scale-105 transition-transform cursor-pointer shrink-0"
+                    >
+                      <Tv className="w-5 h-5 text-[var(--neon-cyan)]" />
+                    </button>
+
+                    {watchProviders &&
+                      [...(watchProviders.flatrate || []), ...(watchProviders.rent || []), ...(watchProviders.buy || [])]
                         .filter((p, i, arr) => arr.findIndex((x) => x.provider_id === p.provider_id) === i)
-                        .slice(0, 8)
+                        .slice(0, 7)
                         .map((provider) => (
                           <img
                             key={provider.provider_id}
                             src={getImageUrl(provider.logo_path, 'w185')}
                             alt={provider.provider_name}
                             title={provider.provider_name}
-                            className="w-9 h-9 rounded-lg border border-[var(--ink-muted)]/30 object-cover"
+                            className="w-9 h-9 rounded-lg border border-[var(--ink-muted)]/30 object-cover shrink-0"
                           />
                         ))}
-                    </div>
                   </div>
-                ) : null}
+                </div>
 
                 {/* Director & Cast */}
                 <div className="space-y-1 text-xs font-mono text-[var(--ink-light)] border-t border-[var(--bg-brick)] pt-3">

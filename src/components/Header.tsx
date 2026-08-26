@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Film, Eye, History, Moon, Sun, Globe, Key, Tv, ShieldAlert, LogOut } from 'lucide-react';
+import { Film, Eye, History, Moon, Sun, Globe, Key, ShieldAlert, LogOut } from 'lucide-react';
 import { getStoredApiKey } from '../lib/tmdb';
 import { VolumeControl } from './VolumeControl';
 import type { GoogleUser } from '../lib/auth';
@@ -69,14 +69,24 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-3 group cursor-pointer select-none no-underline"
             title="Ir a https://cinemaroulette.vercel.app/"
           >
-            <div className="w-10 h-10 rounded bg-[var(--bg-panel)] border border-[var(--neon-cyan)] flex items-center justify-center shadow-neon-cyan relative overflow-hidden group-hover:border-[var(--neon-amber)] transition-colors">
-              <Tv className="w-6 h-6 text-[var(--neon-cyan)] group-hover:scale-110 group-hover:text-[var(--neon-amber)] transition-all" />
-              <div className="absolute inset-0 bg-[var(--neon-cyan)]/10 animate-pulse pointer-events-none" />
+            <div className="flex flex-col items-center gap-1 shrink-0">
+              <div className="h-12 rounded border border-[var(--neon-cyan)] shadow-neon-cyan relative overflow-hidden group-hover:border-[var(--neon-amber)] transition-colors">
+                <img
+                  src="/logo.png"
+                  alt="Cybercafé 24hs"
+                  className="h-full w-auto object-cover group-hover:scale-105 transition-transform"
+                />
+              </div>
+              <span className="text-[8px] font-mono font-bold text-[var(--neon-magenta)] tracking-widest uppercase whitespace-nowrap">
+                Cinema Roulette
+              </span>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-display text-sm sm:text-base text-neon-amber tracking-wider uppercase group-hover:text-[var(--neon-cyan)] transition-colors">
-                  {t('app.title')}
+                <h1 className="font-display text-sm sm:text-base tracking-wider uppercase group-hover:brightness-125 transition-all">
+                  <span className="text-neon-red">CYBER</span>
+                  <span className="text-neon-green">CAFÉ</span>{' '}
+                  <span className="text-neon-blue">24HS</span>
                 </h1>
                 <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono font-bold tracking-widest text-[var(--bg-void)] bg-[var(--neon-cyan)] rounded shadow-neon-cyan uppercase group-hover:bg-[var(--neon-amber)] transition-colors">
                   {t('app.open_24h')}
