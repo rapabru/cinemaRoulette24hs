@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft, Maximize2 } from 'lucide-react';
+import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft, Maximize2, ShieldAlert } from 'lucide-react';
 import { getImageUrl, getTrailerVideo, getWatchProviders } from '../lib/tmdb';
 import type { MovieDetails } from '../lib/tmdb';
 import { fetchOmdbRatings } from '../lib/omdb';
@@ -291,6 +291,12 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                 </div>
               </div>
 
+              {/* Ad-blocker hint */}
+              <p className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--ink-muted)] px-1">
+                <ShieldAlert className="w-3.5 h-3.5 text-[var(--neon-amber)] shrink-0" />
+                {t('sortear.adblock_hint')}
+              </p>
+
               {/* Player Iframe Display */}
               {playerProvider === 'vidking' ? (
                 <div className="relative aspect-video w-full max-h-[75vh] rounded-xl overflow-hidden border-2 border-[var(--neon-cyan)] shadow-neon-cyan bg-black mx-auto">
@@ -299,6 +305,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     className="w-full h-full border-0"
                     allowFullScreen
                     allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    sandbox="allow-scripts allow-same-origin allow-fullscreen allow-forms"
                     title={`VidKing Player - ${movie.title}`}
                   />
                 </div>
@@ -309,6 +316,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     className="w-full h-full border-0"
                     allowFullScreen
                     allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    sandbox="allow-scripts allow-same-origin allow-fullscreen allow-forms"
                     title={`PlayIMDB Player - ${movie.title}`}
                   />
                 </div>
@@ -319,6 +327,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     className="w-full h-full border-0"
                     allowFullScreen
                     allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    sandbox="allow-scripts allow-same-origin allow-fullscreen allow-forms"
                     title={`Trailer - ${movie.title}`}
                   />
                 </div>

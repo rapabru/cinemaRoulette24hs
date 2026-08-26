@@ -455,7 +455,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Director Search Input */}
             <div className="relative">
-              <label className="block text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider mb-2">
+              <label className="block text-[13px] font-mono font-bold text-[var(--ink-light)]/90 uppercase tracking-wider mb-2">
                 {t('filters.director')}
               </label>
               <div className="relative">
@@ -495,7 +495,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
             {/* Actor Search Input */}
             <div className="relative">
-              <label className="block text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider mb-2">
+              <label className="block text-[13px] font-mono font-bold text-[var(--ink-light)]/90 uppercase tracking-wider mb-2">
                 {t('filters.actor')}
               </label>
               <div className="relative">
@@ -535,7 +535,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
             {/* Country of Origin Dropdown */}
             <div>
-              <label className="block text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider mb-2">
+              <label className="block text-[13px] font-mono font-bold text-[var(--ink-light)]/90 uppercase tracking-wider mb-2">
                 {t('filters.country')}
               </label>
               <select
@@ -553,7 +553,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
             {/* Original Language Dropdown */}
             <div>
-              <label className="block text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider mb-2">
+              <label className="block text-[13px] font-mono font-bold text-[var(--ink-light)]/90 uppercase tracking-wider mb-2">
                 {t('filters.language')}
               </label>
               <select

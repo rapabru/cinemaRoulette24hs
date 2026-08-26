@@ -37,9 +37,9 @@ export const VOLUME_CHANGED_EVENT = 'cyber-volume-changed';
 /** Master volume (0-100) for both the generated SFX and the background audio player. */
 export function getVolume(): number {
   const stored = localStorage.getItem(VOLUME_STORAGE_KEY);
-  if (stored === null) return 70;
+  if (stored === null) return 35;
   const parsed = Number(stored);
-  if (Number.isNaN(parsed)) return 70;
+  if (Number.isNaN(parsed)) return 35;
   return Math.min(100, Math.max(0, parsed));
 }
 

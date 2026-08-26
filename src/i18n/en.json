@@ -57,7 +57,8 @@
     "search_google": "Search on Google",
     "go_back": "← Back to previous movie",
     "open_fullscreen_tab": "⤢ Fullscreen (new tab)",
-    "volume_label": "Volume"
+    "volume_label": "Volume",
+    "adblock_hint": "Too many ads? Install uBlock Origin or another ad blocker in your browser for a cleaner experience."
   },
   "filters": {
     "title": "CONTROL PANEL",

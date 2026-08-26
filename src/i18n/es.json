@@ -57,7 +57,8 @@
     "search_google": "Buscarla en Google",
     "go_back": "← Volver a la película anterior",
     "open_fullscreen_tab": "⤢ Pantalla completa (pestaña nueva)",
-    "volume_label": "Volumen"
+    "volume_label": "Volumen",
+    "adblock_hint": "¿Mucha publicidad? Instalá uBlock Origin u otro bloqueador de anuncios en tu navegador para una experiencia más limpia."
   },
   "filters": {
     "title": "PANEL DE CONTROL",
