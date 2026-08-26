@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft } from 'lucide-react';
+import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft, Maximize2 } from 'lucide-react';
 import { getImageUrl, getTrailerVideo, getWatchProviders } from '../lib/tmdb';
 import type { MovieDetails } from '../lib/tmdb';
 import { fetchOmdbRatings } from '../lib/omdb';
 import type { OmdbRatings } from '../lib/omdb';
 import { SlotReel } from './SlotReel';
 import { BackgroundAudioPlayer } from './BackgroundAudioPlayer';
+import { VolumeControl } from './VolumeControl';
 
 interface RouletteModalProps {
   movie: MovieDetails | null;
@@ -66,6 +67,12 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     setOmdbStatus('idle');
   }, [movie?.id]);
 
+  // Always land back on the ficha (details) for a new movie, instead of staying
+  // stuck on "Reproductor" from whatever the previous movie was showing.
+  useEffect(() => {
+    setActiveView('details');
+  }, [movie?.id]);
+
   if (!isOpen) return null;
 
   // Sorteo en curso (o recién terminado): mostrar el carrete tragamonedas en vez de la ficha
@@ -100,6 +107,13 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     : `https://www.playimdb.com/title/tt${movie.id}/`;
 
   const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${movie.title} ${year} película`)}`;
+
+  const currentEmbedUrl =
+    playerProvider === 'vidking' ? vidkingEmbedUrl : playerProvider === 'playimdb' ? playImdbEmbedUrl : trailerEmbedUrl;
+
+  const handleOpenFullscreenTab = () => {
+    if (currentEmbedUrl) window.open(currentEmbedUrl, '_blank', 'noopener,noreferrer');
+  };
 
   const playImdbDirectUrl = imdbId
     ? `https://www.playimdb.com/es-es/title/${imdbId}/`
@@ -153,7 +167,9 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden animate-result-flash"
+        className={`relative w-full max-h-[92vh] flex flex-col bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden animate-result-flash transition-[max-width] ${
+          activeView === 'player' ? 'max-w-6xl' : 'max-w-4xl'
+        }`}
       >
         {/* Sticky Header Bar */}
         <div className="relative flex flex-wrap items-center justify-between px-4 sm:px-6 py-3 bg-[var(--bg-brick)] border-b border-[var(--neon-cyan)]/40 gap-2 shrink-0 pr-12">
@@ -191,6 +207,8 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                 <span>▶ Reproductor</span>
               </button>
             </div>
+
+            <VolumeControl />
           </div>
 
           {/* Always Fixed Top Right Close Button */}
@@ -224,7 +242,15 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                 <span className="text-[var(--ink-muted)] font-bold uppercase tracking-wider">
                   Servidores de Reproducción:
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={handleOpenFullscreenTab}
+                    className="px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 bg-[var(--bg-void)] text-[var(--neon-green)] border border-[var(--neon-green)]/50 hover:bg-[var(--neon-green)]/15 shadow-sm"
+                    title={t('sortear.open_fullscreen_tab')}
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>{t('sortear.open_fullscreen_tab')}</span>
+                  </button>
                   <button
                     onClick={() => setPlayerProvider('vidking')}
                     className={`px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
@@ -267,7 +293,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
 
               {/* Player Iframe Display */}
               {playerProvider === 'vidking' ? (
-                <div className="relative aspect-video w-full max-h-[58vh] rounded-xl overflow-hidden border-2 border-[var(--neon-cyan)] shadow-neon-cyan bg-black mx-auto">
+                <div className="relative aspect-video w-full max-h-[75vh] rounded-xl overflow-hidden border-2 border-[var(--neon-cyan)] shadow-neon-cyan bg-black mx-auto">
                   <iframe
                     src={vidkingEmbedUrl}
                     className="w-full h-full border-0"
@@ -277,7 +303,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   />
                 </div>
               ) : playerProvider === 'playimdb' ? (
-                <div className="relative aspect-video w-full max-h-[58vh] rounded-xl overflow-hidden border-2 border-[var(--neon-amber)] shadow-neon-amber bg-black mx-auto">
+                <div className="relative aspect-video w-full max-h-[75vh] rounded-xl overflow-hidden border-2 border-[var(--neon-amber)] shadow-neon-amber bg-black mx-auto">
                   <iframe
                     src={playImdbEmbedUrl}
                     className="w-full h-full border-0"
@@ -287,7 +313,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   />
                 </div>
               ) : trailerEmbedUrl ? (
-                <div className="relative aspect-video w-full max-h-[58vh] rounded-xl overflow-hidden border-2 border-[var(--neon-magenta)] shadow-neon-magenta bg-black mx-auto">
+                <div className="relative aspect-video w-full max-h-[75vh] rounded-xl overflow-hidden border-2 border-[var(--neon-magenta)] shadow-neon-magenta bg-black mx-auto">
                   <iframe
                     src={trailerEmbedUrl}
                     className="w-full h-full border-0"

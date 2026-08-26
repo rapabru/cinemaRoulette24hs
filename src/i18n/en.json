@@ -3,10 +3,15 @@
     "title": "CYBERCAFÉ 24HS",
     "subtitle": "MOVIE ROULETTE TERMINAL",
     "open_24h": "OPEN 24 HOURS",
-    "attribution": "This product uses the TMDB API but is not endorsed or certified by TMDB."
+    "attribution": "This product uses the TMDB API but is not endorsed or certified by TMDB.",
+    "discord_heading": "🎬 CYBERCAFÉ 24HS DISCORD",
+    "discord_description": "Join our movie community! We watch movies together live every night.",
+    "discord_join": "Join Discord"
   },
   "marquee": {
-    "label": "Recent draws ticker"
+    "label": "Recent draws ticker",
+    "now_playing_label": "New releases ticker",
+    "popular_label": "Recommended ticker"
   },
   "export": {
     "txt": "Download as TXT",
@@ -24,7 +29,8 @@
     "theme_night": "Night Mode (2 AM)",
     "theme_midday": "Midday Mode (12 PM)",
     "sound_on": "Sound on (click to mute)",
-    "sound_off": "Sound muted (click to unmute)"
+    "sound_off": "Sound muted (click to unmute)",
+    "discord_tooltip": "Join Discord — We watch movies together every night!"
   },
   "sortear": {
     "button": "🎰 RANDOM DRAW MOVIE",
@@ -49,7 +55,9 @@
     "extra_ratings_loading": "Looking up...",
     "extra_ratings_unavailable": "No extra data available",
     "search_google": "Search on Google",
-    "go_back": "← Back to previous movie"
+    "go_back": "← Back to previous movie",
+    "open_fullscreen_tab": "⤢ Fullscreen (new tab)",
+    "volume_label": "Volume"
   },
   "filters": {
     "title": "CONTROL PANEL",
@@ -81,7 +89,41 @@
     "search_placeholder": "🔍 Search movie by title...",
     "search_active_hint": "Title search active: other filters won't apply until you clear it.",
     "save_preset": "Save current filters",
-    "preset_name_prompt": "Name for this saved filter:"
+    "preset_name_prompt": "Name for this saved filter:",
+    "genre_other": "Other",
+    "country_names": {
+      "any": "Any country of origin",
+      "AR": "🇦🇷 Argentina",
+      "US": "🇺🇸 United States",
+      "ES": "🇪🇸 Spain",
+      "MX": "🇲🇽 Mexico",
+      "FR": "🇫🇷 France",
+      "GB": "🇬🇧 United Kingdom",
+      "IT": "🇮🇹 Italy",
+      "DE": "🇩🇪 Germany",
+      "JP": "🇯🇵 Japan",
+      "KR": "🇰🇷 South Korea",
+      "BR": "🇧🇷 Brazil",
+      "CL": "🇨🇱 Chile",
+      "CO": "🇨🇴 Colombia",
+      "UY": "🇺🇾 Uruguay",
+      "CA": "🇨🇦 Canada",
+      "AU": "🇦🇺 Australia",
+      "IN": "🇮🇳 India",
+      "CN": "🇨🇳 China",
+      "SE": "🇸🇪 Sweden",
+      "DK": "🇩🇰 Denmark"
+    },
+    "industries": {
+      "hollywood": "🎬 Hollywood (USA)",
+      "argentina": "🇦🇷 Argentine Cinema",
+      "espanol": "🇪🇸 Spanish Cinema",
+      "europeo": "🇪🇺 European Cinema",
+      "asiatico": "⛩️ Asian Cinema",
+      "latin": "🌮 Latin Cinema",
+      "shortFilms": "🎞️ Short Films (<45m)",
+      "others": "🌐 Others / Indie"
+    }
   },
   "context_menu": {
     "mark_watched": "Watched ✔",
@@ -132,6 +174,7 @@
     "youtube_input_label": "YouTube Data API Key:",
     "youtube_placeholder": "e.g. AIzaSy...",
     "youtube_save": "Save YouTube Key",
+    "youtube_use_demo": "Use official demo key (YouTube)",
     "youtube_saved": "YouTube key saved successfully."
   },
   "errors": {

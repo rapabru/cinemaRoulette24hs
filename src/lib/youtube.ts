@@ -1,3 +1,8 @@
+// Official shared demo key, provided by the project owner. Restrict it in Google Cloud
+// Console (Credentials -> Application restrictions -> HTTP referrers) to this project's
+// domains, since it's visible in the public repo and client bundle.
+export const OFFICIAL_DEMO_YOUTUBE_KEY = 'AIzaSyAuZ6Qo3qYl8LJP8ucXZattdC1cj_A4xKU';
+
 const STORAGE_KEY_YOUTUBE = 'cyber_youtube_api_key';
 
 export function getStoredYoutubeKey(): string {
@@ -5,7 +10,7 @@ export function getStoredYoutubeKey(): string {
   if (customKey && customKey.trim().length > 0) return customKey.trim();
   const envKey = import.meta.env.VITE_YOUTUBE_API_KEY;
   if (envKey && envKey.trim().length > 0) return envKey.trim();
-  return '';
+  return OFFICIAL_DEMO_YOUTUBE_KEY;
 }
 
 export function setStoredYoutubeKey(key: string): void {

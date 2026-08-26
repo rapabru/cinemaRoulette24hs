@@ -1,4 +1,5 @@
 const SOUND_STORAGE_KEY = 'cyber_sound_enabled';
+const VOLUME_STORAGE_KEY = 'cyber_sound_volume';
 
 let sharedContext: AudioContext | null = null;
 
@@ -31,14 +32,33 @@ export function setSoundEnabled(enabled: boolean): void {
   window.dispatchEvent(new CustomEvent(SOUND_CHANGED_EVENT, { detail: enabled }));
 }
 
+export const VOLUME_CHANGED_EVENT = 'cyber-volume-changed';
+
+/** Master volume (0-100) for both the generated SFX and the background audio player. */
+export function getVolume(): number {
+  const stored = localStorage.getItem(VOLUME_STORAGE_KEY);
+  if (stored === null) return 70;
+  const parsed = Number(stored);
+  if (Number.isNaN(parsed)) return 70;
+  return Math.min(100, Math.max(0, parsed));
+}
+
+export function setVolume(value: number): void {
+  const clamped = Math.min(100, Math.max(0, Math.round(value)));
+  localStorage.setItem(VOLUME_STORAGE_KEY, String(clamped));
+  window.dispatchEvent(new CustomEvent(VOLUME_CHANGED_EVENT, { detail: clamped }));
+}
+
 function playTone(freq: number, startOffset: number, duration: number, ctx: AudioContext, gainValue: number) {
+  const scaledGain = gainValue * (getVolume() / 100);
+  if (scaledGain <= 0) return; // exponentialRampToValueAtTime can't ramp from/to 0
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.type = 'square';
   osc.frequency.value = freq;
   const startTime = ctx.currentTime + startOffset;
   gain.gain.setValueAtTime(0, startTime);
-  gain.gain.linearRampToValueAtTime(gainValue, startTime + 0.008);
+  gain.gain.linearRampToValueAtTime(scaledGain, startTime + 0.008);
   gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
   osc.connect(gain);
   gain.connect(ctx.destination);

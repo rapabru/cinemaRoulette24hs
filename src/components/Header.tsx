@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Film, Eye, History, Moon, Sun, Globe, Key, Tv, ShieldAlert, LogOut, Volume2, VolumeX } from 'lucide-react';
+import { Film, Eye, History, Moon, Sun, Globe, Key, Tv, ShieldAlert, LogOut } from 'lucide-react';
 import { getStoredApiKey } from '../lib/tmdb';
-import { isSoundEnabled, setSoundEnabled, SOUND_CHANGED_EVENT } from '../lib/sound';
+import { VolumeControl } from './VolumeControl';
 import type { GoogleUser } from '../lib/auth';
 
 interface HeaderProps {
@@ -32,23 +32,13 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
   const hasKey = Boolean(getStoredApiKey());
-  const [soundOn, setSoundOn] = useState(isSoundEnabled());
 
-  useEffect(() => {
-    const handler = (e: Event) => setSoundOn((e as CustomEvent<boolean>).detail);
-    window.addEventListener(SOUND_CHANGED_EVENT, handler);
-    return () => window.removeEventListener(SOUND_CHANGED_EVENT, handler);
-  }, []);
+  const LANGUAGE_CYCLE = ['es', 'en', 'pt'];
 
   const toggleLanguage = () => {
-    const nextLang = i18n.language === 'es' ? 'en' : 'es';
+    const currentIndex = LANGUAGE_CYCLE.indexOf(i18n.language);
+    const nextLang = LANGUAGE_CYCLE[(currentIndex + 1) % LANGUAGE_CYCLE.length];
     i18n.changeLanguage(nextLang);
-  };
-
-  const toggleSound = () => {
-    const next = !soundOn;
-    setSoundEnabled(next);
-    setSoundOn(next);
   };
 
   return (
@@ -66,37 +56,41 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-4">
-        {/* Brand Logo & Title Link to https://cinemaroulette.vercel.app/ */}
-        <a
-          href="https://cinemaroulette.vercel.app/"
-          onClick={() => {
-            if (window.location.hostname.includes('vercel.app') || window.location.hostname === 'localhost') {
-              setActiveTab('catalog');
-            }
-          }}
-          className="flex items-center gap-3 group cursor-pointer select-none no-underline"
-          title="Ir a https://cinemaroulette.vercel.app/"
-        >
-          <div className="w-10 h-10 rounded bg-[var(--bg-panel)] border border-[var(--neon-cyan)] flex items-center justify-center shadow-neon-cyan relative overflow-hidden group-hover:border-[var(--neon-amber)] transition-colors">
-            <Tv className="w-6 h-6 text-[var(--neon-cyan)] group-hover:scale-110 group-hover:text-[var(--neon-amber)] transition-all" />
-            <div className="absolute inset-0 bg-[var(--neon-cyan)]/10 animate-pulse pointer-events-none" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-display text-sm sm:text-base text-neon-amber tracking-wider uppercase group-hover:text-[var(--neon-cyan)] transition-colors">
-                {t('app.title')}
-              </h1>
-              <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono font-bold tracking-widest text-[var(--bg-void)] bg-[var(--neon-cyan)] rounded shadow-neon-cyan uppercase group-hover:bg-[var(--neon-amber)] transition-colors">
-                {t('app.open_24h')}
-              </span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 space-y-2.5">
+        {/* Row 1: Brand Logo & Title Link, alone */}
+        <div className="flex justify-center">
+          <a
+            href="https://cinemaroulette.vercel.app/"
+            onClick={() => {
+              if (window.location.hostname.includes('vercel.app') || window.location.hostname === 'localhost') {
+                setActiveTab('catalog');
+              }
+            }}
+            className="flex items-center gap-3 group cursor-pointer select-none no-underline"
+            title="Ir a https://cinemaroulette.vercel.app/"
+          >
+            <div className="w-10 h-10 rounded bg-[var(--bg-panel)] border border-[var(--neon-cyan)] flex items-center justify-center shadow-neon-cyan relative overflow-hidden group-hover:border-[var(--neon-amber)] transition-colors">
+              <Tv className="w-6 h-6 text-[var(--neon-cyan)] group-hover:scale-110 group-hover:text-[var(--neon-amber)] transition-all" />
+              <div className="absolute inset-0 bg-[var(--neon-cyan)]/10 animate-pulse pointer-events-none" />
             </div>
-            <p className="text-[10px] font-mono text-[var(--ink-muted)] tracking-widest uppercase group-hover:text-[var(--ink-light)] transition-colors">
-              {t('app.subtitle')}
-            </p>
-          </div>
-        </a>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="font-display text-sm sm:text-base text-neon-amber tracking-wider uppercase group-hover:text-[var(--neon-cyan)] transition-colors">
+                  {t('app.title')}
+                </h1>
+                <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono font-bold tracking-widest text-[var(--bg-void)] bg-[var(--neon-cyan)] rounded shadow-neon-cyan uppercase group-hover:bg-[var(--neon-amber)] transition-colors">
+                  {t('app.open_24h')}
+                </span>
+              </div>
+              <p className="text-[10px] font-mono text-[var(--ink-muted)] tracking-widest uppercase group-hover:text-[var(--ink-light)] transition-colors">
+                {t('app.subtitle')}
+              </p>
+            </div>
+          </a>
+        </div>
 
+        {/* Row 2: Tabs (left) + Utilities (right) */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
         {/* View Switcher Tabs: Catálogo | La Vi | Historial */}
         <div className="h-9 flex items-center gap-1.5 bg-[var(--bg-panel)] p-1 rounded-lg border border-[var(--ink-muted)]/30">
           <button
@@ -146,14 +140,14 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* Right Utilities (Reordered: Discord -> Language -> Theme -> API Key -> Google Login) */}
-        <div className="flex items-center gap-2.5">
+        {/* Right Utilities: Discord -> Language -> Theme -> Volume -> API Key -> Google Login */}
+        <div className="flex items-center gap-2.5 flex-wrap">
           {/* 1. Discord Cybercafé 24HS Link */}
           <a
             href="https://discord.gg/dfSD65dgx"
             target="_blank"
             rel="noopener noreferrer"
-            title={i18n.language === 'en' ? 'Join Discord — We watch movies together every night!' : 'Únete al Discord — ¡Vemos pelis todas las noches!'}
+            title={t('nav.discord_tooltip')}
             className="h-9 flex items-center justify-center gap-1.5 px-3 rounded-lg bg-[#5865F2] hover:bg-[#4752C4] text-white font-mono text-xs font-bold transition-all shadow-md cursor-pointer shrink-0 no-underline"
           >
             <svg className="w-4 h-4 fill-current shrink-0" viewBox="0 0 127.14 96.36">
@@ -181,14 +175,8 @@ export const Header: React.FC<HeaderProps> = ({
             {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {/* 3b. Sound Toggle Button */}
-          <button
-            onClick={toggleSound}
-            title={soundOn ? t('nav.sound_on') : t('nav.sound_off')}
-            className="h-9 w-9 flex items-center justify-center rounded-lg bg-[var(--bg-panel)] border border-[var(--neon-cyan)]/40 hover:border-[var(--neon-cyan)] text-[var(--neon-cyan)] hover:shadow-neon-cyan transition-all cursor-pointer shrink-0"
-          >
-            {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-          </button>
+          {/* 3b. Volume Control (mute + slider) */}
+          <VolumeControl className="h-9 shrink-0" />
 
           {/* 4. API Key Modal Button */}
           <button
@@ -244,6 +232,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="hidden sm:inline">Google Login</span>
             </button>
           )}
+        </div>
         </div>
       </div>
     </header>

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Key, ExternalLink, X, Check, ShieldAlert, Star, Music } from 'lucide-react';
 import { getStoredApiKey, setStoredApiKey, OFFICIAL_DEMO_KEY } from '../lib/tmdb';
 import { getStoredOmdbKey, setStoredOmdbKey, OFFICIAL_DEMO_OMDB_KEY } from '../lib/omdb';
-import { getStoredYoutubeKey, setStoredYoutubeKey } from '../lib/youtube';
+import { getStoredYoutubeKey, setStoredYoutubeKey, OFFICIAL_DEMO_YOUTUBE_KEY } from '../lib/youtube';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
@@ -61,6 +61,13 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onKey
   const handleSaveYoutube = (e: React.FormEvent) => {
     e.preventDefault();
     setStoredYoutubeKey(youtubeKeyInput);
+    setYoutubeSavedSuccess(true);
+    setTimeout(() => setYoutubeSavedSuccess(false), 1500);
+  };
+
+  const handleUseOfficialDemoYoutubeKey = () => {
+    setYoutubeKeyInput(OFFICIAL_DEMO_YOUTUBE_KEY);
+    setStoredYoutubeKey(OFFICIAL_DEMO_YOUTUBE_KEY);
     setYoutubeSavedSuccess(true);
     setTimeout(() => setYoutubeSavedSuccess(false), 1500);
   };
@@ -256,12 +263,25 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onKey
               </div>
             )}
 
-            <button
-              type="submit"
-              className="w-full bg-[var(--neon-magenta)] hover:bg-[var(--neon-magenta)]/80 text-white font-bold font-mono text-sm py-2.5 px-4 rounded transition-all flex items-center justify-center gap-2 shadow-neon-magenta cursor-pointer"
-            >
-              <Check className="w-4 h-4" /> {t('api_modal.youtube_save')}
-            </button>
+            <div className="space-y-3 pt-2">
+              <button
+                type="submit"
+                className="w-full bg-[var(--neon-magenta)] hover:bg-[var(--neon-magenta)]/80 text-white font-bold font-mono text-sm py-2.5 px-4 rounded transition-all flex items-center justify-center gap-2 shadow-neon-magenta cursor-pointer"
+              >
+                <Check className="w-4 h-4" /> {t('api_modal.youtube_save')}
+              </button>
+
+              {OFFICIAL_DEMO_YOUTUBE_KEY && (
+                <button
+                  type="button"
+                  onClick={handleUseOfficialDemoYoutubeKey}
+                  className="w-full bg-[var(--neon-green)] hover:bg-[var(--neon-green)]/80 text-[var(--bg-void)] font-bold font-mono text-xs py-3 px-4 rounded shadow-neon-green flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>{t('api_modal.youtube_use_demo')}</span>
+                </button>
+              )}
+            </div>
           </form>
         </div>
       </div>

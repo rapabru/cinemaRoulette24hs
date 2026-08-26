@@ -3,10 +3,15 @@
     "title": "CYBERCAFÉ 24HS",
     "subtitle": "MOVIE ROULETTE TERMINAL",
     "open_24h": "ABIERTO 24 HS",
-    "attribution": "Este producto utiliza la API de TMDB pero no está respaldado ni certificado por TMDB."
+    "attribution": "Este producto utiliza la API de TMDB pero no está respaldado ni certificado por TMDB.",
+    "discord_heading": "🎬 DISCORD DEL CYBERCAFÉ 24HS",
+    "discord_description": "¡Únete a la comunidad cinéfila! Vemos películas juntos en vivo todas las noches.",
+    "discord_join": "Entrar al Discord"
   },
   "marquee": {
-    "label": "Cartelera de sorteos recientes"
+    "label": "Cartelera de sorteos recientes",
+    "now_playing_label": "Cartelera de estrenos nuevos",
+    "popular_label": "Cartelera de recomendadas"
   },
   "export": {
     "txt": "Descargar como TXT",
@@ -24,7 +29,8 @@
     "theme_night": "Modo Noche (2 AM)",
     "theme_midday": "Modo Día (12 PM)",
     "sound_on": "Sonido activado (click para silenciar)",
-    "sound_off": "Sonido silenciado (click para activar)"
+    "sound_off": "Sonido silenciado (click para activar)",
+    "discord_tooltip": "Únete al Discord — ¡Vemos pelis todas las noches!"
   },
   "sortear": {
     "button": "🎰 SORTEAR PELÍCULA",
@@ -49,7 +55,9 @@
     "extra_ratings_loading": "Buscando...",
     "extra_ratings_unavailable": "Sin datos extra disponibles",
     "search_google": "Buscarla en Google",
-    "go_back": "← Volver a la película anterior"
+    "go_back": "← Volver a la película anterior",
+    "open_fullscreen_tab": "⤢ Pantalla completa (pestaña nueva)",
+    "volume_label": "Volumen"
   },
   "filters": {
     "title": "PANEL DE CONTROL",
@@ -81,7 +89,41 @@
     "search_placeholder": "🔍 Buscar película por título...",
     "search_active_hint": "Búsqueda por título activa: los demás filtros no aplican hasta que la borres.",
     "save_preset": "Guardar filtro actual",
-    "preset_name_prompt": "Nombre para este filtro guardado:"
+    "preset_name_prompt": "Nombre para este filtro guardado:",
+    "genre_other": "Otro",
+    "country_names": {
+      "any": "Cualquier país de origen",
+      "AR": "🇦🇷 Argentina",
+      "US": "🇺🇸 Estados Unidos",
+      "ES": "🇪🇸 España",
+      "MX": "🇲🇽 México",
+      "FR": "🇫🇷 Francia",
+      "GB": "🇬🇧 Reino Unido",
+      "IT": "🇮🇹 Italia",
+      "DE": "🇩🇪 Alemania",
+      "JP": "🇯🇵 Japón",
+      "KR": "🇰🇷 Corea del Sur",
+      "BR": "🇧🇷 Brasil",
+      "CL": "🇨🇱 Chile",
+      "CO": "🇨🇴 Colombia",
+      "UY": "🇺🇾 Uruguay",
+      "CA": "🇨🇦 Canadá",
+      "AU": "🇦🇺 Australia",
+      "IN": "🇮🇳 India",
+      "CN": "🇨🇳 China",
+      "SE": "🇸🇪 Suecia",
+      "DK": "🇩🇰 Dinamarca"
+    },
+    "industries": {
+      "hollywood": "🎬 Hollywood (EE.UU.)",
+      "argentina": "🇦🇷 Cine Argentino",
+      "espanol": "🇪🇸 Cine Español",
+      "europeo": "🇪🇺 Cine Europeo",
+      "asiatico": "⛩️ Cine Asiático (Japón, Corea, India, China)",
+      "latin": "🌮 Cine Latinoamericano",
+      "shortFilms": "🎞️ Cortometrajes (Cortos < 45m)",
+      "others": "🌐 Otros / Independiente"
+    }
   },
   "context_menu": {
     "mark_watched": "La vi ✔",
@@ -132,6 +174,7 @@
     "youtube_input_label": "Clave de YouTube Data API:",
     "youtube_placeholder": "ej. AIzaSy...",
     "youtube_save": "Guardar Clave de YouTube",
+    "youtube_use_demo": "Usar clave de prueba oficial (YouTube)",
     "youtube_saved": "Clave de YouTube guardada correctamente."
   },
   "errors": {

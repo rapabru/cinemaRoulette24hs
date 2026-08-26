@@ -234,6 +234,9 @@ body {
 .marquee-track:hover {
   animation-play-state: paused;
 }
+.marquee-track-reverse {
+  animation-direction: reverse;
+}
 
 /* "Channel change" flicker when switching tabs (Catálogo / La Vi / Historial) */
 @keyframes channelChange {

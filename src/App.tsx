@@ -42,7 +42,7 @@ import {
 import type { GoogleUser } from './lib/auth';
 
 import { Header } from './components/Header';
-import { FloatingMuteButton } from './components/FloatingMuteButton';
+import { VolumeControl } from './components/VolumeControl';
 import { MarqueeTicker } from './components/MarqueeTicker';
 import { SortearButton } from './components/SortearButton';
 import { FilterPanel } from './components/FilterPanel';
@@ -289,7 +289,7 @@ export function App() {
         />
 
         {/* Neon Marquee Ticker */}
-        <MarqueeTicker historyList={historyList} onSelectMovie={handleSelectMovie} />
+        <MarqueeTicker onSelectMovie={handleSelectMovie} />
 
         {/* Main Content Area */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
@@ -370,12 +370,10 @@ export function App() {
               </div>
               <div>
                 <h4 className="font-display text-xs sm:text-sm text-white uppercase tracking-wider">
-                  🎬 DISCORD DEL CYBERCAFÉ 24HS
+                  {t('app.discord_heading')}
                 </h4>
                 <p className="text-xs font-mono text-[var(--ink-muted)]">
-                  {i18n.language === 'en'
-                    ? 'Join our movie community! We watch movies together live every night.'
-                    : '¡Únete a la comunidad cinéfila! Vemos películas juntos en vivo todas las noches.'}
+                  {t('app.discord_description')}
                 </p>
               </div>
             </div>
@@ -386,7 +384,7 @@ export function App() {
               rel="noopener noreferrer"
               className="px-4 py-2 rounded-lg bg-[#5865F2] hover:bg-[#4752C4] text-white font-mono text-xs font-bold transition-all shadow-md flex items-center gap-2 shrink-0 no-underline cursor-pointer"
             >
-              <span>{i18n.language === 'en' ? 'Join Discord' : 'Entrar al Discord'}</span>
+              <span>{t('app.discord_join')}</span>
               <span className="text-xs">➔</span>
             </a>
           </div>
@@ -394,7 +392,7 @@ export function App() {
       </div>
 
       {/* Floating Site-wide Mute Button */}
-      <FloatingMuteButton />
+      <VolumeControl className="fixed bottom-5 right-5 z-40 shadow-lg" />
 
       {/* Right-click Context Menu */}
       {contextMenu && (

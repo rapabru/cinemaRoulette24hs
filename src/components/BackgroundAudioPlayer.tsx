@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { findThemeOrSceneVideoId } from '../lib/youtube';
-import { isSoundEnabled, SOUND_CHANGED_EVENT } from '../lib/sound';
+import { isSoundEnabled, getVolume, SOUND_CHANGED_EVENT, VOLUME_CHANGED_EVENT } from '../lib/sound';
 
 interface BackgroundAudioPlayerProps {
   movieId: number;
@@ -26,11 +26,18 @@ export const BackgroundAudioPlayer: React.FC<BackgroundAudioPlayerProps> = ({
 }) => {
   const [videoId, setVideoId] = useState<string | null>(null);
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
+  const [volume, setVolumeState] = useState(getVolume());
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
-    const handler = (e: Event) => setSoundOn((e as CustomEvent<boolean>).detail);
-    window.addEventListener(SOUND_CHANGED_EVENT, handler);
-    return () => window.removeEventListener(SOUND_CHANGED_EVENT, handler);
+    const soundHandler = (e: Event) => setSoundOn((e as CustomEvent<boolean>).detail);
+    const volumeHandler = (e: Event) => setVolumeState((e as CustomEvent<number>).detail);
+    window.addEventListener(SOUND_CHANGED_EVENT, soundHandler);
+    window.addEventListener(VOLUME_CHANGED_EVENT, volumeHandler);
+    return () => {
+      window.removeEventListener(SOUND_CHANGED_EVENT, soundHandler);
+      window.removeEventListener(VOLUME_CHANGED_EVENT, volumeHandler);
+    };
   }, []);
 
   useEffect(() => {
@@ -45,13 +52,33 @@ export const BackgroundAudioPlayer: React.FC<BackgroundAudioPlayerProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [movieId]);
 
+  // Live-control mute/volume via the YouTube IFrame postMessage API instead of
+  // remounting the iframe, so dragging the volume slider doesn't restart playback.
+  useEffect(() => {
+    if (!videoId) return;
+    const sendCommand = (func: string, args: unknown[] = []) => {
+      iframeRef.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), '*');
+    };
+    const sync = () => {
+      sendCommand(soundOn ? 'unMute' : 'mute');
+      sendCommand('setVolume', [volume]);
+    };
+    sync();
+    // The embed only starts accepting commands once its internal player script is
+    // ready, which isn't observable without loading the full IFrame API — a short
+    // retry after load covers that window without needing the extra script.
+    const timer = setTimeout(sync, 600);
+    return () => clearTimeout(timer);
+  }, [videoId, soundOn, volume]);
+
   if (!active || !videoId) return null;
 
-  const src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=${soundOn ? 0 : 1}&controls=0&loop=1&playlist=${videoId}&playsinline=1`;
+  const src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=${soundOn ? 0 : 1}&controls=0&loop=1&playlist=${videoId}&playsinline=1&enablejsapi=1`;
 
   return (
     <iframe
-      key={`${videoId}-${soundOn}`}
+      ref={iframeRef}
+      key={videoId}
       src={src}
       allow="autoplay"
       title="background-audio"

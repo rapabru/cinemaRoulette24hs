@@ -75,41 +75,41 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     setPresets(deletePreset(name));
   };
 
-  // Dynamic Country Options according to language
+  // Country options — translated via i18n so any UI language (es/en/pt) is supported
   const countryOptions = [
-    { code: '', name: i18n.language === 'en' ? 'Any country of origin' : 'Cualquier país de origen' },
-    { code: 'AR', name: '🇦🇷 Argentina' },
-    { code: 'US', name: i18n.language === 'en' ? '🇺🇸 United States' : '🇺🇸 Estados Unidos' },
-    { code: 'ES', name: i18n.language === 'en' ? '🇪🇸 Spain' : '🇪🇸 España' },
-    { code: 'MX', name: i18n.language === 'en' ? '🇲🇽 Mexico' : '🇲🇽 México' },
-    { code: 'FR', name: i18n.language === 'en' ? '🇫🇷 France' : '🇫🇷 Francia' },
-    { code: 'GB', name: i18n.language === 'en' ? '🇬🇧 United Kingdom' : '🇬🇧 Reino Unido' },
-    { code: 'IT', name: i18n.language === 'en' ? '🇮🇹 Italy' : '🇮🇹 Italia' },
-    { code: 'DE', name: i18n.language === 'en' ? '🇩🇪 Germany' : '🇩🇪 Alemania' },
-    { code: 'JP', name: i18n.language === 'en' ? '🇯🇵 Japan' : '🇯🇵 Japón' },
-    { code: 'KR', name: i18n.language === 'en' ? '🇰🇷 South Korea' : '🇰🇷 Corea del Sur' },
-    { code: 'BR', name: i18n.language === 'en' ? '🇧🇷 Brazil' : '🇧🇷 Brasil' },
-    { code: 'CL', name: '🇨🇱 Chile' },
-    { code: 'CO', name: '🇨🇴 Colombia' },
-    { code: 'UY', name: '🇺🇾 Uruguay' },
-    { code: 'CA', name: i18n.language === 'en' ? '🇨🇦 Canada' : '🇨🇦 Canadá' },
-    { code: 'AU', name: '🇦🇺 Australia' },
-    { code: 'IN', name: '🇮🇳 India' },
-    { code: 'CN', name: '🇨🇳 China' },
-    { code: 'SE', name: i18n.language === 'en' ? '🇸🇪 Sweden' : '🇸🇪 Suecia' },
-    { code: 'DK', name: i18n.language === 'en' ? '🇩🇰 Denmark' : '🇩🇰 Dinamarca' },
+    { code: '', name: t('filters.country_names.any') },
+    { code: 'AR', name: t('filters.country_names.AR') },
+    { code: 'US', name: t('filters.country_names.US') },
+    { code: 'ES', name: t('filters.country_names.ES') },
+    { code: 'MX', name: t('filters.country_names.MX') },
+    { code: 'FR', name: t('filters.country_names.FR') },
+    { code: 'GB', name: t('filters.country_names.GB') },
+    { code: 'IT', name: t('filters.country_names.IT') },
+    { code: 'DE', name: t('filters.country_names.DE') },
+    { code: 'JP', name: t('filters.country_names.JP') },
+    { code: 'KR', name: t('filters.country_names.KR') },
+    { code: 'BR', name: t('filters.country_names.BR') },
+    { code: 'CL', name: t('filters.country_names.CL') },
+    { code: 'CO', name: t('filters.country_names.CO') },
+    { code: 'UY', name: t('filters.country_names.UY') },
+    { code: 'CA', name: t('filters.country_names.CA') },
+    { code: 'AU', name: t('filters.country_names.AU') },
+    { code: 'IN', name: t('filters.country_names.IN') },
+    { code: 'CN', name: t('filters.country_names.CN') },
+    { code: 'SE', name: t('filters.country_names.SE') },
+    { code: 'DK', name: t('filters.country_names.DK') },
   ];
 
-  // Industry options with labels
+  // Industry options with labels — translated via i18n
   const industryList = [
-    { key: 'hollywood', label: i18n.language === 'en' ? '🎬 Hollywood (USA)' : '🎬 Hollywood (EE.UU.)' },
-    { key: 'argentina', label: i18n.language === 'en' ? '🇦🇷 Argentine Cinema' : '🇦🇷 Cine Argentino' },
-    { key: 'espanol', label: i18n.language === 'en' ? '🇪🇸 Spanish Cinema' : '🇪🇸 Cine Español' },
-    { key: 'europeo', label: i18n.language === 'en' ? '🇪🇺 European Cinema' : '🇪🇺 Cine Europeo' },
-    { key: 'asiatico', label: i18n.language === 'en' ? '⛩️ Asian Cinema' : '⛩️ Cine Asiático (Japón, Corea, India, China)' },
-    { key: 'latin', label: i18n.language === 'en' ? '🌮 Latin Cinema' : '🌮 Cine Latinoamericano' },
-    { key: 'shortFilms', label: i18n.language === 'en' ? '🎞️ Short Films (<45m)' : '🎞️ Cortometrajes (Cortos < 45m)' },
-    { key: 'others', label: i18n.language === 'en' ? '🌐 Others / Indie' : '🌐 Otros / Independiente' },
+    { key: 'hollywood', label: t('filters.industries.hollywood') },
+    { key: 'argentina', label: t('filters.industries.argentina') },
+    { key: 'espanol', label: t('filters.industries.espanol') },
+    { key: 'europeo', label: t('filters.industries.europeo') },
+    { key: 'asiatico', label: t('filters.industries.asiatico') },
+    { key: 'latin', label: t('filters.industries.latin') },
+    { key: 'shortFilms', label: t('filters.industries.shortFilms') },
+    { key: 'others', label: t('filters.industries.others') },
   ];
 
   // Actor search state
@@ -382,7 +382,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           {/* Film Industries & Categories Pre-checked Badges */}
           <div>
             <div className="flex flex-wrap items-baseline justify-between mb-2">
-              <label className="text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider">
+              <label className="text-[13px] font-mono font-bold text-[var(--ink-light)]/90 uppercase tracking-wider">
                 INDUSTRIAS CINEMATOGRÁFICAS / CATEGORÍAS
               </label>
               <span className="text-[11px] font-mono text-[var(--neon-green)] italic">
@@ -418,7 +418,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           {/* Genre Badges (Multi-select OR logic) */}
           <div>
             <div className="flex flex-wrap items-baseline justify-between mb-2">
-              <label className="text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider">
+              <label className="text-[13px] font-mono font-bold text-[var(--ink-light)]/90 uppercase tracking-wider">
                 {t('filters.genres')}
               </label>
               <span className="text-[11px] font-mono text-[var(--neon-cyan)] italic">
@@ -430,7 +430,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 const isSelected = filters.genreIds.includes(g.id);
                 let genreName = g.name;
                 if (g.id === 0) {
-                  genreName = i18n.language === 'en' ? 'Other' : 'Otro';
+                  genreName = t('filters.genre_other');
                 } else if (i18n.language === 'es' && (g.id === 53 || g.name.toLowerCase() === 'suspense')) {
                   genreName = 'Suspenso';
                 }
@@ -572,7 +572,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             {/* Year Range */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider">
+                <label className="text-[13px] font-mono font-bold text-[var(--ink-light)]/90 uppercase tracking-wider">
                   {t('filters.year_range')}
                 </label>
                 <span className="text-xs font-mono text-[var(--neon-amber)] font-bold">
@@ -627,7 +627,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             {/* Rating Range (Min & Max Number Inputs) */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider">
+                <label className="text-[13px] font-mono font-bold text-[var(--ink-light)]/90 uppercase tracking-wider">
                   {t('filters.rating_range')}
                 </label>
                 <span className="text-xs font-mono text-[var(--neon-green)] font-bold">
@@ -682,7 +682,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             {/* Runtime Range (Text/Number Inputs) */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="text-xs font-mono text-[var(--ink-muted)] uppercase tracking-wider">
+                <label className="text-[13px] font-mono font-bold text-[var(--ink-light)]/90 uppercase tracking-wider">
                   {t('filters.runtime_range')}
                 </label>
                 <span className="text-xs font-mono text-[var(--neon-amber)] font-bold">

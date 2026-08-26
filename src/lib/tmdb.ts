@@ -222,9 +222,11 @@ async function tmdbFetch<T>(endpoint: string, params: Record<string, string | nu
 // In-memory cache for genres
 let genresCache: Record<string, Genre[]> = {};
 
+const OTHER_GENRE_NAME: Record<string, string> = { en: 'Other', pt: 'Outro', es: 'Otro' };
+
 export async function fetchGenres(language: string = 'es'): Promise<Genre[]> {
-  const langKey = language === 'en' ? 'en' : 'es';
-  const otherName = language === 'en' ? 'Other' : 'Otro';
+  const langKey = MOCK_GENRES[language] ? language : 'es';
+  const otherName = OTHER_GENRE_NAME[language] || OTHER_GENRE_NAME.es;
   if (genresCache[language]) return genresCache[language];
   try {
     const data = await tmdbFetch<{ genres: Genre[] }>('/genre/movie/list', { language });
@@ -445,6 +447,28 @@ export async function searchMovies(
   } catch (err) {
     console.warn('TMDB search request failed. Falling back to local demo catalog.', err);
     return getMockSearchResponse(trimmed);
+  }
+}
+
+/** Movies currently in theaters ("Nuevas" marquee row). Returns [] on any failure — caller falls back to a welcome phrase. */
+export async function fetchNowPlayingMovies(language: string = 'es'): Promise<MovieSummary[]> {
+  try {
+    const data = await tmdbFetch<DiscoverResponse>('/movie/now_playing', { language, page: 1 });
+    return data.results || [];
+  } catch (err) {
+    console.warn('TMDB now_playing request failed.', err);
+    return [];
+  }
+}
+
+/** Popular movies on TMDB ("Recomendadas" marquee row). Returns [] on any failure. */
+export async function fetchPopularMovies(language: string = 'es'): Promise<MovieSummary[]> {
+  try {
+    const data = await tmdbFetch<DiscoverResponse>('/movie/popular', { language, page: 1 });
+    return data.results || [];
+  } catch (err) {
+    console.warn('TMDB popular request failed.', err);
+    return [];
   }
 }
 
