@@ -60,7 +60,18 @@
     "go_back": "← Back to previous movie",
     "open_fullscreen_tab": "⤢ Fullscreen (new tab)",
     "volume_label": "Volume",
-    "adblock_hint": "Too many ads? Install uBlock Origin or another ad blocker in your browser for a cleaner experience."
+    "adblock_hint": "Too many ads? Install uBlock Origin or another ad blocker in your browser for a cleaner experience.",
+    "torrentio_loading": "Looking for sources on Torrentio...",
+    "torrentio_empty": "Torrentio found no sources for this movie.",
+    "torrentio_error": "Couldn't reach Torrentio. Try again later or use another option.",
+    "torrentio_no_imdb": "This movie has no IMDb ID on TMDB, and Torrentio needs it to look up sources.",
+    "torrentio_pick_quality": "Available sources",
+    "torrentio_hevc_hint": "x265/HEVC may not play in the browser; prefer an x264 release.",
+    "torrentio_free_hint": "Free playback via Webtor.io: it may show ads, take a while to start, and have limited speed.",
+    "open_in_stremio": "Open in Stremio",
+    "torrentio_other_quality": "Other",
+    "torrentio_download": "Download torrent",
+    "torrentio_download_hint": "Magnet link: opens in your torrent client (qBittorrent, Transmission, etc.)"
   },
   "filters": {
     "title": "CONTROL PANEL",

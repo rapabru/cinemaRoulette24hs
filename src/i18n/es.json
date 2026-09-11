@@ -60,7 +60,18 @@
     "go_back": "← Volver a la película anterior",
     "open_fullscreen_tab": "⤢ Pantalla completa (pestaña nueva)",
     "volume_label": "Volumen",
-    "adblock_hint": "¿Mucha publicidad? Instalá uBlock Origin u otro bloqueador de anuncios en tu navegador para una experiencia más limpia."
+    "adblock_hint": "¿Mucha publicidad? Instalá uBlock Origin u otro bloqueador de anuncios en tu navegador para una experiencia más limpia.",
+    "torrentio_loading": "Buscando fuentes en Torrentio...",
+    "torrentio_empty": "Torrentio no encontró fuentes para esta película.",
+    "torrentio_error": "No se pudo consultar Torrentio. Probá de nuevo más tarde o usá otra opción.",
+    "torrentio_no_imdb": "Esta película no tiene ID de IMDb en TMDB, y Torrentio la necesita para buscar fuentes.",
+    "torrentio_pick_quality": "Fuentes disponibles",
+    "torrentio_hevc_hint": "x265/HEVC puede no reproducirse en el navegador; preferí una versión x264.",
+    "torrentio_free_hint": "Reproducción gratuita vía Webtor.io: puede mostrar publicidad, tardar en arrancar y tener velocidad limitada.",
+    "open_in_stremio": "Abrir en Stremio",
+    "torrentio_other_quality": "Otras",
+    "torrentio_download": "Descargar torrent",
+    "torrentio_download_hint": "Enlace magnet: se abre en tu cliente de torrents (qBittorrent, Transmission, etc.)"
   },
   "filters": {
     "title": "PANEL DE CONTROL",
