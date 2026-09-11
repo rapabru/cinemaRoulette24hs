@@ -1,6 +1,7 @@
-// Official shared demo key, provided by the project owner. Empty until set —
-// falls back gracefully (fetchOmdbRatings returns null) when no key is configured.
-export const OFFICIAL_DEMO_OMDB_KEY = '';
+// Official shared demo key, provided by the project owner. Used as the default
+// so extra ratings (IMDb / Rotten Tomatoes / Metacritic) work out of the box;
+// a custom key saved in localStorage or VITE_OMDB_API_KEY still takes priority.
+export const OFFICIAL_DEMO_OMDB_KEY = 'b743aeaf';
 
 const STORAGE_KEY_OMDB = 'cyber_omdb_api_key';
 

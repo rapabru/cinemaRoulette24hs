@@ -164,7 +164,7 @@
     "official_demo": "Add official demo API key",
     "current_status": "Status:",
     "omdb_title": "EXTRA RATINGS (OMDb) — OPTIONAL",
-    "omdb_description": "Add your own free OMDb API key to see IMDb, Rotten Tomatoes and Metacritic ratings for each drawn movie.",
+    "omdb_description": "IMDb, Rotten Tomatoes and Metacritic ratings already work out of the box with the official key. Optionally, you can use your own free OMDb API key.",
     "omdb_get_key_link": "Get a free OMDb API key",
     "omdb_input_label": "OMDb API Key:",
     "omdb_placeholder": "e.g. a1b2c3d4",

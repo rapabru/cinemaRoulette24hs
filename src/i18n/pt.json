@@ -164,7 +164,7 @@
     "official_demo": "Adicionar API key de teste oficial",
     "current_status": "Status:",
     "omdb_title": "NOTAS EXTRAS (OMDb) — OPCIONAL",
-    "omdb_description": "Adicione sua própria chave gratuita da OMDb para ver a nota do IMDb, Rotten Tomatoes e Metacritic em cada filme sorteado.",
+    "omdb_description": "As notas do IMDb, Rotten Tomatoes e Metacritic já vêm configuradas com a chave oficial. Opcionalmente, você pode usar sua própria chave gratuita da OMDb.",
     "omdb_get_key_link": "Obter chave grátis na OMDb",
     "omdb_input_label": "Chave API da OMDb:",
     "omdb_placeholder": "ex. a1b2c3d4",
