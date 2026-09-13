@@ -137,7 +137,9 @@
       "latin": "🌮 Cine Latinoamericano",
       "shortFilms": "🎞️ Cortometrajes (Cortos < 45m)",
       "others": "🌐 Otros / Independiente"
-    }
+    },
+    "search_suggestions_loading": "Buscando...",
+    "search_no_results": "Sin resultados para «{{query}}»"
   },
   "context_menu": {
     "mark_watched": "La vi ✔",

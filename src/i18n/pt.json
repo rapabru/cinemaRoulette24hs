@@ -137,7 +137,9 @@
       "latin": "🌮 Cinema Latino-Americano",
       "shortFilms": "🎞️ Curtas-metragens (< 45m)",
       "others": "🌐 Outros / Independente"
-    }
+    },
+    "search_suggestions_loading": "Buscando...",
+    "search_no_results": "Nenhum resultado para \"{{query}}\""
   },
   "context_menu": {
     "mark_watched": "Já vi ✔",

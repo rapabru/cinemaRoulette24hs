@@ -312,6 +312,9 @@ export function App() {
                 resultsCount={resultsCount}
                 searchQuery={searchQuery}
                 onSearchChange={handleSearchChange}
+                searchSuggestions={movies}
+                isSearchLoading={isLoadingCatalog}
+                onSelectMovie={handleSelectMovie}
               />
 
               {/* Signature Marquee "Sortear" Button (Positioned Below Filter Panel) */}
