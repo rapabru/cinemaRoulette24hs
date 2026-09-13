@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft, Maximize2, ShieldAlert } from 'lucide-react';
+import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft, Maximize2, ShieldAlert, Magnet } from 'lucide-react';
 import { getImageUrl, getTrailerVideo, getWatchProviders } from '../lib/tmdb';
 import type { MovieDetails } from '../lib/tmdb';
 import { fetchOmdbRatings } from '../lib/omdb';
@@ -8,6 +8,7 @@ import type { OmdbRatings } from '../lib/omdb';
 import { SlotReel } from './SlotReel';
 import { BackgroundAudioPlayer } from './BackgroundAudioPlayer';
 import { VolumeControl } from './VolumeControl';
+import { TorrentioPlayer } from './TorrentioPlayer';
 
 interface RouletteModalProps {
   movie: MovieDetails | null;
@@ -40,7 +41,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const [activeView, setActiveView] = useState<'details' | 'player'>(initialMode);
-  const [playerProvider, setPlayerProvider] = useState<'vidking' | 'playimdb' | 'trailer'>('vidking');
+  const [playerProvider, setPlayerProvider] = useState<'vidking' | 'playimdb' | 'torrentio' | 'trailer'>('vidking');
   const [justShared, setJustShared] = useState(false);
   const [omdbRatings, setOmdbRatings] = useState<OmdbRatings | null>(null);
   const [omdbStatus, setOmdbStatus] = useState<'idle' | 'loading' | 'done' | 'unavailable'>('idle');
@@ -106,10 +107,21 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     ? `https://www.playimdb.com/es-es/title/${imdbId}/`
     : `https://www.playimdb.com/title/tt${movie.id}/`;
 
+  // Option 3: Torrentio streams played through Webtor (see TorrentioPlayer).
+  // There's no standalone embed URL for it, so the "new tab" action hands the
+  // movie to a locally installed Stremio via its deep link instead.
+  const stremioUrl = imdbId ? `stremio://detail/movie/${imdbId}/${imdbId}` : null;
+
   const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${movie.title} ${year} película`)}`;
 
   const currentEmbedUrl =
-    playerProvider === 'vidking' ? vidkingEmbedUrl : playerProvider === 'playimdb' ? playImdbEmbedUrl : trailerEmbedUrl;
+    playerProvider === 'vidking'
+      ? vidkingEmbedUrl
+      : playerProvider === 'playimdb'
+        ? playImdbEmbedUrl
+        : playerProvider === 'torrentio'
+          ? stremioUrl
+          : trailerEmbedUrl;
 
   const handleOpenFullscreenTab = () => {
     if (currentEmbedUrl) window.open(currentEmbedUrl, '_blank', 'noopener,noreferrer');
@@ -275,6 +287,18 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     <span>Opción 2: PlayIMDB</span>
                   </button>
 
+                  <button
+                    onClick={() => setPlayerProvider('torrentio')}
+                    className={`px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      playerProvider === 'torrentio'
+                        ? 'bg-[var(--neon-green)] text-[var(--bg-void)] shadow-neon-green'
+                        : 'bg-[var(--bg-void)] text-[var(--ink-muted)] hover:text-[var(--ink-light)] border border-[var(--ink-muted)]/30'
+                    }`}
+                  >
+                    <Magnet className="w-3.5 h-3.5" />
+                    <span>Opción 3: Torrentio</span>
+                  </button>
+
                   {trailerEmbedUrl && (
                     <button
                       onClick={() => setPlayerProvider('trailer')}
@@ -320,6 +344,8 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     title={`PlayIMDB Player - ${movie.title}`}
                   />
                 </div>
+              ) : playerProvider === 'torrentio' ? (
+                <TorrentioPlayer imdbId={imdbId} title={movie.title} year={year} posterUrl={posterUrl} />
               ) : trailerEmbedUrl ? (
                 <div className="relative aspect-video w-full max-h-[75vh] rounded-xl overflow-hidden border-2 border-[var(--neon-magenta)] shadow-neon-magenta bg-black mx-auto">
                   <iframe
@@ -340,15 +366,35 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     ? 'text-[var(--neon-cyan)]'
                     : playerProvider === 'playimdb'
                       ? 'text-[var(--neon-amber)]'
-                      : 'text-[var(--neon-magenta)]'
+                      : playerProvider === 'torrentio'
+                        ? 'text-[var(--neon-green)]'
+                        : 'text-[var(--neon-magenta)]'
                 }`}>
-                  {playerProvider === 'trailer' ? <Video className="w-4 h-4" /> : <Tv className="w-4 h-4" />}
+                  {playerProvider === 'trailer' ? (
+                    <Video className="w-4 h-4" />
+                  ) : playerProvider === 'torrentio' ? (
+                    <Magnet className="w-4 h-4" />
+                  ) : (
+                    <Tv className="w-4 h-4" />
+                  )}
                   {playerProvider === 'vidking'
                     ? 'Terminal Opción 1: VidKing Activo'
                     : playerProvider === 'playimdb'
                       ? `Terminal Opción 2: PlayIMDB Activo ${imdbId ? `(${imdbId})` : ''}`
-                      : `${t('sortear.trailer')} — YouTube`}
+                      : playerProvider === 'torrentio'
+                        ? `Terminal Opción 3: Torrentio + Webtor Activo ${imdbId ? `(${imdbId})` : ''}`
+                        : `${t('sortear.trailer')} — YouTube`}
                 </span>
+
+                {playerProvider === 'torrentio' && stremioUrl && (
+                  <a
+                    href={stremioUrl}
+                    className="text-[var(--neon-green)] hover:underline flex items-center gap-1 font-bold"
+                  >
+                    <span>{t('sortear.open_in_stremio')}</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
 
                 {playerProvider === 'playimdb' && (
                   <a
