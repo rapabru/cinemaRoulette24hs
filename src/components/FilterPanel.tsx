@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SlidersHorizontal, ChevronDown, ChevronUp, User, Clapperboard, RotateCcw, Check, Search, X, Bookmark, Plus } from 'lucide-react';
-import { searchPerson } from '../lib/tmdb';
-import type { Genre, FilterState, PersonResult } from '../lib/tmdb';
+import { SlidersHorizontal, ChevronDown, ChevronUp, User, Clapperboard, RotateCcw, Check, Search, X, Bookmark, Plus, Film, Loader2 } from 'lucide-react';
+import { searchPerson, getImageUrl } from '../lib/tmdb';
+import type { Genre, FilterState, PersonResult, MovieSummary } from '../lib/tmdb';
 import { getPresets, savePreset, deletePreset } from '../lib/presets';
 import type { FilterPreset } from '../lib/presets';
 
@@ -14,7 +14,15 @@ interface FilterPanelProps {
   resultsCount?: number;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  // Current catalog results while a title search is active; feeds the
+  // autocomplete dropdown so we don't hit TMDB twice per keystroke.
+  searchSuggestions?: MovieSummary[];
+  isSearchLoading?: boolean;
+  onSelectMovie?: (movie: MovieSummary) => void;
 }
+
+const MIN_SUGGEST_CHARS = 2;
+const MAX_SUGGESTIONS = 8;
 
 const LANGUAGE_OPTIONS = [
   { code: '', nameKey: 'filters.all_languages' },
@@ -37,6 +45,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   resultsCount,
   searchQuery,
   onSearchChange,
+  searchSuggestions = [],
+  isSearchLoading = false,
+  onSelectMovie,
 }) => {
   const { t, i18n } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(true);
@@ -50,8 +61,35 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     setTitleSearchInput(searchQuery);
   }, [searchQuery]);
 
+  // Autocomplete dropdown under the title input. Suggestions are the catalog's
+  // own results for the already-propagated query (so stale discover results
+  // never show up while the debounce is pending).
+  const [showTitleDropdown, setShowTitleDropdown] = useState(false);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const titleSearchWrapperRef = useRef<HTMLDivElement>(null);
+  const canSuggest = titleSearchInput.trim().length >= MIN_SUGGEST_CHARS;
+  // Only trust the catalog results once they belong to what's currently typed;
+  // until then (debounce + fetch) the dropdown shows a loading row instead.
+  const resultsMatchInput = isSearchActive && searchQuery.trim() === titleSearchInput.trim() && !isSearchLoading;
+  const suggestions = canSuggest && resultsMatchInput ? searchSuggestions.slice(0, MAX_SUGGESTIONS) : [];
+  const isDropdownVisible = showTitleDropdown && canSuggest;
+
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [suggestions.length, searchQuery]);
+
+  useEffect(() => {
+    if (!isDropdownVisible) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!titleSearchWrapperRef.current?.contains(e.target as Node)) setShowTitleDropdown(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isDropdownVisible]);
+
   const handleTitleSearchChange = (value: string) => {
     setTitleSearchInput(value);
+    setShowTitleDropdown(true);
     if (titleSearchTimeout.current) clearTimeout(titleSearchTimeout.current);
     titleSearchTimeout.current = setTimeout(() => onSearchChange(value), 300);
   };
@@ -59,7 +97,35 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const handleClearTitleSearch = () => {
     if (titleSearchTimeout.current) clearTimeout(titleSearchTimeout.current);
     setTitleSearchInput('');
+    setShowTitleDropdown(false);
     onSearchChange('');
+  };
+
+  const handleSelectSuggestion = (movie: MovieSummary) => {
+    if (titleSearchTimeout.current) clearTimeout(titleSearchTimeout.current);
+    setTitleSearchInput(movie.title);
+    setShowTitleDropdown(false);
+    onSearchChange(movie.title);
+    onSelectMovie?.(movie);
+  };
+
+  const handleTitleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      setShowTitleDropdown(false);
+      return;
+    }
+    if (!isDropdownVisible || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setShowTitleDropdown(true);
+      setHighlightedIndex((i) => (i + 1) % suggestions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+    } else if (e.key === 'Enter' && highlightedIndex >= 0) {
+      e.preventDefault();
+      handleSelectSuggestion(suggestions[highlightedIndex]);
+    }
   };
 
   // Saved filter presets
@@ -303,13 +369,22 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
       {/* Title/Keyword Search ("la lupa") — always visible, even collapsed */}
       <div className="px-4 sm:px-6 py-3 border-t border-[var(--bg-brick)]/60">
-        <div className="relative">
+        <div className="relative" ref={titleSearchWrapperRef}>
           <Search className="w-4 h-4 text-[var(--neon-cyan)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={titleSearchInput}
             onChange={(e) => handleTitleSearchChange(e.target.value)}
-            onClick={(e) => e.stopPropagation()}
+            onFocus={() => setShowTitleDropdown(true)}
+            onKeyDown={handleTitleSearchKeyDown}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowTitleDropdown(true);
+            }}
+            role="combobox"
+            aria-expanded={isDropdownVisible}
+            aria-controls="title-search-suggestions"
+            aria-autocomplete="list"
             placeholder={t('filters.search_placeholder')}
             className="w-full bg-[var(--bg-void)] border border-[var(--neon-cyan)]/40 focus:border-[var(--neon-cyan)] text-[var(--ink-light)] font-mono text-xs pl-9 pr-8 py-2.5 rounded-lg outline-none transition-all"
           />
@@ -323,6 +398,63 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             >
               <X className="w-4 h-4" />
             </button>
+          )}
+
+          {/* Title Autocomplete Dropdown */}
+          {isDropdownVisible && (
+            <div
+              id="title-search-suggestions"
+              role="listbox"
+              className="absolute z-30 w-full mt-1 bg-[var(--bg-panel)] border border-[var(--neon-cyan)] rounded shadow-neon-cyan max-h-80 overflow-y-auto"
+            >
+              {suggestions.map((movie, index) => {
+                const year = movie.release_date ? movie.release_date.slice(0, 4) : '';
+                const isHighlighted = index === highlightedIndex;
+                return (
+                  <button
+                    key={movie.id}
+                    type="button"
+                    role="option"
+                    aria-selected={isHighlighted}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectSuggestion(movie);
+                    }}
+                    className={`w-full text-left flex items-center gap-3 px-3 py-1.5 text-xs font-mono cursor-pointer transition-colors border-b border-[var(--ink-muted)]/10 last:border-0 ${
+                      isHighlighted ? 'bg-[var(--neon-cyan)]/20 text-[var(--neon-cyan)]' : 'text-[var(--ink-light)]'
+                    }`}
+                  >
+                    {movie.poster_path ? (
+                      <img
+                        src={getImageUrl(movie.poster_path, 'w185')}
+                        alt=""
+                        loading="lazy"
+                        className="w-8 h-12 object-cover rounded shrink-0 bg-black/40"
+                      />
+                    ) : (
+                      <span className="w-8 h-12 rounded shrink-0 bg-black/40 flex items-center justify-center text-[var(--ink-muted)]">
+                        <Film className="w-4 h-4" />
+                      </span>
+                    )}
+                    <span className="truncate flex-1 font-bold">{movie.title}</span>
+                    {year && <span className="shrink-0 text-[var(--ink-muted)]">{year}</span>}
+                  </button>
+                );
+              })}
+              {suggestions.length === 0 && (
+                <div className="px-3 py-2 text-xs font-mono text-[var(--ink-muted)] flex items-center gap-2">
+                  {!resultsMatchInput ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[var(--neon-cyan)]" />
+                      {t('filters.search_suggestions_loading')}
+                    </>
+                  ) : (
+                    t('filters.search_no_results', { query: titleSearchInput.trim() })
+                  )}
+                </div>
+              )}
+            </div>
           )}
         </div>
         {isSearchActive && (
