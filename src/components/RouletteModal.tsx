@@ -5,7 +5,7 @@ import { getImageUrl, getTrailerVideo, getWatchProviders } from '../lib/tmdb';
 import type { MovieDetails } from '../lib/tmdb';
 import { fetchOmdbRatings } from '../lib/omdb';
 import type { OmdbRatings } from '../lib/omdb';
-import { SlotReel } from './SlotReel';
+import { SlotReel, LANDING_DURATION_MS } from './SlotReel';
 import { BackgroundAudioPlayer } from './BackgroundAudioPlayer';
 import { VolumeControl } from './VolumeControl';
 import { TorrentioPlayer } from './TorrentioPlayer';
@@ -59,15 +59,16 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   const [omdbStatus, setOmdbStatus] = useState<'idle' | 'loading' | 'done' | 'unavailable'>('idle');
   const dialogRef = useModalA11y<HTMLDivElement>(isOpen, onClose);
 
-  // Brief "landing" beat between the spin ending and the result appearing, so the
-  // cut doesn't always land at a random, sometimes-jarring point mid-blur.
+  // Brief "landing" beat between the spin ending and the result appearing: the
+  // reel plays a short deceleration onto the actual drawn movie's poster (see
+  // SlotReel) instead of just freezing wherever it happened to be.
   const [isLanding, setIsLanding] = useState(false);
   const wasLoadingRef = useRef(isLoading);
 
   useEffect(() => {
     if (wasLoadingRef.current && !isLoading) {
       setIsLanding(true);
-      const timer = setTimeout(() => setIsLanding(false), 250);
+      const timer = setTimeout(() => setIsLanding(false), LANDING_DURATION_MS);
       wasLoadingRef.current = isLoading;
       return () => clearTimeout(timer);
     }
@@ -101,7 +102,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
           aria-label={t('sortear.drawing')}
           className="relative w-full max-w-sm bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden outline-none"
         >
-          <SlotReel posterPaths={posterPool} paused={isLanding} />
+          <SlotReel posterPaths={posterPool} landingPosterPath={isLanding ? (movie?.poster_path ?? null) : null} />
         </div>
       </div>
     );
