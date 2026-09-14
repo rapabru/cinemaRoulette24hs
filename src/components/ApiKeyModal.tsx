@@ -4,6 +4,7 @@ import { Key, ExternalLink, X, Check, ShieldAlert, Star, Music } from 'lucide-re
 import { getStoredApiKey, setStoredApiKey, OFFICIAL_DEMO_KEY } from '../lib/tmdb';
 import { getStoredOmdbKey, setStoredOmdbKey, OFFICIAL_DEMO_OMDB_KEY } from '../lib/omdb';
 import { getStoredYoutubeKey, setStoredYoutubeKey, OFFICIAL_DEMO_YOUTUBE_KEY } from '../lib/youtube';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onKey
   const [omdbSavedSuccess, setOmdbSavedSuccess] = useState(false);
   const [youtubeKeyInput, setYoutubeKeyInput] = useState(getStoredYoutubeKey());
   const [youtubeSavedSuccess, setYoutubeSavedSuccess] = useState(false);
+  const dialogRef = useModalA11y<HTMLDivElement>(isOpen, onClose);
 
   if (!isOpen) return null;
 
@@ -74,12 +76,19 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onKey
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-lg shadow-neon-cyan p-6">
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="api-modal-title"
+        className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-lg shadow-neon-cyan p-6 outline-none"
+      >
         {/* Terminal Header Bar */}
         <div className="flex items-center justify-between pb-4 border-b border-[var(--ink-muted)]/20 mb-5">
           <div className="flex items-center gap-2">
             <Key className="w-5 h-5 text-[var(--neon-cyan)]" />
-            <h2 className="font-display text-sm tracking-wider text-[var(--neon-amber)] uppercase">
+            <h2 id="api-modal-title" className="font-display text-sm tracking-wider text-[var(--neon-amber)] uppercase">
               {t('api_modal.title')}
             </h2>
           </div>
@@ -140,7 +149,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onKey
               className="w-full bg-[var(--neon-green)] hover:bg-[var(--neon-green)]/80 text-[var(--bg-void)] font-bold font-mono text-xs py-3 px-4 rounded shadow-neon-green flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <Check className="w-4 h-4" />
-              <span>Agregar API key de prueba oficial</span>
+              <span>{t('api_modal.add_official_demo')}</span>
             </button>
           </div>
         </form>

@@ -242,7 +242,7 @@ export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
                   }`}
                 >
                   <Check className="w-3 h-3" />
-                  <span>{isWatched ? 'Vista ✔' : 'Marcar La Vi'}</span>
+                  <span>{isWatched ? t('sortear.watched_done') : t('sortear.watched_action')}</span>
                 </button>
               </div>
             </div>

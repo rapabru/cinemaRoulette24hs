@@ -525,21 +525,8 @@ export async function fetchMovieDetails(id: number, language: string = 'es'): Pr
       }
     }
 
-    // 2. Smart generated synopsis if overview is still empty
-    if (!details.overview || details.overview.trim().length === 0) {
-      const year = details.release_date ? details.release_date.split('-')[0] : '';
-      const genreNames = details.genres?.map((g) => g.name).join(', ') || 'Cine';
-      const director = details.credits?.crew?.find((c) => c.job === 'Director')?.name;
-      const castNames = details.credits?.cast?.slice(0, 3).map((c) => c.name).join(', ');
-
-      let generated = `Producción audiovisual del género ${genreNames}`;
-      if (year) generated += ` lanzada en el año ${year}`;
-      if (director) generated += `, dirigida por ${director}`;
-      if (castNames) generated += ` con las actuaciones de ${castNames}`;
-      generated += `. Una propuesta cinematográfica imprescindible en la colección global de TMDB.`;
-
-      details.overview = generated;
-    }
+    // Still empty: the UI builds a synopsis from the metadata in its own language
+    // (RouletteModal), so nothing hardcoded in Spanish leaks in here.
 
     return details;
   } catch (err) {

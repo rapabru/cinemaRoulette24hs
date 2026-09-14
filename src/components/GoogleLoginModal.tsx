@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, UserCheck } from 'lucide-react';
 import { createGoogleSession, createGoogleSessionFromCredential, getStoredGoogleUser, GOOGLE_CLIENT_ID } from '../lib/auth';
 import type { GoogleUser } from '../lib/auth';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 declare global {
   interface Window {
@@ -33,6 +34,7 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({
   const [nameInput, setNameInput] = useState(existingUser?.displayName || '');
   const [useManualInput, setUseManualInput] = useState(false);
   const googleBtnRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useModalA11y<HTMLDivElement>(isOpen, onClose);
 
   useEffect(() => {
     if (isOpen) {
@@ -92,7 +94,14 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in select-none">
-      <div className="relative w-full max-w-md bg-[#1e1f22] text-gray-100 rounded-2xl border border-gray-700/80 shadow-2xl overflow-hidden p-6 space-y-5">
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="google-modal-title"
+        className="relative w-full max-w-md bg-[#1e1f22] text-gray-100 rounded-2xl border border-gray-700/80 shadow-2xl overflow-hidden p-6 space-y-5 outline-none"
+      >
         {/* Top Header */}
         <div className="flex items-center justify-between border-b border-gray-800 pb-4">
           <div className="flex items-center gap-3">
@@ -115,7 +124,7 @@ export const GoogleLoginModal: React.FC<GoogleLoginModalProps> = ({
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span className="text-sm font-sans font-medium text-gray-200 truncate">
+            <span id="google-modal-title" className="text-sm font-sans font-medium text-gray-200 truncate">
               Sign in with Google
             </span>
           </div>
