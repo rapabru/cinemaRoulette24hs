@@ -85,16 +85,16 @@ export const CatalogGrid: React.FC<CatalogGridProps> = ({
             className="flex items-center gap-1 px-3 py-2 rounded bg-[var(--bg-panel)] border border-[var(--neon-cyan)]/40 hover:border-[var(--neon-cyan)] text-[var(--ink-light)] disabled:opacity-30 disabled:pointer-events-none transition-all"
           >
             <ChevronLeft className="w-4 h-4" />
-            <span>Anterior</span>
+            <span>{t('catalog.previous')}</span>
           </button>
 
           <div className="flex flex-col sm:flex-row items-center gap-2">
             <span className="text-[var(--neon-cyan)] font-bold px-3 py-1.5 bg-[var(--bg-panel)] border border-[var(--ink-muted)]/20 rounded">
-              Pág. {currentPage} / {Math.min(totalPages, 500)}
+              {t('catalog.page_of', { current: currentPage, total: Math.min(totalPages, 500) })}
             </span>
             {totalPages >= 500 && (
               <span className="text-[10px] text-[var(--ink-muted)] font-mono">
-                (Máx. 500 págs por filtro de un total de +1.000.000 en TMDB)
+                {t('catalog.page_cap_hint')}
               </span>
             )}
           </div>
@@ -104,7 +104,7 @@ export const CatalogGrid: React.FC<CatalogGridProps> = ({
             disabled={currentPage >= Math.min(totalPages, 500)}
             className="flex items-center gap-1 px-3 py-2 rounded bg-[var(--bg-panel)] border border-[var(--neon-cyan)]/40 hover:border-[var(--neon-cyan)] text-[var(--ink-light)] disabled:opacity-30 disabled:pointer-events-none transition-all"
           >
-            <span>Siguiente</span>
+            <span>{t('catalog.next')}</span>
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>

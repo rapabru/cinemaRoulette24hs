@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Star, Check, Play } from 'lucide-react';
 import { getImageUrl } from '../lib/tmdb';
 import type { MovieSummary } from '../lib/tmdb';
@@ -18,6 +19,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
   onClick,
   entranceDelayMs = 0,
 }) => {
+  const { t } = useTranslation();
   const year = movie.release_date ? movie.release_date.split('-')[0] : '';
   const posterUrl = getImageUrl(movie.poster_path, 'w500');
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -29,11 +31,21 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`${movie.title}${year ? ` (${year})` : ''}`}
       onClick={() => onClick(movie)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick(movie);
+        }
+      }}
       onContextMenu={handleRightClick}
       style={{ animationDelay: `${entranceDelayMs}ms` }}
       className={`
         crt-monitor group cursor-pointer select-none flex flex-col justify-between animate-card-enter
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--neon-cyan)]
         ${isWatched ? 'opacity-70 grayscale-[0.3]' : ''}
       `}
     >
@@ -67,7 +79,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
         {isWatched && (
           <div className="absolute top-2 left-2 bg-[var(--neon-green)] text-[var(--bg-void)] font-mono text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1 shadow-neon-green z-10">
             <Check className="w-3 h-3" />
-            <span>LA VI</span>
+            <span>{t('sortear.watched_badge')}</span>
           </div>
         )}
 
@@ -77,10 +89,10 @@ export const MovieCard: React.FC<MovieCardProps> = ({
             <Play className="w-5 h-5 fill-current ml-0.5" />
           </div>
           <span className="font-mono text-xs font-bold text-[var(--neon-cyan)] tracking-wider uppercase mb-1">
-            ▶ Reproducir (VidKing)
+            {t('catalog.card_play')}
           </span>
           <p className="text-[10px] font-mono text-[var(--ink-light)] line-clamp-2 leading-snug">
-            {movie.overview || 'Ver en el reproductor terminal.'}
+            {movie.overview || t('catalog.card_play_hint')}
           </p>
         </div>
       </div>

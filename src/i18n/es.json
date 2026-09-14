@@ -31,7 +31,10 @@
     "theme_midday": "Modo Día (12 PM)",
     "sound_on": "Sonido activado (click para silenciar)",
     "sound_off": "Sonido silenciado (click para activar)",
-    "discord_tooltip": "Únete al Discord — ¡Vemos pelis todas las noches!"
+    "discord_tooltip": "Únete al Discord — ¡Vemos pelis todas las noches!",
+    "demo_mode": "Modo Demo Activo — Usando catálogo local.",
+    "google_login": "Google Login",
+    "google_logout": "Cerrar sesión de Google"
   },
   "sortear": {
     "button": "🎰 SORTEAR PELÍCULA",
@@ -71,7 +74,26 @@
     "open_in_stremio": "Abrir en Stremio",
     "torrentio_other_quality": "Otras",
     "torrentio_download": "Descargar torrent",
-    "torrentio_download_hint": "Enlace magnet: se abre en tu cliente de torrents (qBittorrent, Transmission, etc.)"
+    "torrentio_download_hint": "Enlace magnet: se abre en tu cliente de torrents (qBittorrent, Transmission, etc.)",
+    "tab_details": "Ficha",
+    "tab_player": "▶ Reproductor",
+    "servers_label": "Servidores de Reproducción:",
+    "option_n": "Opción {{n}}: {{name}}",
+    "terminal_active": "Terminal Opción {{n}}: {{name}} Activo",
+    "open_external": "Abrir en {{name}} externa",
+    "subtitles_subdivx": "Subtítulos (SubDivX)",
+    "subtitles_subdivx_long": "Descargar Subtítulos en SubDivX",
+    "subtitles_subdivx_title": "Buscar y descargar subtítulos en español para esta película en SubDivX",
+    "play_big": "▶ REPRODUCIR",
+    "watched_badge": "LA VI",
+    "watched_done": "Vista ✔",
+    "close": "Cerrar",
+    "not_available": "N/D",
+    "generated_overview": "Producción audiovisual del género {{genres}}{{yearPart}}{{directorPart}}{{castPart}}. Una propuesta cinematográfica imprescindible en la colección global de TMDB.",
+    "generated_overview_year": " lanzada en el año {{year}}",
+    "generated_overview_director": ", dirigida por {{director}}",
+    "generated_overview_cast": " con las actuaciones de {{cast}}",
+    "generated_overview_genre_fallback": "Cine"
   },
   "filters": {
     "title": "PANEL DE CONTROL",
@@ -194,11 +216,20 @@
     "youtube_placeholder": "ej. AIzaSy...",
     "youtube_save": "Guardar Clave de YouTube",
     "youtube_use_demo": "Usar clave de prueba oficial (YouTube)",
-    "youtube_saved": "Clave de YouTube guardada correctamente."
+    "youtube_saved": "Clave de YouTube guardada correctamente.",
+    "add_official_demo": "Agregar API key de prueba oficial"
   },
   "errors": {
     "no_results": "No se encontraron películas con los filtros seleccionados.",
     "no_results_hint": "Intenta aflojar los filtros (amplía el rango de años, reduce la calificación mínima o quita el actor).",
     "no_key": "Se requiere una API Key de TMDB para realizar búsquedas."
+  },
+  "catalog": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page_of": "Pág. {{current}} / {{total}}",
+    "page_cap_hint": "(Máx. 500 págs por filtro de un total de +1.000.000 en TMDB)",
+    "card_play": "▶ Reproducir",
+    "card_play_hint": "Ver en el reproductor terminal."
   }
 }

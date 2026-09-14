@@ -31,7 +31,10 @@
     "theme_midday": "Midday Mode (12 PM)",
     "sound_on": "Sound on (click to mute)",
     "sound_off": "Sound muted (click to unmute)",
-    "discord_tooltip": "Join Discord — We watch movies together every night!"
+    "discord_tooltip": "Join Discord — We watch movies together every night!",
+    "demo_mode": "Demo mode active — using the local catalog.",
+    "google_login": "Google Login",
+    "google_logout": "Sign out of Google"
   },
   "sortear": {
     "button": "🎰 RANDOM DRAW MOVIE",
@@ -71,7 +74,26 @@
     "open_in_stremio": "Open in Stremio",
     "torrentio_other_quality": "Other",
     "torrentio_download": "Download torrent",
-    "torrentio_download_hint": "Magnet link: opens in your torrent client (qBittorrent, Transmission, etc.)"
+    "torrentio_download_hint": "Magnet link: opens in your torrent client (qBittorrent, Transmission, etc.)",
+    "tab_details": "Details",
+    "tab_player": "▶ Player",
+    "servers_label": "Playback servers:",
+    "option_n": "Option {{n}}: {{name}}",
+    "terminal_active": "Terminal Option {{n}}: {{name}} active",
+    "open_external": "Open on {{name}}",
+    "subtitles_subdivx": "Subtitles (SubDivX)",
+    "subtitles_subdivx_long": "Download subtitles on SubDivX",
+    "subtitles_subdivx_title": "Search and download Spanish subtitles for this movie on SubDivX",
+    "play_big": "▶ PLAY",
+    "watched_badge": "SEEN IT",
+    "watched_done": "Watched ✔",
+    "close": "Close",
+    "not_available": "N/A",
+    "generated_overview": "A {{genres}} production{{yearPart}}{{directorPart}}{{castPart}}. An essential pick from TMDB's global collection.",
+    "generated_overview_year": " released in {{year}}",
+    "generated_overview_director": ", directed by {{director}}",
+    "generated_overview_cast": " starring {{cast}}",
+    "generated_overview_genre_fallback": "film"
   },
   "filters": {
     "title": "CONTROL PANEL",
@@ -194,11 +216,20 @@
     "youtube_placeholder": "e.g. AIzaSy...",
     "youtube_save": "Save YouTube Key",
     "youtube_use_demo": "Use official demo key (YouTube)",
-    "youtube_saved": "YouTube key saved successfully."
+    "youtube_saved": "YouTube key saved successfully.",
+    "add_official_demo": "Use the official demo API key"
   },
   "errors": {
     "no_results": "No movies found matching your current filters.",
     "no_results_hint": "Try loosening your filters (expand year range, lower minimum rating, or remove actor).",
     "no_key": "A TMDB API Key is required to perform searches."
+  },
+  "catalog": {
+    "previous": "Previous",
+    "next": "Next",
+    "page_of": "Page {{current}} / {{total}}",
+    "page_cap_hint": "(Max. 500 pages per filter out of 1,000,000+ movies on TMDB)",
+    "card_play": "▶ Play",
+    "card_play_hint": "Watch in the terminal player."
   }
 }
