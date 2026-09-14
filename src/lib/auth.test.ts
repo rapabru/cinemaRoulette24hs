@@ -12,7 +12,7 @@ function installMemoryStorage() {
   Object.defineProperty(globalThis, 'localStorage', { value: storage, configurable: true });
 }
 
-const b64url = (obj: object) => Buffer.from(JSON.stringify(obj)).toString('base64url');
+const b64url = (obj: object) => btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const fakeJwt = (payload: object) => `${b64url({ alg: 'RS256' })}.${b64url(payload)}.sig`;
 
 describe('auth', () => {
