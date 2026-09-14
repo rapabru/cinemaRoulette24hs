@@ -44,6 +44,7 @@ import {
 import type { GoogleUser } from './lib/auth';
 
 import { Header } from './components/Header';
+import type { PendingMovie } from './components/RouletteModal';
 import { VolumeControl } from './components/VolumeControl';
 import { MarqueeTicker } from './components/MarqueeTicker';
 import { ScrollDownArrow } from './components/ScrollDownArrow';
@@ -122,6 +123,10 @@ export function App() {
   // Back-navigation stack: movies visited before drilling into a recommendation
   // or a marquee title while the modal was already open on a different movie.
   const [movieBackStack, setMovieBackStack] = useState<MovieDetails[]>([]);
+  // What the modal shows while a movie's details are still being fetched, so
+  // clicking a card gives instant feedback instead of a ~1s dead pause.
+  const [pendingMovie, setPendingMovie] = useState<PendingMovie | null>(null);
+  const pendingRequestRef = useRef(0);
 
   // Context Menu state
   const [contextMenu, setContextMenu] = useState<{
@@ -257,25 +262,40 @@ export function App() {
 
   // Reopen the last drawn movie's card without drawing again
   const handleShowLastDrawn = () => {
-    if (historyList.length > 0) handleSelectMovie(historyList[0].id);
+    if (historyList.length > 0) handleSelectMovie(historyList[0]);
   };
 
   // Open details from card, context menu, recommendations carousel, or marquee.
   // If the modal is already open on a different movie, push it onto the back
   // stack first so the user can return to it with the "Volver" button.
-  const handleSelectMovie = async (movieSummary: MovieSummary | number) => {
+  const handleSelectMovie = async (movieSummary: PendingMovie | number) => {
     const id = typeof movieSummary === 'number' ? movieSummary : movieSummary.id;
+    const requestId = ++pendingRequestRef.current;
+    const wasOpenOn = isRouletteOpen ? drawnMovie : null;
+
+    setPendingMovie(
+      typeof movieSummary === 'number'
+        ? { id }
+        : { id, title: movieSummary.title, poster_path: movieSummary.poster_path, release_date: movieSummary.release_date }
+    );
+    setIsRouletteOpen(true);
+
     try {
       const details = await fetchMovieDetails(id, i18n.language);
-      if (isRouletteOpen && drawnMovie && drawnMovie.id !== id) {
-        setMovieBackStack((stack) => [...stack, drawnMovie]);
+      if (requestId !== pendingRequestRef.current) return; // a newer click won
+      if (wasOpenOn && wasOpenOn.id !== id) {
+        setMovieBackStack((stack) => [...stack, wasOpenOn]);
       } else {
         setMovieBackStack([]);
       }
       setDrawnMovie(details);
-      setIsRouletteOpen(true);
+      setPendingMovie(null);
     } catch (err) {
+      if (requestId !== pendingRequestRef.current) return;
       console.error('Error fetching movie details:', err);
+      setPendingMovie(null);
+      if (!wasOpenOn) setIsRouletteOpen(false);
+      showToast(t('errors.details_failed'), 'error');
     }
   };
 
@@ -443,6 +463,7 @@ export function App() {
         onToggleWatched={handleToggleWatched}
         isLoading={isDrawing}
         posterPool={spinPosterPool}
+        pendingMovie={pendingMovie}
         onSelectMovie={handleSelectMovie}
         canGoBack={movieBackStack.length > 0}
         onGoBack={handleGoBack}

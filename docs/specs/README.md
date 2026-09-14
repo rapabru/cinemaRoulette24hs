@@ -16,11 +16,11 @@ involucrados. Un PR por ítem salvo que se indique lo contrario.
 | [O2](optimizaciones.md#o2) | `alert()` para errores | 2 | ✅ Hecho |
 | [O3](optimizaciones.md#o3) | Migración legacy en cada lectura de localStorage | 2 | ✅ Hecho |
 | [O4](optimizaciones.md#o4) | Tests + CI | 2 | ✅ Hecho |
-| [M1](mejoras-ux.md#m1) | Feedback inmediato al abrir una ficha | 2 | ⬜ Pendiente |
-| [M2](mejoras-ux.md#m2) | Paginación: ir a página | 2 | ⬜ Pendiente |
-| [M3](mejoras-ux.md#m3) | Marquee por región | 2 | ⬜ Pendiente |
-| [M4](mejoras-ux.md#m4) | `prefers-reduced-motion` | 2 | ⬜ Pendiente |
-| [M5](mejoras-ux.md#m5) | SEO / PWA mínimo | 2 | ⬜ Pendiente |
+| [M1](mejoras-ux.md#m1) | Feedback inmediato al abrir una ficha | 2 | ✅ Hecho |
+| [M2](mejoras-ux.md#m2) | Paginación: ir a página | 2 | ✅ Hecho |
+| [M3](mejoras-ux.md#m3) | Marquee por región | 2 | ✅ Hecho |
+| [M4](mejoras-ux.md#m4) | `prefers-reduced-motion` | 2 | ✅ Hecho |
+| [M5](mejoras-ux.md#m5) | SEO / PWA mínimo | 2 | ✅ Hecho |
 | [I1](innovaciones.md#i1) | Links compartibles a una película | 3 | ⬜ Pendiente |
 | [I2](innovaciones.md#i2) | Sorteo con semilla compartida | 3 | ⬜ Pendiente |
 | [I3](innovaciones.md#i3) | Backup / restore de "La vi" e historial | 3 | ⬜ Pendiente |

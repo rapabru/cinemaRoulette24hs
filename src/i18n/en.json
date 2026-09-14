@@ -94,7 +94,8 @@
     "generated_overview_year": " released in {{year}}",
     "generated_overview_director": ", directed by {{director}}",
     "generated_overview_cast": " starring {{cast}}",
-    "generated_overview_genre_fallback": "film"
+    "generated_overview_genre_fallback": "film",
+    "loading_details": "Loading details..."
   },
   "filters": {
     "title": "CONTROL PANEL",
@@ -223,7 +224,8 @@
   "errors": {
     "no_results": "No movies found matching your current filters.",
     "no_results_hint": "Try loosening your filters (expand year range, lower minimum rating, or remove actor).",
-    "no_key": "A TMDB API Key is required to perform searches."
+    "no_key": "A TMDB API Key is required to perform searches.",
+    "details_failed": "Couldn't load the movie details. Please try again."
   },
   "catalog": {
     "previous": "Previous",
@@ -231,7 +233,13 @@
     "page_of": "Page {{current}} / {{total}}",
     "page_cap_hint": "(Max. 500 pages per filter out of 1,000,000+ movies on TMDB)",
     "card_play": "▶ Play",
-    "card_play_hint": "Watch in the terminal player."
+    "card_play_hint": "Watch in the terminal player.",
+    "first": "First page",
+    "last": "Last page",
+    "page_prefix": "Page",
+    "go_to_page": "Go to page (Enter)",
+    "pagination_label": "Catalog pagination",
+    "keyboard_hint": "Tip: ← → switch pages"
   },
   "login": {
     "google_title": "Continue with Google",

@@ -266,9 +266,19 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .neon-marquee-btn, .crt-monitor, .animate-fade-in, .animate-card-enter,
-  .reel-spin-track, .animate-result-flash, .marquee-track, .animate-channel-change {
+  .reel-spin-track, .animate-result-flash, .marquee-track, .animate-channel-change,
+  .animate-ping, .animate-pulse, .animate-bounce {
     animation: none !important;
     transition: none !important;
+  }
+  /* Keep spinners meaningful but slow, so "loading" still reads as loading. */
+  .animate-spin {
+    animation-duration: 3s !important;
+  }
+  /* The ping dot is a decorative "live" indicator; a static dot says the same. */
+  .animate-ping {
+    opacity: 1 !important;
+    transform: none !important;
   }
   .crt-monitor::before {
     display: none;

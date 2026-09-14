@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft, Maximize2, ShieldAlert, Magnet } from 'lucide-react';
+import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft, Maximize2, ShieldAlert, Magnet, Loader2 } from 'lucide-react';
 import { getImageUrl, getTrailerVideo, getWatchProviders } from '../lib/tmdb';
 import type { MovieDetails } from '../lib/tmdb';
 import { fetchOmdbRatings } from '../lib/omdb';
@@ -11,8 +11,17 @@ import { VolumeControl } from './VolumeControl';
 import { TorrentioPlayer } from './TorrentioPlayer';
 import { useModalA11y } from '../hooks/useModalA11y';
 
+/** Whatever is known about a movie before its details arrive (id only, or a card's summary). */
+export interface PendingMovie {
+  id: number;
+  title?: string;
+  poster_path?: string | null;
+  release_date?: string;
+}
+
 interface RouletteModalProps {
   movie: MovieDetails | null;
+  pendingMovie?: PendingMovie | null;
   isOpen: boolean;
   onClose: () => void;
   onRedraw: () => void;
@@ -36,6 +45,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   isLoading,
   initialMode = 'details',
   posterPool = [],
+  pendingMovie = null,
   onSelectMovie,
   canGoBack = false,
   onGoBack,
@@ -91,6 +101,69 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
           className="relative w-full max-w-sm bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden outline-none"
         >
           <SlotReel posterPaths={posterPool} paused={isLanding} />
+        </div>
+      </div>
+    );
+  }
+
+  // Details still loading (card click, recommendation, marquee): show the
+  // modal chrome with what we already know instead of nothing.
+  if (pendingMovie && (!movie || movie.id !== pendingMovie.id)) {
+    const pendingYear = pendingMovie.release_date ? pendingMovie.release_date.split('-')[0] : '';
+    return (
+      <div
+        onClick={onClose}
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in"
+      >
+        <div
+          ref={dialogRef}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-busy="true"
+          aria-label={pendingMovie.title || t('sortear.loading_details')}
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-4xl bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden outline-none"
+        >
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 bg-[var(--bg-brick)] border-b border-[var(--neon-cyan)]/40">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-3 h-3 rounded-full bg-[var(--neon-amber)] animate-pulse shrink-0" />
+              <h2 className="font-display text-xs sm:text-sm text-[var(--neon-amber)] uppercase tracking-wider line-clamp-1">
+                {pendingMovie.title ? `${pendingMovie.title}${pendingYear ? ` (${pendingYear})` : ''}` : t('sortear.loading_details')}
+              </h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1 text-[var(--ink-muted)] hover:text-[var(--neon-magenta)] transition-colors rounded cursor-pointer"
+              title={t('sortear.close')}
+              aria-label={t('sortear.close')}
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            <div className="aspect-[2/3] w-full max-w-xs mx-auto rounded-lg overflow-hidden border border-[var(--neon-cyan)]/40 bg-black/60 animate-pulse">
+              {pendingMovie.poster_path && (
+                <img src={getImageUrl(pendingMovie.poster_path, 'w342')} alt="" className="w-full h-full object-cover opacity-70" />
+              )}
+            </div>
+            <div className="md:col-span-2 space-y-4 animate-pulse">
+              <div className="h-7 w-2/3 bg-[var(--bg-brick)] rounded" />
+              <div className="flex gap-3">
+                <div className="h-6 w-20 bg-[var(--bg-brick)] rounded" />
+                <div className="h-6 w-16 bg-[var(--bg-brick)] rounded" />
+              </div>
+              <div className="space-y-2 pt-2">
+                <div className="h-3 w-full bg-[var(--bg-brick)] rounded" />
+                <div className="h-3 w-11/12 bg-[var(--bg-brick)] rounded" />
+                <div className="h-3 w-4/5 bg-[var(--bg-brick)] rounded" />
+              </div>
+              <p className="flex items-center gap-2 text-xs font-mono text-[var(--neon-cyan)] pt-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {t('sortear.loading_details')}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );

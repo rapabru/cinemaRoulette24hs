@@ -487,10 +487,16 @@ export async function searchMovies(
   }
 }
 
+/** Country whose box office the marquee should reflect for a UI language. */
+export function regionForLanguage(language: string): string {
+  const map: Record<string, string> = { es: 'AR', pt: 'BR', en: 'US' };
+  return map[language.split('-')[0]] || 'US';
+}
+
 /** Movies currently in theaters ("Nuevas" marquee row). Returns [] on any failure — caller falls back to a welcome phrase. */
-export async function fetchNowPlayingMovies(language: string = 'es'): Promise<MovieSummary[]> {
+export async function fetchNowPlayingMovies(language: string = 'es', region: string = regionForLanguage(language)): Promise<MovieSummary[]> {
   try {
-    const data = await tmdbFetch<DiscoverResponse>('/movie/now_playing', { language, page: 1 });
+    const data = await tmdbFetch<DiscoverResponse>('/movie/now_playing', { language, region, page: 1 });
     return data.results || [];
   } catch (err) {
     console.warn('TMDB now_playing request failed.', err);
@@ -499,9 +505,9 @@ export async function fetchNowPlayingMovies(language: string = 'es'): Promise<Mo
 }
 
 /** Popular movies on TMDB ("Recomendadas" marquee row). Returns [] on any failure. */
-export async function fetchPopularMovies(language: string = 'es'): Promise<MovieSummary[]> {
+export async function fetchPopularMovies(language: string = 'es', region: string = regionForLanguage(language)): Promise<MovieSummary[]> {
   try {
-    const data = await tmdbFetch<DiscoverResponse>('/movie/popular', { language, page: 1 });
+    const data = await tmdbFetch<DiscoverResponse>('/movie/popular', { language, region, page: 1 });
     return data.results || [];
   } catch (err) {
     console.warn('TMDB popular request failed.', err);
