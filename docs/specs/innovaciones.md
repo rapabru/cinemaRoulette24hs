@@ -12,14 +12,17 @@ al cerrar el modal el parámetro se limpia (`history.replaceState`).
 **Problema.** En el Discord cada uno sortea algo distinto; no hay "sorteo de la noche".
 **Criterio de aceptación.** `?seed=xyz` (o botón "Sorteo de la noche") usa un PRNG determinista
 sobre la semilla + fecha para elegir página e índice; misma semilla y filtros → misma película.
-**Archivos.** `tmdb.ts` (`performRandomDraw` recibe `rng`), `App.tsx`.
+**Decisiones.** El link lleva los filtros (`?f=`, solo los que difieren del default, en base64url) y la
+búsqueda (`?q=`), porque sin filtros idénticos la semilla no garantiza nada. En modo compartido se ignora
+"saltar vistas" (cada usuario tiene una lista distinta). Sortear de nuevo avanza la misma secuencia para todos.
+**Archivos.** `tmdb.ts` (`performRandomDraw` recibe `rng`), `seededRandom.ts`, `shareLinks.ts`, `NightDrawBanner.tsx`, `App.tsx`.
 
 ## I3
 ### Backup / restore de "La vi" e historial
 **Problema.** Todo vive en localStorage; cambiar de navegador lo pierde y el login no sincroniza nada.
 **Criterio de aceptación.** Botón "Exportar backup" (JSON con vistas + historial + presets) y
 "Importar backup" que fusiona sin duplicar. `exportUtils.ts` reutilizado.
-**Archivos.** `src/lib/backup.ts` (nuevo), `Header.tsx` o `ApiKeyModal.tsx` (sección "Datos").
+**Archivos.** `src/lib/backup.ts` (nuevo), `ApiKeyModal.tsx` (sección "Tus datos (backup)").
 
 ## I4
 ### Modo maratón

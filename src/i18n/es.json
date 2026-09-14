@@ -257,5 +257,23 @@
     "switch_to_local": "¿Sin cuenta de Google? Crear un perfil local",
     "switch_to_google": "« Volver a Continuar con Google",
     "storage_note": "Todo se guarda en localStorage de este navegador. Cerrar sesión solo borra el perfil, no tus películas."
+  },
+  "night": {
+    "start": "🌙 Crear sorteo de la noche (link compartido)",
+    "start_hint": "Genera un link con tus filtros y una semilla: todos los que lo abran sortean la misma película.",
+    "active": "Sorteo de la noche activo · semilla {{seed}}",
+    "active_hint": "Todos los que abran este link, con estos filtros, sortean la misma película (se ignora \"saltar vistas\"). Cambiar los filtros rompe la sincronía.",
+    "copy_link": "Copiar link",
+    "exit": "Salir del sorteo compartido",
+    "link_copied": "Link del sorteo copiado ✔"
+  },
+  "backup": {
+    "title": "Tus datos (backup)",
+    "description": "Películas vistas, historial de sorteos y presets viven solo en este navegador. Exportá un archivo para llevarlos a otro dispositivo o guardarlos; importar fusiona sin duplicar.",
+    "export": "Exportar backup (.json)",
+    "import": "Importar backup",
+    "exported": "Backup exportado: {{watched}} vistas, {{history}} sorteos.",
+    "imported": "Importado: +{{watchedAdded}} vistas, +{{historyAdded}} sorteos, +{{presetsAdded}} presets.",
+    "invalid": "Ese archivo no es un backup válido de Cybercafé 24hs."
   }
 }

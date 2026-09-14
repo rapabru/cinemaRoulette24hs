@@ -564,7 +564,9 @@ export async function performRandomDraw(
   watchedMovieIds: Set<number>,
   language: string = 'es',
   retryCount: number = 0,
-  searchQuery: string = ''
+  searchQuery: string = '',
+  // Injectable so a shared seed can make everyone draw the same movie.
+  rng: () => number = Math.random
 ): Promise<MovieDetails | null> {
   const trimmedQuery = searchQuery.trim();
   const fetchPage = (page: number) =>
@@ -577,7 +579,7 @@ export async function performRandomDraw(
   }
 
   const maxPages = Math.min(initial.total_pages, 500);
-  const randomPage = Math.floor(Math.random() * maxPages) + 1;
+  const randomPage = Math.floor(rng() * maxPages) + 1;
 
   let targetPageResults = initial.results;
   if (randomPage !== 1 && !initial.isMockFallback) {
@@ -591,11 +593,11 @@ export async function performRandomDraw(
     }
   }
 
-  const randomIndex = Math.floor(Math.random() * targetPageResults.length);
+  const randomIndex = Math.floor(rng() * targetPageResults.length);
   const selectedMovieSummary = targetPageResults[randomIndex];
 
   if (filters.skipWatched && watchedMovieIds.has(selectedMovieSummary.id) && retryCount < 5) {
-    return performRandomDraw(filters, watchedMovieIds, language, retryCount + 1, searchQuery);
+    return performRandomDraw(filters, watchedMovieIds, language, retryCount + 1, searchQuery, rng);
   }
 
   return fetchMovieDetails(selectedMovieSummary.id, language);

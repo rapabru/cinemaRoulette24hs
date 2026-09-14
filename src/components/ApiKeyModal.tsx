@@ -1,18 +1,23 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Key, ExternalLink, X, Check, ShieldAlert, Star, Music } from 'lucide-react';
+import { Key, ExternalLink, X, Check, ShieldAlert, Star, Music, Database, Download, Upload } from 'lucide-react';
 import { getStoredApiKey, setStoredApiKey, OFFICIAL_DEMO_KEY } from '../lib/tmdb';
 import { getStoredOmdbKey, setStoredOmdbKey, OFFICIAL_DEMO_OMDB_KEY } from '../lib/omdb';
 import { getStoredYoutubeKey, setStoredYoutubeKey, OFFICIAL_DEMO_YOUTUBE_KEY } from '../lib/youtube';
 import { useModalA11y } from '../hooks/useModalA11y';
+import { buildBackup, backupFilename, parseBackup, importBackup } from '../lib/backup';
+import { triggerDownload } from '../lib/exportUtils';
+import { showToast } from '../lib/toast';
 
 interface ApiKeyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onKeySaved: () => void;
+  /** Called after a backup was merged so the app can re-read watched/history from storage. */
+  onDataImported?: () => void;
 }
 
-export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onKeySaved }) => {
+export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onKeySaved, onDataImported }) => {
   const { t } = useTranslation();
   const [apiKeyInput, setApiKeyInput] = useState(getStoredApiKey());
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -21,6 +26,31 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onKey
   const [youtubeKeyInput, setYoutubeKeyInput] = useState(getStoredYoutubeKey());
   const [youtubeSavedSuccess, setYoutubeSavedSuccess] = useState(false);
   const dialogRef = useModalA11y<HTMLDivElement>(isOpen, onClose);
+  const importInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExportBackup = () => {
+    const backup = buildBackup();
+    triggerDownload(backupFilename(), new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
+    showToast(t('backup.exported', { watched: backup.watched.length, history: backup.history.length }), 'success');
+  };
+
+  const handleImportBackup = async (file: File | undefined) => {
+    if (!file) return;
+    try {
+      const backup = parseBackup(JSON.parse(await file.text()));
+      if (!backup) {
+        showToast(t('backup.invalid'), 'error');
+        return;
+      }
+      const summary = importBackup(backup);
+      onDataImported?.();
+      showToast(t('backup.imported', { ...summary }), 'success');
+    } catch {
+      showToast(t('backup.invalid'), 'error');
+    } finally {
+      if (importInputRef.current) importInputRef.current.value = '';
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -292,6 +322,43 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onKey
               )}
             </div>
           </form>
+        </div>
+
+        {/* Backup / restore of everything stored in this browser */}
+        <div className="mt-8 pt-6 border-t border-[var(--ink-muted)]/20">
+          <div className="flex items-center gap-2 mb-2">
+            <Database className="w-5 h-5 text-[var(--neon-green)]" />
+            <h2 className="font-display text-sm tracking-wider text-[var(--neon-green)] uppercase">
+              {t('backup.title')}
+            </h2>
+          </div>
+          <p className="text-xs font-mono text-[var(--ink-muted)] leading-relaxed mb-4">{t('backup.description')}</p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              type="button"
+              onClick={handleExportBackup}
+              className="flex-1 bg-[var(--neon-green)] hover:bg-[var(--neon-green)]/80 text-[var(--bg-void)] font-bold font-mono text-xs py-2.5 px-4 rounded shadow-neon-green flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <Download className="w-4 h-4" />
+              <span>{t('backup.export')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => importInputRef.current?.click()}
+              className="flex-1 bg-[var(--bg-void)] hover:bg-[var(--neon-green)]/15 text-[var(--neon-green)] border border-[var(--neon-green)]/50 font-bold font-mono text-xs py-2.5 px-4 rounded flex items-center justify-center gap-2 transition-all cursor-pointer"
+            >
+              <Upload className="w-4 h-4" />
+              <span>{t('backup.import')}</span>
+            </button>
+            <input
+              ref={importInputRef}
+              type="file"
+              accept="application/json,.json"
+              className="hidden"
+              aria-label={t('backup.import')}
+              onChange={(e) => handleImportBackup(e.target.files?.[0])}
+            />
+          </div>
         </div>
       </div>
     </div>

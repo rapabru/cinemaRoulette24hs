@@ -10,6 +10,7 @@ import { BackgroundAudioPlayer } from './BackgroundAudioPlayer';
 import { VolumeControl } from './VolumeControl';
 import { TorrentioPlayer } from './TorrentioPlayer';
 import { useModalA11y } from '../hooks/useModalA11y';
+import { buildMovieLink } from '../lib/shareLinks';
 
 /** Whatever is known about a movie before its details arrive (id only, or a card's summary). */
 export interface PendingMovie {
@@ -230,19 +231,22 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
 
   const handleShare = async () => {
     const genreNames = movie.genres?.map((g) => g.name).join(', ');
+    // Link into this app (opens the card directly), with TMDB as the reference.
+    const appUrl = buildMovieLink(movie.id);
     const tmdbUrl = `https://www.themoviedb.org/movie/${movie.id}`;
     const shareText = [
       `🎰 ${movie.title} (${year})`,
       movie.vote_average > 0 ? `⭐ ${movie.vote_average.toFixed(1)}/10` : null,
       genreNames || null,
-      tmdbUrl,
+      appUrl,
+      `TMDB: ${tmdbUrl}`,
     ]
       .filter(Boolean)
       .join('\n');
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: movie.title, text: shareText, url: tmdbUrl });
+        await navigator.share({ title: movie.title, text: shareText, url: appUrl });
         return;
       } catch {
         // user cancelled or share failed, fall through to clipboard copy
