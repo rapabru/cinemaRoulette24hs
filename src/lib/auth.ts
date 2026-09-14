@@ -4,6 +4,9 @@ export interface GoogleUser {
   email: string;
   photoURL: string;
   signedInAt: string;
+  // 'google' = verified through Google Identity Services; 'local' = a
+  // browser-only profile the user typed in, never authenticated anywhere.
+  provider?: 'google' | 'local';
 }
 
 export const GOOGLE_CLIENT_ID = '20731269197-rsf5lqraj7apqjuvh5ph1ki5l6cqjfeh.apps.googleusercontent.com';
@@ -63,21 +66,26 @@ export function parseJwt(token: string): GoogleJwtPayload | null {
   }
 }
 
+function avatarFor(seed: string): string {
+  return `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(seed)}`;
+}
+
 /**
- * Perform Google Sign-In login flow from official credential JWT token
+ * Builds the session from the credential JWT that Google Identity Services
+ * hands back. Returns null (and stores nothing) if the token can't be parsed
+ * or carries no subject/email — we never invent an identity.
  */
-export function createGoogleSessionFromCredential(credentialToken: string): GoogleUser {
+export function createGoogleSessionFromCredential(credentialToken: string): GoogleUser | null {
   const payload = parseJwt(credentialToken);
-  const email = payload?.email || 'usuario.google@gmail.com';
-  const name = payload?.name || email.split('@')[0];
-  const picture = payload?.picture || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(email)}`;
+  if (!payload?.sub || !payload.email) return null;
 
   const user: GoogleUser = {
-    uid: payload?.sub || `google_uid_${Math.random().toString(36).substring(2, 10)}`,
-    displayName: name,
-    email: email,
-    photoURL: picture,
+    uid: payload.sub,
+    displayName: payload.name || payload.email.split('@')[0],
+    email: payload.email,
+    photoURL: payload.picture || avatarFor(payload.email),
     signedInAt: new Date().toISOString(),
+    provider: 'google',
   };
 
   saveGoogleUser(user);
@@ -85,20 +93,21 @@ export function createGoogleSessionFromCredential(credentialToken: string): Goog
 }
 
 /**
- * Perform fallback / manual Google login session
+ * Browser-only profile: a display name (and optional email, used only to seed
+ * the avatar). Nothing is verified or sent anywhere; it just labels this
+ * browser's watched list and history.
  */
-export function createGoogleSession(email: string = 'usuario.cyber@gmail.com', name?: string, avatarUrl?: string): GoogleUser {
+export function createLocalProfile(name: string, email: string = ''): GoogleUser {
+  const cleanName = name.trim();
   const cleanEmail = email.trim().toLowerCase();
-  const userName = name || cleanEmail.split('@')[0].replace('.', ' ');
-  const capitalizedName = userName.charAt(0).toUpperCase() + userName.slice(1);
-  const avatar = avatarUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(cleanEmail)}`;
 
   const user: GoogleUser = {
-    uid: `google_uid_${Math.random().toString(36).substring(2, 10)}`,
-    displayName: capitalizedName,
+    uid: `local_${Math.random().toString(36).substring(2, 10)}`,
+    displayName: cleanName,
     email: cleanEmail,
-    photoURL: avatar,
+    photoURL: avatarFor(cleanEmail || cleanName),
     signedInAt: new Date().toISOString(),
+    provider: 'local',
   };
 
   saveGoogleUser(user);
