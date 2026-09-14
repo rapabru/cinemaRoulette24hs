@@ -12,9 +12,9 @@ involucrados. Un PR por ítem salvo que se indique lo contrario.
 | [B4](bugs.md#b4) | Sinopsis generada siempre en español | 1 | ✅ Hecho |
 | [B5](bugs.md#b5) | Strings sin traducir | 1 | ✅ Hecho |
 | [B6](bugs.md#b6) | Login "Google" manual falso | 1 | ✅ Hecho |
-| [O1](optimizaciones.md#o1) | Pósters más pesados de lo necesario | 2 | ⬜ Pendiente |
-| [O2](optimizaciones.md#o2) | `alert()` para errores | 2 | ⬜ Pendiente |
-| [O3](optimizaciones.md#o3) | Migración legacy en cada lectura de localStorage | 2 | ⬜ Pendiente |
+| [O1](optimizaciones.md#o1) | Pósters más pesados de lo necesario | 2 | ✅ Hecho |
+| [O2](optimizaciones.md#o2) | `alert()` para errores | 2 | ✅ Hecho |
+| [O3](optimizaciones.md#o3) | Migración legacy en cada lectura de localStorage | 2 | ✅ Hecho |
 | [O4](optimizaciones.md#o4) | Tests + CI | 2 | ✅ Hecho |
 | [M1](mejoras-ux.md#m1) | Feedback inmediato al abrir una ficha | 2 | ⬜ Pendiente |
 | [M2](mejoras-ux.md#m2) | Paginación: ir a página | 2 | ⬜ Pendiente |

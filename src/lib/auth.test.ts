@@ -1,16 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createGoogleSessionFromCredential, createLocalProfile, getStoredGoogleUser, parseJwt } from './auth';
-
-// Minimal localStorage stand-in: the auth helpers only need get/set/remove.
-function installMemoryStorage() {
-  const store = new Map<string, string>();
-  const storage = {
-    getItem: (k: string) => store.get(k) ?? null,
-    setItem: (k: string, v: string) => void store.set(k, v),
-    removeItem: (k: string) => void store.delete(k),
-  };
-  Object.defineProperty(globalThis, 'localStorage', { value: storage, configurable: true });
-}
+import { installMemoryStorage } from './test-utils';
 
 const b64url = (obj: object) => btoa(JSON.stringify(obj)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 const fakeJwt = (payload: object) => `${b64url({ alg: 'RS256' })}.${b64url(payload)}.sig`;
