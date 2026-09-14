@@ -195,6 +195,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const [yearToInput, setYearToInput] = useState<string>(String(filters.yearTo ?? new Date().getFullYear()));
   const [minRatingInput, setMinRatingInput] = useState<string>(String(filters.minRating ?? '6'));
   const [maxRatingInput, setMaxRatingInput] = useState<string>(String(filters.maxRating ?? '10'));
+  const [minVotesInput, setMinVotesInput] = useState<string>(String(filters.minVotes ?? '0'));
   const [minRuntimeInput, setMinRuntimeInput] = useState<string>(String(filters.minRuntime ?? '60'));
   const [maxRuntimeInput, setMaxRuntimeInput] = useState<string>(String(filters.maxRuntime ?? '300'));
 
@@ -214,6 +215,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   useEffect(() => {
     setMaxRatingInput(filters.maxRating !== undefined ? String(filters.maxRating) : '10');
   }, [filters.maxRating]);
+
+  useEffect(() => {
+    setMinVotesInput(filters.minVotes !== undefined ? String(filters.minVotes) : '0');
+  }, [filters.minVotes]);
 
   useEffect(() => {
     setMinRuntimeInput(filters.minRuntime !== undefined ? String(filters.minRuntime) : '0');
@@ -764,6 +769,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 </label>
                 <span className="text-xs font-mono text-[var(--neon-green)] font-bold">
                   ★ {filters.minRating || 0} – {filters.maxRating || 10} / 10
+                  {filters.minVotes > 0 ? ` · ${filters.minVotes}+ ${t('filters.votes_short')}` : ''}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -808,7 +814,25 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
                   />
                 </div>
+                <div className="flex-1">
+                  <span className="text-[10px] font-mono text-[var(--ink-muted)] block mb-1">{t('filters.min_votes_label')}</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={minVotesInput}
+                    title={t('filters.min_votes_hint')}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9]/g, '');
+                      setMinVotesInput(raw);
+                      const num = raw === '' ? 0 : parseInt(raw, 10);
+                      onChange({ ...filters, minVotes: Math.max(0, num) });
+                    }}
+                    className="w-full h-9 bg-[var(--bg-void)] border border-[var(--ink-muted)]/40 text-[var(--ink-light)] font-mono text-xs px-2 rounded outline-none text-center font-bold"
+                  />
+                </div>
               </div>
+              <p className="text-[10px] font-mono text-[var(--ink-muted)] mt-1.5 italic">{t('filters.min_votes_hint')}</p>
             </div>
 
             {/* Runtime Range (Text/Number Inputs) */}

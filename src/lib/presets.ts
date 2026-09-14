@@ -1,3 +1,4 @@
+import { DEFAULT_FILTERS } from './tmdb';
 import type { FilterState } from './tmdb';
 
 export interface FilterPreset {
@@ -11,7 +12,10 @@ export function getPresets(): FilterPreset[] {
   try {
     const raw = localStorage.getItem(PRESETS_STORAGE_KEY);
     if (!raw) return [];
-    return JSON.parse(raw);
+    const list: FilterPreset[] = JSON.parse(raw);
+    // Presets saved before a filter existed (e.g. minVotes) get its default,
+    // instead of leaking `undefined` into the discover params.
+    return list.map((preset) => ({ ...preset, filters: { ...DEFAULT_FILTERS, ...preset.filters } }));
   } catch (err) {
     console.error('Error reading filter presets from localStorage:', err);
     return [];

@@ -14,7 +14,7 @@ const PUBLIC_TRACKERS = [
   'udp://exodus.desync.com:6969/announce',
 ];
 
-interface RawTorrentioStream {
+export interface RawTorrentioStream {
   name?: string;
   title?: string;
   infoHash?: string;
@@ -38,7 +38,7 @@ export interface TorrentioStream {
   isHevc: boolean;
 }
 
-function parseStream(raw: RawTorrentioStream): TorrentioStream | null {
+export function parseTorrentioStream(raw: RawTorrentioStream): TorrentioStream | null {
   if (!raw.infoHash) return null;
 
   // name: "Torrentio\n1080p"  title: "<release name>\n👤 99 💾 2.1 GB ⚙️ YTS"
@@ -80,7 +80,7 @@ export async function fetchTorrentioStreams(imdbId: string): Promise<TorrentioSt
 
     const data = await response.json();
     const streams: RawTorrentioStream[] = Array.isArray(data?.streams) ? data.streams : [];
-    return streams.map(parseStream).filter((s): s is TorrentioStream => s !== null);
+    return streams.map(parseTorrentioStream).filter((s): s is TorrentioStream => s !== null);
   } catch {
     return [];
   }
