@@ -275,5 +275,22 @@
     "exported": "Backup exported: {{watched}} watched, {{history}} draws.",
     "imported": "Imported: +{{watchedAdded}} watched, +{{historyAdded}} draws, +{{presetsAdded}} presets.",
     "invalid": "That file is not a valid Cybercafé 24hs backup."
+  },
+  "marathon": {
+    "open": "🎬 Marathon mode (draw several)",
+    "title": "Marathon mode",
+    "description": "Draw several movies at once to plan the night: all different, using your current filters (and the shared seed if one is active). They're saved to the history.",
+    "how_many": "How many?",
+    "draw_n": "Draw {{count}}",
+    "drawing": "Searching... {{remaining}} to go",
+    "total": "{{count}} movies · {{total}} in total",
+    "ends_at": "Starting now you'd finish ~{{time}} (with 15 min breaks in between)",
+    "order_hint": "Suggested order: longest first, while everyone is still awake.",
+    "empty": "Nothing drawn yet. Pick how many movies you want above.",
+    "redraw_slot": "Swap this movie for another",
+    "remove": "Remove from the list",
+    "copy_list": "Copy list",
+    "list_heading": "🎬 Cybercafé 24hs marathon — {{date}} ({{count}} movies)",
+    "short": "Only {{got}} of {{wanted}} distinct movies were found with these filters."
   }
 }

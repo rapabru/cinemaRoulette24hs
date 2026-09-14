@@ -24,8 +24,8 @@ involucrados. Un PR por ítem salvo que se indique lo contrario.
 | [I1](innovaciones.md#i1) | Links compartibles a una película | 3 | ✅ Hecho |
 | [I2](innovaciones.md#i2) | Sorteo con semilla compartida | 3 | ✅ Hecho |
 | [I3](innovaciones.md#i3) | Backup / restore de "La vi" e historial | 3 | ✅ Hecho |
-| [I4](innovaciones.md#i4) | Modo maratón | 3 | ⬜ Pendiente |
-| [I5](innovaciones.md#i5) | Subtítulos en Torrentio | 3 | ⬜ Pendiente |
+| [I4](innovaciones.md#i4) | Modo maratón | 3 | ✅ Hecho |
+| [I5](innovaciones.md#i5) | Subtítulos en Torrentio | 3 | ✅ Hecho (vía Webtor) |
 
 ## Orden sugerido
 

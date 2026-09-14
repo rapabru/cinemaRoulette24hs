@@ -97,6 +97,8 @@ export const TorrentioPlayer: React.FC<TorrentioPlayerProps> = ({ imdbId, title,
       poster: posterUrl,
       title: displayName,
       lang: i18n.language,
+      // Webtor looks up OpenSubtitles by imdbId; userLang picks which language it prefers.
+      userLang: i18n.language,
       width: '100%',
       height: '100%',
       features: { embed: false },
