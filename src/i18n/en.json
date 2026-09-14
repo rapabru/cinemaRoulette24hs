@@ -95,7 +95,9 @@
     "generated_overview_director": ", directed by {{director}}",
     "generated_overview_cast": " starring {{cast}}",
     "generated_overview_genre_fallback": "film",
-    "loading_details": "Loading details..."
+    "loading_details": "Loading details...",
+    "floating_hint": "Draw a movie",
+    "cinejoy_external_hint": "cinejoy.to can't be shown inside the app; it opens in a new tab."
   },
   "filters": {
     "title": "CONTROL PANEL",

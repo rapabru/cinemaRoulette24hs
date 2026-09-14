@@ -17,6 +17,7 @@ export default {
           redGlow: 'var(--neon-red-glow)',
           green: 'var(--neon-green)',
           cyan: 'var(--neon-cyan)',
+          blue: 'var(--neon-blue)',
           ink: 'var(--ink-light)',
           muted: 'var(--ink-muted)',
         }
@@ -31,6 +32,7 @@ export default {
         'neon-amber': '0 0 15px rgba(255, 196, 0, 0.6), 0 0 30px rgba(255, 196, 0, 0.3)',
         'neon-magenta': '0 0 15px rgba(255, 31, 122, 0.6), 0 0 30px rgba(255, 31, 122, 0.3)',
         'neon-green': '0 0 15px rgba(57, 255, 106, 0.6), 0 0 30px rgba(57, 255, 106, 0.3)',
+        'neon-blue': '0 0 15px rgba(33, 81, 255, 0.6), 0 0 30px rgba(33, 81, 255, 0.3)',
       },
     },
   },
