@@ -33,7 +33,12 @@ sugerido por duración, exportable con `exportUtils`.
 
 ## I5
 ### Subtítulos en Torrentio
-**Problema.** Webtor soporta `subtitles` en su config y el flujo no lo aprovecha.
-**Criterio de aceptación.** Buscar subtítulos por `imdb_id` (OpenSubtitles API, requiere key) en ES/PT/EN
-y pasarlos al SDK; si no hay key, el botón SubDivX sigue como alternativa.
-**Archivos.** `src/lib/subtitles.ts` (nuevo), `TorrentioPlayer.tsx`, `ApiKeyModal.tsx`.
+**Problema.** Webtor soporta `subtitles` en su config y el flujo no lo aprovechaba.
+**Resolución.** No hace falta una key de OpenSubtitles: el propio player de Webtor busca subtítulos en
+OpenSubtitles cuando recibe `imdbId` (ya se pasaba) y elige idioma según `userLang`, que ahora se
+envía igual al idioma de la UI (es/en/pt). El menú de subtítulos aparece dentro del player.
+Si en el futuro se quiere pasar subtítulos propios (por ejemplo desde SubDivX), el SDK acepta
+`subtitles: [{ srclang, label, src, default }]` con `src` en `vtt`/`srt` accesible por URL directa.
+**Verificación.** Manual: Opción 3 → play → ícono de subtítulos del player lista los de OpenSubtitles.
+(Cloudflare bloquea a Webtor en navegadores automatizados, así que no se puede testear en CI.)
+**Archivos.** `TorrentioPlayer.tsx` (`userLang`).

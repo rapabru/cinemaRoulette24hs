@@ -61,6 +61,7 @@ import { ApiKeyModal } from './components/ApiKeyModal';
 import { GoogleLoginModal } from './components/GoogleLoginModal';
 import { ToastHost } from './components/ToastHost';
 import { NightDrawBanner } from './components/NightDrawBanner';
+import { MarathonModal } from './components/MarathonModal';
 import { MOCK_GENRES } from './lib/mockMovies';
 
 export function App() {
@@ -171,6 +172,70 @@ export function App() {
   }, [isRouletteOpen, pendingMovie, drawnMovie]);
 
   const nightDrawLink = nightSeed ? buildNightDrawLink({ seed: nightSeed, filters, searchQuery }) : null;
+
+  // "Modo maratón": a batch of distinct draws for one night, using the same
+  // filters (and the shared seed, if any) as the single draw.
+  const [isMarathonOpen, setIsMarathonOpen] = useState(false);
+  const [marathonMovies, setMarathonMovies] = useState<MovieDetails[]>([]);
+  const [marathonPending, setMarathonPending] = useState(0);
+  const marathonBatchRef = useRef(0);
+
+  const drawMarathonMovies = async (count: number, keep: MovieDetails[]) => {
+    const batchId = ++marathonBatchRef.current;
+    const picked = [...keep];
+    const pickedIds = new Set(picked.map((m) => m.id));
+    setMarathonMovies(picked);
+    setMarathonPending(count);
+    // Seeded (shared) draws exclude only what's already on the list, so every
+    // browser builds the same list; unseeded ones also skip watched movies.
+    const seeded = !!nightRngRef.current;
+    let attempts = 0;
+    while (picked.length < keep.length + count && attempts < count * 4) {
+      attempts++;
+      try {
+        const excluded = seeded ? pickedIds : new Set([...watchedMovieIds, ...pickedIds]);
+        const result = await performRandomDraw(
+          { ...filters, skipWatched: true },
+          excluded,
+          i18n.language,
+          0,
+          searchQuery,
+          nightRngRef.current ?? Math.random
+        );
+        if (batchId !== marathonBatchRef.current) return;
+        if (!result || pickedIds.has(result.id)) continue;
+        picked.push(result);
+        pickedIds.add(result.id);
+        setMarathonMovies([...picked]);
+        setMarathonPending(keep.length + count - picked.length);
+        setHistoryList([
+          ...addMovieToHistory({
+            id: result.id,
+            title: result.title,
+            poster_path: result.poster_path,
+            release_date: result.release_date,
+            vote_average: result.vote_average,
+            genre_ids: result.genres?.map((g) => g.id),
+          }),
+        ]);
+      } catch (err: any) {
+        if (batchId !== marathonBatchRef.current) return;
+        console.error('Error during marathon draw:', err);
+        if (err?.message === 'INVALID_API_KEY' || err?.message === 'NO_API_KEY') {
+          setIsApiKeyModalOpen(true);
+          break;
+        }
+      }
+    }
+    if (batchId !== marathonBatchRef.current) return;
+    setMarathonPending(0);
+    if (picked.length < keep.length + count) showToast(t('marathon.short', { got: picked.length - keep.length, wanted: count }), 'warning');
+    else playWinChime();
+  };
+
+  const handleMarathonRedrawSlot = (movieId: number) => {
+    drawMarathonMovies(1, marathonMovies.filter((m) => m.id !== movieId));
+  };
 
   const copyNightDrawLink = async (link: string) => {
     try {
@@ -427,6 +492,13 @@ export function App() {
                     {t('sortear.view_last_drawn')}
                   </button>
                 )}
+                <button
+                  onClick={() => setIsMarathonOpen(true)}
+                  className="text-[var(--neon-amber)] hover:text-[var(--neon-cyan)] underline underline-offset-2 transition-colors cursor-pointer"
+                  title={t('marathon.description')}
+                >
+                  {t('marathon.open')}
+                </button>
                 {!nightSeed && (
                   <button
                     onClick={handleStartNightDraw}
@@ -537,6 +609,23 @@ export function App() {
         onSelectMovie={handleSelectMovie}
         canGoBack={movieBackStack.length > 0}
         onGoBack={handleGoBack}
+      />
+
+      {/* Marathon Modal */}
+      <MarathonModal
+        isOpen={isMarathonOpen}
+        onClose={() => setIsMarathonOpen(false)}
+        movies={marathonMovies}
+        isDrawing={marathonPending > 0}
+        pendingCount={marathonPending}
+        onDraw={(count) => drawMarathonMovies(count, [])}
+        onRedrawSlot={handleMarathonRedrawSlot}
+        onRemove={(id) => setMarathonMovies((list) => list.filter((m) => m.id !== id))}
+        onOpenMovie={(movie) => {
+          setIsMarathonOpen(false);
+          handleSelectMovie(movie);
+        }}
+        watchedMovieIds={watchedMovieIds}
       />
 
       {/* API Key Modal */}

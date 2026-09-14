@@ -275,5 +275,22 @@
     "exported": "Backup exportado: {{watched}} vistos, {{history}} sorteios.",
     "imported": "Importado: +{{watchedAdded}} vistos, +{{historyAdded}} sorteios, +{{presetsAdded}} presets.",
     "invalid": "Esse arquivo não é um backup válido do Cybercafé 24hs."
+  },
+  "marathon": {
+    "open": "🎬 Modo maratona (sortear várias)",
+    "title": "Modo maratona",
+    "description": "Sorteie vários filmes de uma vez para montar a noite: todos diferentes, com seus filtros atuais (e a semente compartilhada se houver uma ativa). Ficam salvos no histórico.",
+    "how_many": "Quantos?",
+    "draw_n": "Sortear {{count}}",
+    "drawing": "Buscando... faltam {{remaining}}",
+    "total": "{{count}} filmes · {{total}} no total",
+    "ends_at": "Começando agora você termina ~{{time}} (com 15 min de pausa entre cada um)",
+    "order_hint": "Ordem sugerida: o mais longo primeiro, enquanto todos estão acordados.",
+    "empty": "Nada sorteado ainda. Escolha quantos filmes quer acima.",
+    "redraw_slot": "Trocar este filme por outro",
+    "remove": "Remover da lista",
+    "copy_list": "Copiar lista",
+    "list_heading": "🎬 Maratona Cybercafé 24hs — {{date}} ({{count}} filmes)",
+    "short": "Só foram encontrados {{got}} de {{wanted}} filmes distintos com estes filtros."
   }
 }
