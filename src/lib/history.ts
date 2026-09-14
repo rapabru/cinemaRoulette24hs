@@ -1,3 +1,5 @@
+import { readJson, writeJson, removeKey, runMigrationOnce } from './storage';
+
 export interface DrawnHistoryItem {
   id: number;
   title: string;
@@ -9,33 +11,29 @@ export interface DrawnHistoryItem {
 }
 
 const HISTORY_STORAGE_KEY = 'cyber_movie_roulette_draw_history_v1';
+const MATRIX_ID_MIGRATION_KEY = 'cyber_migration_history_matrix_id_v1';
+const MAX_HISTORY_ITEMS = 100;
+
+// Early demo builds stored The Matrix under a fake id (102); real TMDB id is 603.
+function migrateLegacyMatrixId(): void {
+  const list = readJson<DrawnHistoryItem[]>(HISTORY_STORAGE_KEY, []);
+  let changed = false;
+  for (const item of list) {
+    if (item.id === 102 || item.title?.toLowerCase().includes('matrix')) {
+      item.id = 603;
+      changed = true;
+    }
+  }
+  if (changed) writeJson(HISTORY_STORAGE_KEY, list);
+}
 
 export function getDrawnHistory(): DrawnHistoryItem[] {
-  try {
-    const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
-    if (!raw) return [];
-    const list: DrawnHistoryItem[] = JSON.parse(raw);
-    let changed = false;
-    list.forEach((item) => {
-      if (item.id === 102 || item.title.toLowerCase().includes('matrix')) {
-        item.id = 603;
-        changed = true;
-      }
-    });
-    if (changed) saveDrawnHistory(list);
-    return list;
-  } catch (err) {
-    console.error('Error reading draw history from localStorage:', err);
-    return [];
-  }
+  runMigrationOnce(MATRIX_ID_MIGRATION_KEY, migrateLegacyMatrixId);
+  return readJson<DrawnHistoryItem[]>(HISTORY_STORAGE_KEY, []);
 }
 
 export function saveDrawnHistory(list: DrawnHistoryItem[]): void {
-  try {
-    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(list));
-  } catch (err) {
-    console.error('Error saving draw history to localStorage:', err);
-  }
+  writeJson(HISTORY_STORAGE_KEY, list);
 }
 
 export function addMovieToHistory(movie: {
@@ -48,7 +46,6 @@ export function addMovieToHistory(movie: {
 }): DrawnHistoryItem[] {
   const list = getDrawnHistory();
 
-  // Prepend new drawn movie (limit history to last 100 items)
   const newItem: DrawnHistoryItem = {
     id: movie.id,
     title: movie.title,
@@ -59,18 +56,14 @@ export function addMovieToHistory(movie: {
     drawnAt: new Date().toISOString(),
   };
 
-  // Remove existing duplicate if drawn again
+  // Prepend, dropping any earlier draw of the same movie, capped to the last N.
   const filtered = list.filter((item) => item.id !== movie.id);
-  const updated = [newItem, ...filtered].slice(0, 100);
-  
+  const updated = [newItem, ...filtered].slice(0, MAX_HISTORY_ITEMS);
+
   saveDrawnHistory(updated);
   return updated;
 }
 
 export function clearDrawnHistory(): void {
-  try {
-    localStorage.removeItem(HISTORY_STORAGE_KEY);
-  } catch (err) {
-    console.error('Error clearing draw history:', err);
-  }
+  removeKey(HISTORY_STORAGE_KEY);
 }

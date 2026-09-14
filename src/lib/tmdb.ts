@@ -163,6 +163,15 @@ export function getImageUrl(path: string | null, size: 'w185' | 'w342' | 'w500' 
   return `${IMAGE_BASE_URL}${size}${path}`;
 }
 
+/**
+ * src/srcSet pair for grid cells (~200px wide): w342 is plenty at 1x and
+ * w500 covers retina, instead of shipping w500 to everyone.
+ */
+export function getGridPosterSources(path: string | null): { src: string; srcSet: string } {
+  const src = getImageUrl(path, 'w342');
+  return { src, srcSet: `${src} 1x, ${getImageUrl(path, 'w500')} 2x` };
+}
+
 /** Finds the best YouTube trailer URL for a movie, if any was returned by TMDB. */
 export function getTrailerVideo(details: MovieDetails): VideoItem | null {
   const results = details.videos?.results || [];

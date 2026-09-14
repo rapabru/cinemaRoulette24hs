@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { History, Search, Trash2, Calendar, Star, Check, Dices, BarChart3 } from 'lucide-react';
 import type { DrawnHistoryItem } from '../lib/history';
-import { getImageUrl } from '../lib/tmdb';
+import { getGridPosterSources } from '../lib/tmdb';
 import type { Genre } from '../lib/tmdb';
 import { ExportButtons } from './ExportButtons';
 
@@ -187,7 +187,7 @@ export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
       {/* Grid of Drawn Movies */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
         {filteredList.map((movie) => {
-          const posterUrl = getImageUrl(movie.poster_path, 'w500');
+          const poster = getGridPosterSources(movie.poster_path);
           const year = movie.release_date ? movie.release_date.split('-')[0] : '';
           const drawnDate = new Date(movie.drawnAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
           const isWatched = watchedMovieIds.has(movie.id);
@@ -202,7 +202,8 @@ export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
                 onClick={() => onSelectMovie(movie.id)}
                 className="relative aspect-[2/3] w-full overflow-hidden cursor-pointer bg-black/60"
               >
-                <img src={posterUrl} alt={movie.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                <img src={poster.src}
+          srcSet={poster.srcSet} alt={movie.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
 
                 {/* Rating Badge */}
                 {movie.vote_average && movie.vote_average > 0 && (

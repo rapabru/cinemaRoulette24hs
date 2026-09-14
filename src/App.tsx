@@ -12,6 +12,7 @@ import {
   isAbortError,
 } from './lib/tmdb';
 import { playWinChime } from './lib/sound';
+import { showToast } from './lib/toast';
 
 import type {
   Genre,
@@ -55,6 +56,7 @@ import { WatchedView } from './components/WatchedView';
 import { DrawHistoryView } from './components/DrawHistoryView';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { GoogleLoginModal } from './components/GoogleLoginModal';
+import { ToastHost } from './components/ToastHost';
 import { MOCK_GENRES } from './lib/mockMovies';
 
 export function App() {
@@ -214,7 +216,7 @@ export function App() {
         setHistoryList([...updatedHistory]);
       } else {
         if (!drawnMovie) setIsRouletteOpen(false);
-        alert(t('errors.no_results'));
+        showToast(t('errors.no_results'), 'warning');
       }
     } catch (err: any) {
       console.error('Error during random draw:', err);
@@ -222,7 +224,7 @@ export function App() {
       if (err?.message === 'INVALID_API_KEY' || err?.message === 'NO_API_KEY') {
         setIsApiKeyModalOpen(true);
       } else {
-        alert(t('errors.no_results'));
+        showToast(t('errors.no_results'), 'error');
       }
     } finally {
       setIsDrawing(false);
@@ -414,6 +416,9 @@ export function App() {
 
       {/* Floating Site-wide Mute Button */}
       <VolumeControl className="fixed bottom-5 right-5 z-40 shadow-lg" />
+
+      {/* Non-blocking notifications (replaces alert()) */}
+      <ToastHost />
 
       {/* Right-click Context Menu */}
       {contextMenu && (

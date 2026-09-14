@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Star, Check, Play } from 'lucide-react';
-import { getImageUrl } from '../lib/tmdb';
+import { getGridPosterSources } from '../lib/tmdb';
 import type { MovieSummary } from '../lib/tmdb';
 
 interface MovieCardProps {
@@ -21,7 +21,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const year = movie.release_date ? movie.release_date.split('-')[0] : '';
-  const posterUrl = getImageUrl(movie.poster_path, 'w500');
+  const poster = getGridPosterSources(movie.poster_path);
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const handleRightClick = (e: React.MouseEvent) => {
@@ -58,7 +58,8 @@ export const MovieCard: React.FC<MovieCardProps> = ({
       {/* Poster Image Container */}
       <div className="relative aspect-[2/3] w-full overflow-hidden bg-black/60">
         <img
-          src={posterUrl}
+          src={poster.src}
+          srcSet={poster.srcSet}
           alt={movie.title}
           loading="lazy"
           onLoad={() => setImgLoaded(true)}
