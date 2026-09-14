@@ -11,7 +11,7 @@ involucrados. Un PR por ítem salvo que se indique lo contrario.
 | [B3](bugs.md#b3) | Modales sin Escape / foco / `role="dialog"` | 1 | ✅ Hecho |
 | [B4](bugs.md#b4) | Sinopsis generada siempre en español | 1 | ✅ Hecho |
 | [B5](bugs.md#b5) | Strings sin traducir | 1 | ✅ Hecho |
-| [B6](bugs.md#b6) | Login "Google" manual falso | 1 | ⬜ Pendiente |
+| [B6](bugs.md#b6) | Login "Google" manual falso | 1 | ✅ Hecho |
 | [O1](optimizaciones.md#o1) | Pósters más pesados de lo necesario | 2 | ⬜ Pendiente |
 | [O2](optimizaciones.md#o2) | `alert()` para errores | 2 | ⬜ Pendiente |
 | [O3](optimizaciones.md#o3) | Migración legacy en cada lectura de localStorage | 2 | ⬜ Pendiente |

@@ -5,7 +5,7 @@
 [![GitHub Repository](https://img.shields.io/badge/GitHub-rapabru%2FcinemaRoulette24hs-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/rapabru/cinemaRoulette24hs)
 [![TMDB API](https://img.shields.io/badge/TMDB-v4_v3_API-01b4e4?style=for-the-badge&logo=themoviedatabase&logoColor=white)](https://www.themoviedb.org/)
 
-A high-performance, desktop-style web application for movie discovery, advanced filter composition, random draw ("Sortear"), streaming video playback, Spanish subtitle downloads, draw history tracking, and official Google OAuth 2.0 authentication — wrapped in a nostalgic 2 AM neon cybercafé aesthetic.
+A high-performance, desktop-style web application for movie discovery, advanced filter composition, random draw ("Sortear"), streaming video playback, Spanish subtitle downloads, draw history tracking, and an optional profile (Google Sign-In or a local, browser-only profile) — wrapped in a nostalgic 2 AM neon cybercafé aesthetic.
 
 👉 **Live URL**: [https://cinemaroulette.vercel.app](https://cinemaroulette.vercel.app)  
 💬 **Discord Cybercafé 24HS (We watch movies together every night)**: [https://discord.gg/dfSD65dgx](https://discord.gg/dfSD65dgx)
@@ -41,7 +41,7 @@ A high-performance, desktop-style web application for movie discovery, advanced 
 - **Thousands Separator Formatting**: Clean display (e.g. `1.041.467 Results found`).
 
 ### 🔑 Authentication & Persistence
-- **Official Google OAuth 2.0**: Integrated with Google Identity Services SDK (`20731269197-rsf5lqraj7apqjuvh5ph1ki5l6cqjfeh.apps.googleusercontent.com`).
+- **Optional profile**: Google Sign-In through the official Google Identity Services SDK, or a clearly labelled *local profile* (name + avatar, no account, nothing sent anywhere). Either way the data never leaves the browser's localStorage.
 - **Custom Account Fallback**: Allows visitors to sign in with their own Gmail account and display name.
 - **Draw History ("Historial de Sorteos")**: Automatic logging of every drawn movie with timestamps and search capabilities.
 - **"La vi" (Watched) Tracking**: Right-click context menu and button toggle saved to `localStorage`.
@@ -73,7 +73,7 @@ npm run build
 
 # 🇦🇷 ESPAÑOL — CYBERCAFÉ 24HS — Terminal de Ruleta de Películas
 
-Aplicación web de alto rendimiento estilo terminal para descubrir películas, componer filtros avanzados, realizar sorteos aleatorios ("Sortear"), reproducir películas en vivo, descargar subtítulos en español, guardar historial de sorteos y autenticarse oficialmente con Google OAuth 2.0.
+Aplicación web de alto rendimiento estilo terminal para descubrir películas, componer filtros avanzados, realizar sorteos aleatorios ("Sortear"), reproducir películas en vivo, descargar subtítulos en español, guardar historial de sorteos y, opcionalmente, ponerle nombre a tus datos con Google Sign-In o un perfil local.
 
 👉 **Sitio en Vivo en Vercel**: [https://cinemaroulette.vercel.app](https://cinemaroulette.vercel.app)
 
@@ -102,7 +102,7 @@ Aplicación web de alto rendimiento estilo terminal para descubrir películas, c
 - **Separador de Miles en Resultados**: Formato legible (*ej. `1.041.467 Resultados encontrados`*).
 
 ### 🔑 Autenticación e Historial
-- **Google OAuth 2.0 Oficial**: Integración directa con Google Identity Services SDK (`20731269197-rsf5lqraj7apqjuvh5ph1ki5l6cqjfeh.apps.googleusercontent.com`).
+- **Perfil opcional**: Google Sign-In con el SDK oficial de Google Identity Services, o un *perfil local* claramente identificado (nombre + avatar, sin cuenta, no se envía nada a ningún lado). En ambos casos los datos quedan en el localStorage del navegador.
 - **Ingreso de Cuenta Personalizado**: Permite a cada visitante iniciar sesión con su correo de Gmail y nombre.
 - **Historial de Sorteos**: Registro automático de cada película sorteada con hora, fecha y buscador.
 - **Marcado "La Vi" (Vistas)**: Menú contextual con clic derecho y guardado local.

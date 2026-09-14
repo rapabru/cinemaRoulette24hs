@@ -34,7 +34,8 @@
     "discord_tooltip": "Entre no Discord — Assistimos filmes juntos todas as noites!",
     "demo_mode": "Modo demo ativo — usando catálogo local.",
     "google_login": "Google Login",
-    "google_logout": "Sair do Google"
+    "google_logout": "Sair do Google",
+    "local_profile": "Perfil local (sem conta)"
   },
   "sortear": {
     "button": "🎰 SORTEAR FILME",
@@ -231,5 +232,22 @@
     "page_cap_hint": "(Máx. 500 págs por filtro de um total de +1.000.000 no TMDB)",
     "card_play": "▶ Reproduzir",
     "card_play_hint": "Assistir no player do terminal."
+  },
+  "login": {
+    "google_title": "Continuar com o Google",
+    "local_title": "Perfil local (sem conta)",
+    "purpose": "Um perfil dá nome e avatar aos seus filmes vistos e ao histórico neste navegador. Não é obrigatório.",
+    "google_unavailable": "Não foi possível carregar o botão do Google (bloqueador de scripts?). Você pode usar um perfil local.",
+    "google_error": "O Google não retornou uma identidade válida. Tente de novo ou use um perfil local.",
+    "google_disclaimer": "O Google verifica sua identidade e compartilha nome, e-mail e foto. Este app não os envia a nenhum servidor próprio: ficam só no seu navegador.",
+    "local_badge": "Perfil local · só neste navegador",
+    "local_name_label": "Nome",
+    "local_name_placeholder": "ex. Alex Cinéfilo",
+    "local_email_label": "E-mail (opcional, só para o avatar)",
+    "local_email_placeholder": "alex@exemplo.com",
+    "local_submit": "Criar perfil local",
+    "switch_to_local": "Sem conta do Google? Criar um perfil local",
+    "switch_to_google": "« Voltar a Continuar com o Google",
+    "storage_note": "Tudo fica no localStorage deste navegador. Sair só remove o perfil, não seus filmes."
   }
 }

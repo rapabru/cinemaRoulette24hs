@@ -199,7 +199,10 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* 5. Google Sign-In / User Profile Widget (Far Right) */}
           {googleUser ? (
-            <div className="h-9 flex items-center gap-2 bg-[var(--bg-panel)] px-2.5 rounded-lg border border-[var(--neon-green)]/60 text-xs font-mono">
+            <div
+              title={googleUser.provider === 'local' ? t('nav.local_profile') : googleUser.email}
+              className="h-9 flex items-center gap-2 bg-[var(--bg-panel)] px-2.5 rounded-lg border border-[var(--neon-green)]/60 text-xs font-mono"
+            >
               <img
                 src={googleUser.photoURL}
                 alt={googleUser.displayName}

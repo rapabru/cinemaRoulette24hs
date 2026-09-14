@@ -34,7 +34,8 @@
     "discord_tooltip": "Join Discord — We watch movies together every night!",
     "demo_mode": "Demo mode active — using the local catalog.",
     "google_login": "Google Login",
-    "google_logout": "Sign out of Google"
+    "google_logout": "Sign out of Google",
+    "local_profile": "Local profile (no account)"
   },
   "sortear": {
     "button": "🎰 RANDOM DRAW MOVIE",
@@ -231,5 +232,22 @@
     "page_cap_hint": "(Max. 500 pages per filter out of 1,000,000+ movies on TMDB)",
     "card_play": "▶ Play",
     "card_play_hint": "Watch in the terminal player."
+  },
+  "login": {
+    "google_title": "Continue with Google",
+    "local_title": "Local profile (no account)",
+    "purpose": "A profile puts a name and avatar on this browser's watched list and history. It's optional.",
+    "google_unavailable": "Couldn't load the Google button (script blocker?). You can use a local profile instead.",
+    "google_error": "Google didn't return a valid identity. Try again or use a local profile.",
+    "google_disclaimer": "Google verifies your identity and shares your name, email and photo. This app sends them to no server of its own: they stay in your browser.",
+    "local_badge": "Local profile · this browser only",
+    "local_name_label": "Name",
+    "local_name_placeholder": "e.g. Alex Cinephile",
+    "local_email_label": "Email (optional, only seeds the avatar)",
+    "local_email_placeholder": "alex@example.com",
+    "local_submit": "Create local profile",
+    "switch_to_local": "No Google account? Create a local profile",
+    "switch_to_google": "« Back to Continue with Google",
+    "storage_note": "Everything is stored in this browser's localStorage. Signing out only removes the profile, not your movies."
   }
 }
