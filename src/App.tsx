@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import './i18n';
 
@@ -9,6 +9,7 @@ import {
   searchMovies,
   fetchMovieDetails,
   performRandomDraw,
+  isAbortError,
 } from './lib/tmdb';
 import { playWinChime } from './lib/sound';
 
@@ -135,21 +136,34 @@ export function App() {
     fetchGenres(i18n.language).then(setGenres);
   }, [i18n.language]);
 
-  // Load catalog movies whenever filters, search query, page, or language change
+  // Load catalog movies whenever filters, search query, page, or language change.
+  // Only the most recent request may touch state: typing "mat" → "matrix" fires
+  // two requests, and if the first one answers last it must not overwrite the
+  // grid. The previous request is also aborted so it stops using bandwidth.
+  const catalogRequestRef = useRef<{ id: number; controller: AbortController | null }>({ id: 0, controller: null });
+
   const loadCatalog = useCallback(async () => {
+    catalogRequestRef.current.controller?.abort();
+    const controller = new AbortController();
+    const requestId = ++catalogRequestRef.current.id;
+    catalogRequestRef.current.controller = controller;
+    const isCurrent = () => requestId === catalogRequestRef.current.id;
+
     setIsLoadingCatalog(true);
     try {
       const data = searchQuery.trim()
-        ? await searchMovies(searchQuery, currentPage, i18n.language)
-        : await discoverMovies(filters, currentPage, i18n.language);
+        ? await searchMovies(searchQuery, currentPage, i18n.language, controller.signal)
+        : await discoverMovies(filters, currentPage, i18n.language, controller.signal);
+      if (!isCurrent()) return;
       setMovies(data.results || []);
       setTotalPages(data.total_pages || 1);
       setResultsCount(data.total_results || 0);
     } catch (err) {
+      if (isAbortError(err) || !isCurrent()) return;
       console.error('Failed to load movies catalog:', err);
       setMovies([]);
     } finally {
-      setIsLoadingCatalog(false);
+      if (isCurrent()) setIsLoadingCatalog(false);
     }
   }, [filters, searchQuery, currentPage, i18n.language]);
 

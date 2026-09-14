@@ -107,6 +107,10 @@ export interface FilterState {
   country: string;
   minRating: number;
   maxRating: number;
+  // Minimum number of TMDB votes. A rating threshold alone lets through titles
+  // rated 9.0 by two people, so this is what keeps the draw from landing on
+  // obscure junk. 0 disables it.
+  minVotes: number;
   minRuntime: number;
   maxRuntime: number;
   skipWatched: boolean;
@@ -125,6 +129,7 @@ export const DEFAULT_FILTERS: FilterState = {
   country: '',
   minRating: 6,
   maxRating: 9,
+  minVotes: 50,
   minRuntime: 60,
   maxRuntime: 300,
   skipWatched: true,
@@ -184,7 +189,14 @@ export function getWatchProviders(details: MovieDetails, preferredCountry?: stri
   return null;
 }
 
-async function tmdbFetch<T>(endpoint: string, params: Record<string, string | number | boolean | undefined> = {}): Promise<T> {
+export type TmdbParams = Record<string, string | number | boolean | undefined>;
+
+/** True for the DOMException thrown by fetch when its AbortSignal fires. */
+export function isAbortError(err: unknown): boolean {
+  return err instanceof Error && err.name === 'AbortError';
+}
+
+async function tmdbFetch<T>(endpoint: string, params: TmdbParams = {}, signal?: AbortSignal): Promise<T> {
   const apiKey = getStoredApiKey();
   if (!apiKey) {
     throw new Error('NO_API_KEY');
@@ -207,7 +219,7 @@ async function tmdbFetch<T>(endpoint: string, params: Record<string, string | nu
   });
 
   const url = `${TMDB_BASE_URL}${endpoint}?${queryParams.toString()}`;
-  const response = await fetch(url, { headers });
+  const response = await fetch(url, { headers, signal });
 
   if (!response.ok) {
     if (response.status === 401) {
@@ -280,6 +292,7 @@ function getMockDiscoverResponse(filters: FilterState): DiscoverResponse {
     if (filters.yearTo && year > filters.yearTo) return false;
     if (filters.minRating && movie.vote_average < filters.minRating) return false;
     if (filters.maxRating !== undefined && filters.maxRating < 10 && movie.vote_average > filters.maxRating) return false;
+    if (filters.minVotes > 0 && movie.vote_count < filters.minVotes) return false;
     if (filters.language && movie.original_language !== filters.language) return false;
     if (filters.country && movie.origin_country && !movie.origin_country.includes(filters.country)) return false;
     if (filters.directorId) {
@@ -308,17 +321,12 @@ function getMockDiscoverResponse(filters: FilterState): DiscoverResponse {
   };
 }
 
-export async function discoverMovies(
-  filters: FilterState,
-  page: number = 1,
-  language: string = 'es'
-): Promise<DiscoverResponse> {
-  const apiKey = getStoredApiKey();
-  if (!apiKey) {
-    return getMockDiscoverResponse(filters);
-  }
-
-  const params: Record<string, string | number | boolean | undefined> = {
+/**
+ * Translates the panel's FilterState into TMDB /discover/movie query params.
+ * Pure function, so the mapping rules can be unit-tested without network.
+ */
+export function buildDiscoverParams(filters: FilterState, page: number = 1, language: string = 'es'): TmdbParams {
+  const params: TmdbParams = {
     language,
     page,
     sort_by: 'popularity.desc',
@@ -391,6 +399,9 @@ export async function discoverMovies(
   if (filters.maxRating < 10) {
     params['vote_average.lte'] = filters.maxRating;
   }
+  if (filters.minVotes > 0) {
+    params['vote_count.gte'] = filters.minVotes;
+  }
   if (effectiveMinRuntime > 0) {
     params['with_runtime.gte'] = effectiveMinRuntime;
   }
@@ -398,9 +409,25 @@ export async function discoverMovies(
     params['with_runtime.lte'] = filters.maxRuntime;
   }
 
+  return params;
+}
+
+export async function discoverMovies(
+  filters: FilterState,
+  page: number = 1,
+  language: string = 'es',
+  signal?: AbortSignal
+): Promise<DiscoverResponse> {
+  const apiKey = getStoredApiKey();
+  if (!apiKey) {
+    return getMockDiscoverResponse(filters);
+  }
+
   try {
-    return await tmdbFetch<DiscoverResponse>('/discover/movie', params);
+    return await tmdbFetch<DiscoverResponse>('/discover/movie', buildDiscoverParams(filters, page, language), signal);
   } catch (err) {
+    // A cancelled request must not be mistaken for an outage and served from the demo catalog.
+    if (isAbortError(err)) throw err;
     console.warn('TMDB API request failed. Falling back to local demo catalog.', err);
     return getMockDiscoverResponse(filters);
   }
@@ -425,7 +452,8 @@ function getMockSearchResponse(query: string): DiscoverResponse {
 export async function searchMovies(
   query: string,
   page: number = 1,
-  language: string = 'es'
+  language: string = 'es',
+  signal?: AbortSignal
 ): Promise<DiscoverResponse> {
   const trimmed = query.trim();
   if (!trimmed) {
@@ -438,13 +466,13 @@ export async function searchMovies(
   }
 
   try {
-    return await tmdbFetch<DiscoverResponse>('/search/movie', {
-      query: trimmed,
-      page,
-      language,
-      include_adult: false,
-    });
+    return await tmdbFetch<DiscoverResponse>(
+      '/search/movie',
+      { query: trimmed, page, language, include_adult: false },
+      signal
+    );
   } catch (err) {
+    if (isAbortError(err)) throw err;
     console.warn('TMDB search request failed. Falling back to local demo catalog.', err);
     return getMockSearchResponse(trimmed);
   }

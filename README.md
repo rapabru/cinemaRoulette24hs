@@ -35,6 +35,7 @@ A high-performance, desktop-style web application for movie discovery, advanced 
 - **Actor / Actress Search**: Debounced autocomplete searching by cast (`with_cast`).
 - **Country of Origin Filter**: Filter movies by origin country (🇦🇷 Argentina, 🇺🇸 United States, 🇪🇸 Spain, 🇲🇽 Mexico, 🇫🇷 France, 🇬🇧 UK, 🇯🇵 Japan, 🇰🇷 Korea, etc.).
 - **Min & Max Rating**: Dual numeric inputs (0.0 to 10.0).
+- **Min. Votes**: Vote-count floor (default 50) so the draw never lands on a movie rated 9.0 by two people. Set 0 to include 100% of TMDB.
 - **Min & Max Runtime**: Text and number inputs in minutes (0 to 300+ min).
 - **High-Contrast "Skip Watched" Switch**: High-contrast Cyan (`SÍ ✔`) vs Red (`NO ✖`) toggle.
 - **Thousands Separator Formatting**: Clean display (e.g. `1.041.467 Results found`).
@@ -95,6 +96,7 @@ Aplicación web de alto rendimiento estilo terminal para descubrir películas, c
 - **Buscador de Actores / Actrices**: Autocompletado por reparto (`with_cast`).
 - **Filtro por País de Origen**: Filtra por país de creación (🇦🇷 Argentina, 🇺🇸 EE.UU., 🇪🇸 España, 🇲🇽 México, 🇫🇷 Francia, 🇬🇧 Reino Unido, 🇯🇵 Japón, 🇰🇷 Corea del Sur, etc.).
 - **Calificación Mínima y Máxima**: Cajas de texto numéricas de 0.0 a 10.0.
+- **Votos mínimos**: Piso de cantidad de votos (50 por defecto) para que el sorteo no caiga en películas con 9.0 votadas por dos personas. Poné 0 para incluir el 100% de TMDB.
 - **Duración Mínima y Máxima**: Entradas numéricas en minutos (0 a 300+ min).
 - **Interruptor de Alto Contraste "Omitir Vistas"**: Botón neón Cyan (`SÍ ✔`) vs Rojo (`NO ✖`).
 - **Separador de Miles en Resultados**: Formato legible (*ej. `1.041.467 Resultados encontrados`*).
