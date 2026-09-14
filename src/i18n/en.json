@@ -257,5 +257,23 @@
     "switch_to_local": "No Google account? Create a local profile",
     "switch_to_google": "« Back to Continue with Google",
     "storage_note": "Everything is stored in this browser's localStorage. Signing out only removes the profile, not your movies."
+  },
+  "night": {
+    "start": "🌙 Start a movie-night draw (shared link)",
+    "start_hint": "Creates a link with your filters and a seed: everyone who opens it draws the same movie.",
+    "active": "Movie-night draw active · seed {{seed}}",
+    "active_hint": "Everyone opening this link with these filters draws the same movie (\"skip watched\" is ignored). Changing filters breaks the sync.",
+    "copy_link": "Copy link",
+    "exit": "Leave shared draw",
+    "link_copied": "Draw link copied ✔"
+  },
+  "backup": {
+    "title": "Your data (backup)",
+    "description": "Watched movies, draw history and presets live only in this browser. Export a file to move them to another device or keep them safe; importing merges without duplicates.",
+    "export": "Export backup (.json)",
+    "import": "Import backup",
+    "exported": "Backup exported: {{watched}} watched, {{history}} draws.",
+    "imported": "Imported: +{{watchedAdded}} watched, +{{historyAdded}} draws, +{{presetsAdded}} presets.",
+    "invalid": "That file is not a valid Cybercafé 24hs backup."
   }
 }

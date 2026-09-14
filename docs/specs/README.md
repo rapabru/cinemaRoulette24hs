@@ -21,9 +21,9 @@ involucrados. Un PR por ítem salvo que se indique lo contrario.
 | [M3](mejoras-ux.md#m3) | Marquee por región | 2 | ✅ Hecho |
 | [M4](mejoras-ux.md#m4) | `prefers-reduced-motion` | 2 | ✅ Hecho |
 | [M5](mejoras-ux.md#m5) | SEO / PWA mínimo | 2 | ✅ Hecho |
-| [I1](innovaciones.md#i1) | Links compartibles a una película | 3 | ⬜ Pendiente |
-| [I2](innovaciones.md#i2) | Sorteo con semilla compartida | 3 | ⬜ Pendiente |
-| [I3](innovaciones.md#i3) | Backup / restore de "La vi" e historial | 3 | ⬜ Pendiente |
+| [I1](innovaciones.md#i1) | Links compartibles a una película | 3 | ✅ Hecho |
+| [I2](innovaciones.md#i2) | Sorteo con semilla compartida | 3 | ✅ Hecho |
+| [I3](innovaciones.md#i3) | Backup / restore de "La vi" e historial | 3 | ✅ Hecho |
 | [I4](innovaciones.md#i4) | Modo maratón | 3 | ⬜ Pendiente |
 | [I5](innovaciones.md#i5) | Subtítulos en Torrentio | 3 | ⬜ Pendiente |
 

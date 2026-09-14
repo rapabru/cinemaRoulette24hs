@@ -13,6 +13,8 @@ import {
 } from './lib/tmdb';
 import { playWinChime } from './lib/sound';
 import { showToast } from './lib/toast';
+import { createSeededRng, generateSeed } from './lib/seededRandom';
+import { parseAppUrl, replaceUrlParams, buildNightDrawLink, MOVIE_PARAM, SEED_PARAM, FILTERS_PARAM, QUERY_PARAM } from './lib/shareLinks';
 
 import type {
   Genre,
@@ -58,6 +60,7 @@ import { DrawHistoryView } from './components/DrawHistoryView';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { GoogleLoginModal } from './components/GoogleLoginModal';
 import { ToastHost } from './components/ToastHost';
+import { NightDrawBanner } from './components/NightDrawBanner';
 import { MOCK_GENRES } from './lib/mockMovies';
 
 export function App() {
@@ -138,6 +141,52 @@ export function App() {
   // Api Key Modal state
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
 
+  // "Sorteo de la noche": a shared seed makes every browser that opens the
+  // same link (same filters) draw the same sequence of movies.
+  // Deep links (?movie=603 opens a card, ?seed=ABC123&f=... joins a night draw)
+  // are read once, before any effect gets to rewrite the address bar.
+  const initialUrlRef = useRef(parseAppUrl(window.location.search));
+  const [nightSeed, setNightSeed] = useState<string | null>(initialUrlRef.current.nightDraw?.seed ?? null);
+  const nightRngRef = useRef<(() => number) | null>(null);
+
+  useEffect(() => {
+    nightRngRef.current = nightSeed ? createSeededRng(`${nightSeed}:${new Date().toISOString().slice(0, 10)}`) : null;
+    replaceUrlParams({ [SEED_PARAM]: nightSeed, ...(nightSeed ? {} : { [FILTERS_PARAM]: null, [QUERY_PARAM]: null }) });
+  }, [nightSeed]);
+
+  useEffect(() => {
+    const { movieId, nightDraw } = initialUrlRef.current;
+    if (nightDraw) {
+      setFilters(nightDraw.filters);
+      setSearchQuery(nightDraw.searchQuery);
+    }
+    if (movieId) handleSelectMovie(movieId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep ?movie= in the address bar in sync with the open card, so the URL is always shareable.
+  useEffect(() => {
+    const shownId = isRouletteOpen && !pendingMovie && drawnMovie ? String(drawnMovie.id) : null;
+    replaceUrlParams({ [MOVIE_PARAM]: shownId });
+  }, [isRouletteOpen, pendingMovie, drawnMovie]);
+
+  const nightDrawLink = nightSeed ? buildNightDrawLink({ seed: nightSeed, filters, searchQuery }) : null;
+
+  const copyNightDrawLink = async (link: string) => {
+    try {
+      await navigator.clipboard.writeText(link);
+      showToast(t('night.link_copied'), 'success');
+    } catch {
+      showToast(link, 'info', 8000);
+    }
+  };
+
+  const handleStartNightDraw = () => {
+    const seed = generateSeed();
+    setNightSeed(seed);
+    copyNightDrawLink(buildNightDrawLink({ seed, filters, searchQuery }));
+  };
+
   // Load genres on mount or language change
   useEffect(() => {
     fetchGenres(i18n.language).then(setGenres);
@@ -200,8 +249,10 @@ export function App() {
     setSpinPosterPool(movies.map((m) => m.poster_path));
     try {
       const minSpinDelay = new Promise((resolve) => setTimeout(resolve, 1200));
+      // Seeded draws ignore "skip watched" on purpose: everyone must land on the same movie.
+      const drawFilters = nightRngRef.current ? { ...filters, skipWatched: false } : filters;
       const [result] = await Promise.all([
-        performRandomDraw(filters, watchedMovieIds, i18n.language, 0, searchQuery),
+        performRandomDraw(drawFilters, watchedMovieIds, i18n.language, 0, searchQuery, nightRngRef.current ?? Math.random),
         minSpinDelay,
       ]);
 
@@ -353,20 +404,39 @@ export function App() {
                 onSelectMovie={handleSelectMovie}
               />
 
+              {/* Shared-seed draw banner */}
+              {nightSeed && nightDrawLink && (
+                <NightDrawBanner
+                  seed={nightSeed}
+                  link={nightDrawLink}
+                  onCopyLink={() => copyNightDrawLink(nightDrawLink)}
+                  onExit={() => setNightSeed(null)}
+                />
+              )}
+
               {/* Signature Marquee "Sortear" Button (Positioned Below Filter Panel) */}
               <SortearButton onDraw={handleSortear} isLoading={isDrawing} />
 
-              {/* Quick access back to the last drawn movie, without drawing again */}
-              {historyList.length > 0 && (
-                <div className="w-full flex justify-center -mt-2 mb-4">
+              {/* Quick links under the button: last drawn movie, start a shared draw */}
+              <div className="w-full flex flex-wrap justify-center gap-x-6 gap-y-1 -mt-2 mb-4 text-xs font-mono">
+                {historyList.length > 0 && (
                   <button
                     onClick={handleShowLastDrawn}
-                    className="text-xs font-mono text-[var(--neon-cyan)] hover:text-[var(--neon-amber)] underline underline-offset-2 transition-colors cursor-pointer"
+                    className="text-[var(--neon-cyan)] hover:text-[var(--neon-amber)] underline underline-offset-2 transition-colors cursor-pointer"
                   >
                     {t('sortear.view_last_drawn')}
                   </button>
-                </div>
-              )}
+                )}
+                {!nightSeed && (
+                  <button
+                    onClick={handleStartNightDraw}
+                    className="text-[var(--neon-magenta)] hover:text-[var(--neon-amber)] underline underline-offset-2 transition-colors cursor-pointer"
+                    title={t('night.start_hint')}
+                  >
+                    {t('night.start')}
+                  </button>
+                )}
+              </div>
 
               {/* Movie Catalog Grid */}
               <CatalogGrid
@@ -474,6 +544,10 @@ export function App() {
         isOpen={isApiKeyModalOpen}
         onClose={() => setIsApiKeyModalOpen(false)}
         onKeySaved={loadCatalog}
+        onDataImported={() => {
+          setWatchedList(getWatchedMovies());
+          setHistoryList(getDrawnHistory());
+        }}
       />
 
       {/* Google Login Modal */}
