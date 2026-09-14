@@ -94,7 +94,8 @@
     "generated_overview_year": " lançada em {{year}}",
     "generated_overview_director": ", dirigida por {{director}}",
     "generated_overview_cast": " com atuações de {{cast}}",
-    "generated_overview_genre_fallback": "Cinema"
+    "generated_overview_genre_fallback": "Cinema",
+    "loading_details": "Carregando ficha..."
   },
   "filters": {
     "title": "PAINEL DE CONTROLE",
@@ -223,7 +224,8 @@
   "errors": {
     "no_results": "Nenhum filme encontrado com os filtros selecionados.",
     "no_results_hint": "Tente afrouxar os filtros (amplie o intervalo de anos, reduza a nota mínima ou remova o ator).",
-    "no_key": "É necessária uma API Key do TMDB para realizar buscas."
+    "no_key": "É necessária uma API Key do TMDB para realizar buscas.",
+    "details_failed": "Não foi possível carregar a ficha do filme. Tente de novo."
   },
   "catalog": {
     "previous": "Anterior",
@@ -231,7 +233,13 @@
     "page_of": "Pág. {{current}} / {{total}}",
     "page_cap_hint": "(Máx. 500 págs por filtro de um total de +1.000.000 no TMDB)",
     "card_play": "▶ Reproduzir",
-    "card_play_hint": "Assistir no player do terminal."
+    "card_play_hint": "Assistir no player do terminal.",
+    "first": "Primeira página",
+    "last": "Última página",
+    "page_prefix": "Pág.",
+    "go_to_page": "Ir para a página (Enter)",
+    "pagination_label": "Paginação do catálogo",
+    "keyboard_hint": "Dica: ← → mudam de página"
   },
   "login": {
     "google_title": "Continuar com o Google",

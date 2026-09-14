@@ -1,0 +1,17 @@
+{
+  "name": "Cybercafé 24hs — Movie Roulette",
+  "short_name": "Cybercafé 24hs",
+  "description": "Sorteá tu próxima película: filtros avanzados sobre TMDB, ruleta, reproductor y noches de cine en comunidad.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0912",
+  "theme_color": "#0b0912",
+  "lang": "es",
+  "categories": ["entertainment"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

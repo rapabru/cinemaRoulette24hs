@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildDiscoverParams, DEFAULT_FILTERS, isAbortError } from './tmdb';
+import { buildDiscoverParams, DEFAULT_FILTERS, isAbortError, regionForLanguage } from './tmdb';
 import type { FilterState } from './tmdb';
 
 const withFilters = (overrides: Partial<FilterState>): FilterState => ({ ...DEFAULT_FILTERS, ...overrides });
@@ -82,5 +82,14 @@ describe('isAbortError', () => {
     expect(isAbortError(new DOMException('aborted', 'AbortError'))).toBe(true);
     expect(isAbortError(new Error('TMDB_ERROR_500'))).toBe(false);
     expect(isAbortError('nope')).toBe(false);
+  });
+});
+
+describe('regionForLanguage', () => {
+  it('maps UI languages to the box office the marquee should show', () => {
+    expect(regionForLanguage('es')).toBe('AR');
+    expect(regionForLanguage('pt-BR')).toBe('BR');
+    expect(regionForLanguage('en')).toBe('US');
+    expect(regionForLanguage('fr')).toBe('US');
   });
 });
