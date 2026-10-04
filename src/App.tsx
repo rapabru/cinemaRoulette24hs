@@ -48,6 +48,7 @@ import type { GoogleUser } from './lib/auth';
 import { Header } from './components/Header';
 import type { PendingMovie } from './components/RouletteModal';
 import { VolumeControl } from './components/VolumeControl';
+import { FloatingSortearButton } from './components/FloatingSortearButton';
 import { MarqueeTicker } from './components/MarqueeTicker';
 import { ScrollDownArrow } from './components/ScrollDownArrow';
 import { SortearButton } from './components/SortearButton';
@@ -578,6 +579,9 @@ export function App() {
 
       {/* Floating Site-wide Mute Button */}
       <VolumeControl className="fixed bottom-5 right-5 z-40 shadow-lg" />
+
+      {/* Floating Site-wide Sortear Button — always reachable without scrolling back up */}
+      <FloatingSortearButton onDraw={handleSortear} isLoading={isDrawing} className="fixed bottom-5 left-5 z-40" />
 
       {/* Non-blocking notifications (replaces alert()) */}
       <ToastHost />

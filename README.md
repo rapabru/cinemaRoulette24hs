@@ -21,9 +21,10 @@ A high-performance, desktop-style web application for movie discovery, advanced 
 ## 🚀 Key Features
 
 ### 🎬 Built-in Video Players (Multi-Provider)
-- **Opción 1 (VidKing Player)**: High-speed video streaming embed using TMDB IDs (`vidking.net/embed/movie/{id}`).
-- **Opción 2 (PlayIMDB Server)**: Alternative streaming player server using IMDB IDs (`playimdb.com/es-es/title/{imdb_id}/`).
-- **Opción 3 (Torrentio + Webtor)**: Stremio-style flow, fully free and backend-less. Queries the Torrentio addon (`torrentio.strem.fun`) for torrent sources by IMDB ID, lets you pick quality/size/seeders, and plays the magnet in-browser through the Webtor.io embed SDK (free tier: ads and limited bandwidth; x265/HEVC releases may not play). Includes an "Open in Stremio" deep link.
+- **Opción 1 (cinejoy.to)**: Full streaming site keyed by TMDB ID (`cinejoy.to/watch/movie/{id}`). It sends `X-Frame-Options: DENY`, so it can never be embedded in an iframe — selecting it shows an "opens externally" card with a button that opens it in a new tab.
+- **Opción 2 (Torrentio + Webtor)**: Stremio-style flow, fully free and backend-less. Queries the Torrentio addon (`torrentio.strem.fun`) for torrent sources by IMDB ID, lets you pick quality/size/seeders, and plays the magnet in-browser through the Webtor.io embed SDK (free tier: ads and limited bandwidth; x265/HEVC releases may not play). Includes an "Open in Stremio" deep link.
+- **Opción 3 (VidKing Player)**: High-speed video streaming embed using TMDB IDs (`vidking.net/embed/movie/{id}`).
+- **Opción 4 (PlayIMDB Server)**: Alternative streaming player server using IMDB IDs (`playimdb.com/es-es/title/{imdb_id}/`).
 - **SubDivX Subtitles**: One-click download button for Spanish subtitles directly on [SubDivX](https://www.subdivx.com/).
 - **Responsive Player Modal**: Constrained to `92vh` viewports with internal scrolling for all screen resolutions.
 
@@ -82,9 +83,10 @@ Aplicación web de alto rendimiento estilo terminal para descubrir películas, c
 ## 🌟 Características Principales
 
 ### 🎬 Reproductores de Video Integrados (Multi-Servidor)
-- **Opción 1: VidKing**: Reproductor integrado de alta velocidad mediante código TMDB (`vidking.net/embed/movie/{id}`).
-- **Opción 2: PlayIMDB**: Servidor alternativo de streaming por código IMDB (`playimdb.com/es-es/title/{imdb_id}/`).
-- **Opción 3: Torrentio + Webtor**: Flujo estilo Stremio, 100% gratis y sin backend. Consulta el addon Torrentio (`torrentio.strem.fun`) por código IMDB, permite elegir calidad/tamaño/seeds y reproduce el magnet en el navegador mediante el SDK de Webtor.io (plan gratuito: publicidad y velocidad limitada; los x265/HEVC pueden no reproducirse). Incluye enlace "Abrir en Stremio".
+- **Opción 1: cinejoy.to**: Sitio de streaming completo, por código TMDB (`cinejoy.to/watch/movie/{id}`). Su servidor manda `X-Frame-Options: DENY`, así que no se puede insertar en un iframe — al elegirla se muestra una tarjeta "se abre externamente" con un botón que la abre en una pestaña nueva.
+- **Opción 2: Torrentio + Webtor**: Flujo estilo Stremio, 100% gratis y sin backend. Consulta el addon Torrentio (`torrentio.strem.fun`) por código IMDB, permite elegir calidad/tamaño/seeds y reproduce el magnet en el navegador mediante el SDK de Webtor.io (plan gratuito: publicidad y velocidad limitada; los x265/HEVC pueden no reproducirse). Incluye enlace "Abrir en Stremio".
+- **Opción 3: VidKing**: Reproductor integrado de alta velocidad mediante código TMDB (`vidking.net/embed/movie/{id}`).
+- **Opción 4: PlayIMDB**: Servidor alternativo de streaming por código IMDB (`playimdb.com/es-es/title/{imdb_id}/`).
 - **Subtítulos en SubDivX**: Botón directo de búsqueda y descarga de subtítulos en español en [SubDivX](https://www.subdivx.com/).
 - **Modal Adaptativo**: Límite de altura responsivo (`92vh`) con desplazamiento interno para cualquier resolución de pantalla.
 

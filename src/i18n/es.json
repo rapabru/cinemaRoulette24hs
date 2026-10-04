@@ -95,7 +95,9 @@
     "generated_overview_director": ", dirigida por {{director}}",
     "generated_overview_cast": " con las actuaciones de {{cast}}",
     "generated_overview_genre_fallback": "Cine",
-    "loading_details": "Cargando ficha..."
+    "loading_details": "Cargando ficha...",
+    "floating_hint": "Sortear una película",
+    "cinejoy_external_hint": "cinejoy.to no permite mostrarse dentro de la app; se abre en una pestaña nueva."
   },
   "filters": {
     "title": "PANEL DE CONTROL",
