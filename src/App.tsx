@@ -12,6 +12,9 @@ import {
   isAbortError,
 } from './lib/tmdb';
 import { playWinChime } from './lib/sound';
+import { showToast } from './lib/toast';
+import { createSeededRng, generateSeed } from './lib/seededRandom';
+import { parseAppUrl, replaceUrlParams, buildNightDrawLink, MOVIE_PARAM, SEED_PARAM, FILTERS_PARAM, QUERY_PARAM } from './lib/shareLinks';
 
 import type {
   Genre,
@@ -43,7 +46,9 @@ import {
 import type { GoogleUser } from './lib/auth';
 
 import { Header } from './components/Header';
+import type { PendingMovie } from './components/RouletteModal';
 import { VolumeControl } from './components/VolumeControl';
+import { FloatingSortearButton } from './components/FloatingSortearButton';
 import { MarqueeTicker } from './components/MarqueeTicker';
 import { ScrollDownArrow } from './components/ScrollDownArrow';
 import { SortearButton } from './components/SortearButton';
@@ -55,6 +60,9 @@ import { WatchedView } from './components/WatchedView';
 import { DrawHistoryView } from './components/DrawHistoryView';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { GoogleLoginModal } from './components/GoogleLoginModal';
+import { ToastHost } from './components/ToastHost';
+import { NightDrawBanner } from './components/NightDrawBanner';
+import { MarathonModal } from './components/MarathonModal';
 import { MOCK_GENRES } from './lib/mockMovies';
 
 export function App() {
@@ -120,6 +128,10 @@ export function App() {
   // Back-navigation stack: movies visited before drilling into a recommendation
   // or a marquee title while the modal was already open on a different movie.
   const [movieBackStack, setMovieBackStack] = useState<MovieDetails[]>([]);
+  // What the modal shows while a movie's details are still being fetched, so
+  // clicking a card gives instant feedback instead of a ~1s dead pause.
+  const [pendingMovie, setPendingMovie] = useState<PendingMovie | null>(null);
+  const pendingRequestRef = useRef(0);
 
   // Context Menu state
   const [contextMenu, setContextMenu] = useState<{
@@ -130,6 +142,116 @@ export function App() {
 
   // Api Key Modal state
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+
+  // "Sorteo de la noche": a shared seed makes every browser that opens the
+  // same link (same filters) draw the same sequence of movies.
+  // Deep links (?movie=603 opens a card, ?seed=ABC123&f=... joins a night draw)
+  // are read once, before any effect gets to rewrite the address bar.
+  const initialUrlRef = useRef(parseAppUrl(window.location.search));
+  const [nightSeed, setNightSeed] = useState<string | null>(initialUrlRef.current.nightDraw?.seed ?? null);
+  const nightRngRef = useRef<(() => number) | null>(null);
+
+  useEffect(() => {
+    nightRngRef.current = nightSeed ? createSeededRng(`${nightSeed}:${new Date().toISOString().slice(0, 10)}`) : null;
+    replaceUrlParams({ [SEED_PARAM]: nightSeed, ...(nightSeed ? {} : { [FILTERS_PARAM]: null, [QUERY_PARAM]: null }) });
+  }, [nightSeed]);
+
+  useEffect(() => {
+    const { movieId, nightDraw } = initialUrlRef.current;
+    if (nightDraw) {
+      setFilters(nightDraw.filters);
+      setSearchQuery(nightDraw.searchQuery);
+    }
+    if (movieId) handleSelectMovie(movieId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep ?movie= in the address bar in sync with the open card, so the URL is always shareable.
+  useEffect(() => {
+    const shownId = isRouletteOpen && !pendingMovie && drawnMovie ? String(drawnMovie.id) : null;
+    replaceUrlParams({ [MOVIE_PARAM]: shownId });
+  }, [isRouletteOpen, pendingMovie, drawnMovie]);
+
+  const nightDrawLink = nightSeed ? buildNightDrawLink({ seed: nightSeed, filters, searchQuery }) : null;
+
+  // "Modo maratón": a batch of distinct draws for one night, using the same
+  // filters (and the shared seed, if any) as the single draw.
+  const [isMarathonOpen, setIsMarathonOpen] = useState(false);
+  const [marathonMovies, setMarathonMovies] = useState<MovieDetails[]>([]);
+  const [marathonPending, setMarathonPending] = useState(0);
+  const marathonBatchRef = useRef(0);
+
+  const drawMarathonMovies = async (count: number, keep: MovieDetails[]) => {
+    const batchId = ++marathonBatchRef.current;
+    const picked = [...keep];
+    const pickedIds = new Set(picked.map((m) => m.id));
+    setMarathonMovies(picked);
+    setMarathonPending(count);
+    // Seeded (shared) draws exclude only what's already on the list, so every
+    // browser builds the same list; unseeded ones also skip watched movies.
+    const seeded = !!nightRngRef.current;
+    let attempts = 0;
+    while (picked.length < keep.length + count && attempts < count * 4) {
+      attempts++;
+      try {
+        const excluded = seeded ? pickedIds : new Set([...watchedMovieIds, ...pickedIds]);
+        const result = await performRandomDraw(
+          { ...filters, skipWatched: true },
+          excluded,
+          i18n.language,
+          0,
+          searchQuery,
+          nightRngRef.current ?? Math.random
+        );
+        if (batchId !== marathonBatchRef.current) return;
+        if (!result || pickedIds.has(result.id)) continue;
+        picked.push(result);
+        pickedIds.add(result.id);
+        setMarathonMovies([...picked]);
+        setMarathonPending(keep.length + count - picked.length);
+        setHistoryList([
+          ...addMovieToHistory({
+            id: result.id,
+            title: result.title,
+            poster_path: result.poster_path,
+            release_date: result.release_date,
+            vote_average: result.vote_average,
+            genre_ids: result.genres?.map((g) => g.id),
+          }),
+        ]);
+      } catch (err: any) {
+        if (batchId !== marathonBatchRef.current) return;
+        console.error('Error during marathon draw:', err);
+        if (err?.message === 'INVALID_API_KEY' || err?.message === 'NO_API_KEY') {
+          setIsApiKeyModalOpen(true);
+          break;
+        }
+      }
+    }
+    if (batchId !== marathonBatchRef.current) return;
+    setMarathonPending(0);
+    if (picked.length < keep.length + count) showToast(t('marathon.short', { got: picked.length - keep.length, wanted: count }), 'warning');
+    else playWinChime();
+  };
+
+  const handleMarathonRedrawSlot = (movieId: number) => {
+    drawMarathonMovies(1, marathonMovies.filter((m) => m.id !== movieId));
+  };
+
+  const copyNightDrawLink = async (link: string) => {
+    try {
+      await navigator.clipboard.writeText(link);
+      showToast(t('night.link_copied'), 'success');
+    } catch {
+      showToast(link, 'info', 8000);
+    }
+  };
+
+  const handleStartNightDraw = () => {
+    const seed = generateSeed();
+    setNightSeed(seed);
+    copyNightDrawLink(buildNightDrawLink({ seed, filters, searchQuery }));
+  };
 
   // Load genres on mount or language change
   useEffect(() => {
@@ -193,8 +315,10 @@ export function App() {
     setSpinPosterPool(movies.map((m) => m.poster_path));
     try {
       const minSpinDelay = new Promise((resolve) => setTimeout(resolve, 1200));
+      // Seeded draws ignore "skip watched" on purpose: everyone must land on the same movie.
+      const drawFilters = nightRngRef.current ? { ...filters, skipWatched: false } : filters;
       const [result] = await Promise.all([
-        performRandomDraw(filters, watchedMovieIds, i18n.language, 0, searchQuery),
+        performRandomDraw(drawFilters, watchedMovieIds, i18n.language, 0, searchQuery, nightRngRef.current ?? Math.random),
         minSpinDelay,
       ]);
 
@@ -214,7 +338,7 @@ export function App() {
         setHistoryList([...updatedHistory]);
       } else {
         if (!drawnMovie) setIsRouletteOpen(false);
-        alert(t('errors.no_results'));
+        showToast(t('errors.no_results'), 'warning');
       }
     } catch (err: any) {
       console.error('Error during random draw:', err);
@@ -222,7 +346,7 @@ export function App() {
       if (err?.message === 'INVALID_API_KEY' || err?.message === 'NO_API_KEY') {
         setIsApiKeyModalOpen(true);
       } else {
-        alert(t('errors.no_results'));
+        showToast(t('errors.no_results'), 'error');
       }
     } finally {
       setIsDrawing(false);
@@ -255,25 +379,40 @@ export function App() {
 
   // Reopen the last drawn movie's card without drawing again
   const handleShowLastDrawn = () => {
-    if (historyList.length > 0) handleSelectMovie(historyList[0].id);
+    if (historyList.length > 0) handleSelectMovie(historyList[0]);
   };
 
   // Open details from card, context menu, recommendations carousel, or marquee.
   // If the modal is already open on a different movie, push it onto the back
   // stack first so the user can return to it with the "Volver" button.
-  const handleSelectMovie = async (movieSummary: MovieSummary | number) => {
+  const handleSelectMovie = async (movieSummary: PendingMovie | number) => {
     const id = typeof movieSummary === 'number' ? movieSummary : movieSummary.id;
+    const requestId = ++pendingRequestRef.current;
+    const wasOpenOn = isRouletteOpen ? drawnMovie : null;
+
+    setPendingMovie(
+      typeof movieSummary === 'number'
+        ? { id }
+        : { id, title: movieSummary.title, poster_path: movieSummary.poster_path, release_date: movieSummary.release_date }
+    );
+    setIsRouletteOpen(true);
+
     try {
       const details = await fetchMovieDetails(id, i18n.language);
-      if (isRouletteOpen && drawnMovie && drawnMovie.id !== id) {
-        setMovieBackStack((stack) => [...stack, drawnMovie]);
+      if (requestId !== pendingRequestRef.current) return; // a newer click won
+      if (wasOpenOn && wasOpenOn.id !== id) {
+        setMovieBackStack((stack) => [...stack, wasOpenOn]);
       } else {
         setMovieBackStack([]);
       }
       setDrawnMovie(details);
-      setIsRouletteOpen(true);
+      setPendingMovie(null);
     } catch (err) {
+      if (requestId !== pendingRequestRef.current) return;
       console.error('Error fetching movie details:', err);
+      setPendingMovie(null);
+      if (!wasOpenOn) setIsRouletteOpen(false);
+      showToast(t('errors.details_failed'), 'error');
     }
   };
 
@@ -331,20 +470,46 @@ export function App() {
                 onSelectMovie={handleSelectMovie}
               />
 
+              {/* Shared-seed draw banner */}
+              {nightSeed && nightDrawLink && (
+                <NightDrawBanner
+                  seed={nightSeed}
+                  link={nightDrawLink}
+                  onCopyLink={() => copyNightDrawLink(nightDrawLink)}
+                  onExit={() => setNightSeed(null)}
+                />
+              )}
+
               {/* Signature Marquee "Sortear" Button (Positioned Below Filter Panel) */}
               <SortearButton onDraw={handleSortear} isLoading={isDrawing} />
 
-              {/* Quick access back to the last drawn movie, without drawing again */}
-              {historyList.length > 0 && (
-                <div className="w-full flex justify-center -mt-2 mb-4">
+              {/* Quick links under the button: last drawn movie, start a shared draw */}
+              <div className="w-full flex flex-wrap justify-center gap-x-6 gap-y-1 -mt-2 mb-4 text-xs font-mono">
+                {historyList.length > 0 && (
                   <button
                     onClick={handleShowLastDrawn}
-                    className="text-xs font-mono text-[var(--neon-cyan)] hover:text-[var(--neon-amber)] underline underline-offset-2 transition-colors cursor-pointer"
+                    className="text-[var(--neon-cyan)] hover:text-[var(--neon-amber)] underline underline-offset-2 transition-colors cursor-pointer"
                   >
                     {t('sortear.view_last_drawn')}
                   </button>
-                </div>
-              )}
+                )}
+                <button
+                  onClick={() => setIsMarathonOpen(true)}
+                  className="text-[var(--neon-amber)] hover:text-[var(--neon-cyan)] underline underline-offset-2 transition-colors cursor-pointer"
+                  title={t('marathon.description')}
+                >
+                  {t('marathon.open')}
+                </button>
+                {!nightSeed && (
+                  <button
+                    onClick={handleStartNightDraw}
+                    className="text-[var(--neon-magenta)] hover:text-[var(--neon-amber)] underline underline-offset-2 transition-colors cursor-pointer"
+                    title={t('night.start_hint')}
+                  >
+                    {t('night.start')}
+                  </button>
+                )}
+              </div>
 
               {/* Movie Catalog Grid */}
               <CatalogGrid
@@ -415,6 +580,12 @@ export function App() {
       {/* Floating Site-wide Mute Button */}
       <VolumeControl className="fixed bottom-5 right-5 z-40 shadow-lg" />
 
+      {/* Floating Site-wide Sortear Button — always reachable without scrolling back up */}
+      <FloatingSortearButton onDraw={handleSortear} isLoading={isDrawing} className="fixed bottom-5 left-5 z-40" />
+
+      {/* Non-blocking notifications (replaces alert()) */}
+      <ToastHost />
+
       {/* Right-click Context Menu */}
       {contextMenu && (
         <ContextMenu
@@ -438,9 +609,27 @@ export function App() {
         onToggleWatched={handleToggleWatched}
         isLoading={isDrawing}
         posterPool={spinPosterPool}
+        pendingMovie={pendingMovie}
         onSelectMovie={handleSelectMovie}
         canGoBack={movieBackStack.length > 0}
         onGoBack={handleGoBack}
+      />
+
+      {/* Marathon Modal */}
+      <MarathonModal
+        isOpen={isMarathonOpen}
+        onClose={() => setIsMarathonOpen(false)}
+        movies={marathonMovies}
+        isDrawing={marathonPending > 0}
+        pendingCount={marathonPending}
+        onDraw={(count) => drawMarathonMovies(count, [])}
+        onRedrawSlot={handleMarathonRedrawSlot}
+        onRemove={(id) => setMarathonMovies((list) => list.filter((m) => m.id !== id))}
+        onOpenMovie={(movie) => {
+          setIsMarathonOpen(false);
+          handleSelectMovie(movie);
+        }}
+        watchedMovieIds={watchedMovieIds}
       />
 
       {/* API Key Modal */}
@@ -448,6 +637,10 @@ export function App() {
         isOpen={isApiKeyModalOpen}
         onClose={() => setIsApiKeyModalOpen(false)}
         onKeySaved={loadCatalog}
+        onDataImported={() => {
+          setWatchedList(getWatchedMovies());
+          setHistoryList(getDrawnHistory());
+        }}
       />
 
       {/* Google Login Modal */}

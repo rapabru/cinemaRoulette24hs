@@ -31,7 +31,11 @@
     "theme_midday": "Modo Diurno (12h)",
     "sound_on": "Som ativado (clique para silenciar)",
     "sound_off": "Som silenciado (clique para ativar)",
-    "discord_tooltip": "Entre no Discord — Assistimos filmes juntos todas as noites!"
+    "discord_tooltip": "Entre no Discord — Assistimos filmes juntos todas as noites!",
+    "demo_mode": "Modo demo ativo — usando catálogo local.",
+    "google_login": "Google Login",
+    "google_logout": "Sair do Google",
+    "local_profile": "Perfil local (sem conta)"
   },
   "sortear": {
     "button": "🎰 SORTEAR FILME",
@@ -71,7 +75,29 @@
     "open_in_stremio": "Abrir no Stremio",
     "torrentio_other_quality": "Outras",
     "torrentio_download": "Baixar torrent",
-    "torrentio_download_hint": "Link magnet: abre no seu cliente de torrents (qBittorrent, Transmission, etc.)"
+    "torrentio_download_hint": "Link magnet: abre no seu cliente de torrents (qBittorrent, Transmission, etc.)",
+    "tab_details": "Ficha",
+    "tab_player": "▶ Player",
+    "servers_label": "Servidores de reprodução:",
+    "option_n": "Opção {{n}}: {{name}}",
+    "terminal_active": "Terminal Opção {{n}}: {{name}} ativo",
+    "open_external": "Abrir em {{name}}",
+    "subtitles_subdivx": "Legendas (SubDivX)",
+    "subtitles_subdivx_long": "Baixar legendas no SubDivX",
+    "subtitles_subdivx_title": "Buscar e baixar legendas em espanhol para este filme no SubDivX",
+    "play_big": "▶ REPRODUZIR",
+    "watched_badge": "JÁ VI",
+    "watched_done": "Vista ✔",
+    "close": "Fechar",
+    "not_available": "N/D",
+    "generated_overview": "Produção audiovisual do gênero {{genres}}{{yearPart}}{{directorPart}}{{castPart}}. Uma proposta cinematográfica imperdível da coleção global do TMDB.",
+    "generated_overview_year": " lançada em {{year}}",
+    "generated_overview_director": ", dirigida por {{director}}",
+    "generated_overview_cast": " com atuações de {{cast}}",
+    "generated_overview_genre_fallback": "Cinema",
+    "loading_details": "Carregando ficha...",
+    "floating_hint": "Sortear um filme",
+    "cinejoy_external_hint": "O cinejoy.to não pode ser exibido dentro do app; ele abre em uma nova aba."
   },
   "filters": {
     "title": "PAINEL DE CONTROLE",
@@ -194,11 +220,79 @@
     "youtube_placeholder": "ex. AIzaSy...",
     "youtube_save": "Salvar Chave do YouTube",
     "youtube_use_demo": "Usar chave de teste oficial (YouTube)",
-    "youtube_saved": "Chave do YouTube salva com sucesso."
+    "youtube_saved": "Chave do YouTube salva com sucesso.",
+    "add_official_demo": "Adicionar API key de teste oficial"
   },
   "errors": {
     "no_results": "Nenhum filme encontrado com os filtros selecionados.",
     "no_results_hint": "Tente afrouxar os filtros (amplie o intervalo de anos, reduza a nota mínima ou remova o ator).",
-    "no_key": "É necessária uma API Key do TMDB para realizar buscas."
+    "no_key": "É necessária uma API Key do TMDB para realizar buscas.",
+    "details_failed": "Não foi possível carregar a ficha do filme. Tente de novo."
+  },
+  "catalog": {
+    "previous": "Anterior",
+    "next": "Próxima",
+    "page_of": "Pág. {{current}} / {{total}}",
+    "page_cap_hint": "(Máx. 500 págs por filtro de um total de +1.000.000 no TMDB)",
+    "card_play": "▶ Reproduzir",
+    "card_play_hint": "Assistir no player do terminal.",
+    "first": "Primeira página",
+    "last": "Última página",
+    "page_prefix": "Pág.",
+    "go_to_page": "Ir para a página (Enter)",
+    "pagination_label": "Paginação do catálogo",
+    "keyboard_hint": "Dica: ← → mudam de página"
+  },
+  "login": {
+    "google_title": "Continuar com o Google",
+    "local_title": "Perfil local (sem conta)",
+    "purpose": "Um perfil dá nome e avatar aos seus filmes vistos e ao histórico neste navegador. Não é obrigatório.",
+    "google_unavailable": "Não foi possível carregar o botão do Google (bloqueador de scripts?). Você pode usar um perfil local.",
+    "google_error": "O Google não retornou uma identidade válida. Tente de novo ou use um perfil local.",
+    "google_disclaimer": "O Google verifica sua identidade e compartilha nome, e-mail e foto. Este app não os envia a nenhum servidor próprio: ficam só no seu navegador.",
+    "local_badge": "Perfil local · só neste navegador",
+    "local_name_label": "Nome",
+    "local_name_placeholder": "ex. Alex Cinéfilo",
+    "local_email_label": "E-mail (opcional, só para o avatar)",
+    "local_email_placeholder": "alex@exemplo.com",
+    "local_submit": "Criar perfil local",
+    "switch_to_local": "Sem conta do Google? Criar um perfil local",
+    "switch_to_google": "« Voltar a Continuar com o Google",
+    "storage_note": "Tudo fica no localStorage deste navegador. Sair só remove o perfil, não seus filmes."
+  },
+  "night": {
+    "start": "🌙 Criar sorteio da noite (link compartilhado)",
+    "start_hint": "Gera um link com seus filtros e uma semente: todos que abrirem sorteiam o mesmo filme.",
+    "active": "Sorteio da noite ativo · semente {{seed}}",
+    "active_hint": "Todos que abrirem este link, com estes filtros, sorteiam o mesmo filme (\"pular vistos\" é ignorado). Mudar os filtros quebra a sincronia.",
+    "copy_link": "Copiar link",
+    "exit": "Sair do sorteio compartilhado",
+    "link_copied": "Link do sorteio copiado ✔"
+  },
+  "backup": {
+    "title": "Seus dados (backup)",
+    "description": "Filmes vistos, histórico de sorteios e presets ficam só neste navegador. Exporte um arquivo para levá-los a outro dispositivo ou guardá-los; importar mescla sem duplicar.",
+    "export": "Exportar backup (.json)",
+    "import": "Importar backup",
+    "exported": "Backup exportado: {{watched}} vistos, {{history}} sorteios.",
+    "imported": "Importado: +{{watchedAdded}} vistos, +{{historyAdded}} sorteios, +{{presetsAdded}} presets.",
+    "invalid": "Esse arquivo não é um backup válido do Cybercafé 24hs."
+  },
+  "marathon": {
+    "open": "🎬 Modo maratona (sortear várias)",
+    "title": "Modo maratona",
+    "description": "Sorteie vários filmes de uma vez para montar a noite: todos diferentes, com seus filtros atuais (e a semente compartilhada se houver uma ativa). Ficam salvos no histórico.",
+    "how_many": "Quantos?",
+    "draw_n": "Sortear {{count}}",
+    "drawing": "Buscando... faltam {{remaining}}",
+    "total": "{{count}} filmes · {{total}} no total",
+    "ends_at": "Começando agora você termina ~{{time}} (com 15 min de pausa entre cada um)",
+    "order_hint": "Ordem sugerida: o mais longo primeiro, enquanto todos estão acordados.",
+    "empty": "Nada sorteado ainda. Escolha quantos filmes quer acima.",
+    "redraw_slot": "Trocar este filme por outro",
+    "remove": "Remover da lista",
+    "copy_list": "Copiar lista",
+    "list_heading": "🎬 Maratona Cybercafé 24hs — {{date}} ({{count}} filmes)",
+    "short": "Só foram encontrados {{got}} de {{wanted}} filmes distintos com estes filtros."
   }
 }

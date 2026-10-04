@@ -163,6 +163,15 @@ export function getImageUrl(path: string | null, size: 'w185' | 'w342' | 'w500' 
   return `${IMAGE_BASE_URL}${size}${path}`;
 }
 
+/**
+ * src/srcSet pair for grid cells (~200px wide): w342 is plenty at 1x and
+ * w500 covers retina, instead of shipping w500 to everyone.
+ */
+export function getGridPosterSources(path: string | null): { src: string; srcSet: string } {
+  const src = getImageUrl(path, 'w342');
+  return { src, srcSet: `${src} 1x, ${getImageUrl(path, 'w500')} 2x` };
+}
+
 /** Finds the best YouTube trailer URL for a movie, if any was returned by TMDB. */
 export function getTrailerVideo(details: MovieDetails): VideoItem | null {
   const results = details.videos?.results || [];
@@ -478,10 +487,16 @@ export async function searchMovies(
   }
 }
 
+/** Country whose box office the marquee should reflect for a UI language. */
+export function regionForLanguage(language: string): string {
+  const map: Record<string, string> = { es: 'AR', pt: 'BR', en: 'US' };
+  return map[language.split('-')[0]] || 'US';
+}
+
 /** Movies currently in theaters ("Nuevas" marquee row). Returns [] on any failure — caller falls back to a welcome phrase. */
-export async function fetchNowPlayingMovies(language: string = 'es'): Promise<MovieSummary[]> {
+export async function fetchNowPlayingMovies(language: string = 'es', region: string = regionForLanguage(language)): Promise<MovieSummary[]> {
   try {
-    const data = await tmdbFetch<DiscoverResponse>('/movie/now_playing', { language, page: 1 });
+    const data = await tmdbFetch<DiscoverResponse>('/movie/now_playing', { language, region, page: 1 });
     return data.results || [];
   } catch (err) {
     console.warn('TMDB now_playing request failed.', err);
@@ -490,9 +505,9 @@ export async function fetchNowPlayingMovies(language: string = 'es'): Promise<Mo
 }
 
 /** Popular movies on TMDB ("Recomendadas" marquee row). Returns [] on any failure. */
-export async function fetchPopularMovies(language: string = 'es'): Promise<MovieSummary[]> {
+export async function fetchPopularMovies(language: string = 'es', region: string = regionForLanguage(language)): Promise<MovieSummary[]> {
   try {
-    const data = await tmdbFetch<DiscoverResponse>('/movie/popular', { language, page: 1 });
+    const data = await tmdbFetch<DiscoverResponse>('/movie/popular', { language, region, page: 1 });
     return data.results || [];
   } catch (err) {
     console.warn('TMDB popular request failed.', err);
@@ -525,21 +540,8 @@ export async function fetchMovieDetails(id: number, language: string = 'es'): Pr
       }
     }
 
-    // 2. Smart generated synopsis if overview is still empty
-    if (!details.overview || details.overview.trim().length === 0) {
-      const year = details.release_date ? details.release_date.split('-')[0] : '';
-      const genreNames = details.genres?.map((g) => g.name).join(', ') || 'Cine';
-      const director = details.credits?.crew?.find((c) => c.job === 'Director')?.name;
-      const castNames = details.credits?.cast?.slice(0, 3).map((c) => c.name).join(', ');
-
-      let generated = `Producción audiovisual del género ${genreNames}`;
-      if (year) generated += ` lanzada en el año ${year}`;
-      if (director) generated += `, dirigida por ${director}`;
-      if (castNames) generated += ` con las actuaciones de ${castNames}`;
-      generated += `. Una propuesta cinematográfica imprescindible en la colección global de TMDB.`;
-
-      details.overview = generated;
-    }
+    // Still empty: the UI builds a synopsis from the metadata in its own language
+    // (RouletteModal), so nothing hardcoded in Spanish leaks in here.
 
     return details;
   } catch (err) {
@@ -562,7 +564,9 @@ export async function performRandomDraw(
   watchedMovieIds: Set<number>,
   language: string = 'es',
   retryCount: number = 0,
-  searchQuery: string = ''
+  searchQuery: string = '',
+  // Injectable so a shared seed can make everyone draw the same movie.
+  rng: () => number = Math.random
 ): Promise<MovieDetails | null> {
   const trimmedQuery = searchQuery.trim();
   const fetchPage = (page: number) =>
@@ -575,7 +579,7 @@ export async function performRandomDraw(
   }
 
   const maxPages = Math.min(initial.total_pages, 500);
-  const randomPage = Math.floor(Math.random() * maxPages) + 1;
+  const randomPage = Math.floor(rng() * maxPages) + 1;
 
   let targetPageResults = initial.results;
   if (randomPage !== 1 && !initial.isMockFallback) {
@@ -589,11 +593,11 @@ export async function performRandomDraw(
     }
   }
 
-  const randomIndex = Math.floor(Math.random() * targetPageResults.length);
+  const randomIndex = Math.floor(rng() * targetPageResults.length);
   const selectedMovieSummary = targetPageResults[randomIndex];
 
   if (filters.skipWatched && watchedMovieIds.has(selectedMovieSummary.id) && retryCount < 5) {
-    return performRandomDraw(filters, watchedMovieIds, language, retryCount + 1, searchQuery);
+    return performRandomDraw(filters, watchedMovieIds, language, retryCount + 1, searchQuery, rng);
   }
 
   return fetchMovieDetails(selectedMovieSummary.id, language);

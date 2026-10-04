@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Eye, Search, Trash2, Calendar, Star } from 'lucide-react';
 import type { WatchedMovie } from '../lib/watched';
-import { getImageUrl } from '../lib/tmdb';
+import { getGridPosterSources } from '../lib/tmdb';
 import { ExportButtons } from './ExportButtons';
 
 interface WatchedViewProps {
@@ -85,7 +85,7 @@ export const WatchedView: React.FC<WatchedViewProps> = ({
       {/* Grid of Watched Movies */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
         {filteredList.map((movie) => {
-          const posterUrl = getImageUrl(movie.poster_path, 'w500');
+          const poster = getGridPosterSources(movie.poster_path);
           const year = movie.release_date ? movie.release_date.split('-')[0] : '';
           const dateAdded = new Date(movie.dateWatched).toLocaleDateString();
 
@@ -99,7 +99,8 @@ export const WatchedView: React.FC<WatchedViewProps> = ({
                 onClick={() => onSelectMovie(movie.id)}
                 className="relative aspect-[2/3] w-full overflow-hidden cursor-pointer bg-black/60"
               >
-                <img src={posterUrl} alt={movie.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                <img src={poster.src}
+          srcSet={poster.srcSet} alt={movie.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                 
                 {movie.vote_average && movie.vote_average > 0 && (
                   <div className="absolute top-2 right-2 bg-black/80 px-2 py-0.5 rounded text-[var(--neon-amber)] font-mono text-[10px] font-bold flex items-center gap-1">

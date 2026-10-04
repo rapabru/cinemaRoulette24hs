@@ -42,7 +42,7 @@ disparaba dos pedidos y, si el primero respondía último, la grilla mostraba "m
 - Los tres modales usan el hook y llevan `role="dialog" aria-modal="true" aria-labelledby`.
 - Verificación manual con teclado: abrir ficha → Tab recorre solo el modal → Esc cierra.
 
-**Archivos.** `src/hooks/useModalA11y.ts` (nuevo), los tres modales.
+**Archivos.** `src/hooks/useModalA11y.ts` (nuevo), los tres modales. Las cards del catálogo pasan a ser focusables (`role="button"`, Enter/Espacio abren la ficha) para que el foco tenga adónde volver.
 
 ## B4
 ### Sinopsis generada siempre en español

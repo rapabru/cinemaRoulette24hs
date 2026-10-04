@@ -105,7 +105,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         >
           <span className="flex items-center gap-2">
             <Download className="w-4 h-4 text-[var(--neon-magenta)]" />
-            <span>Subtítulos (SubDivX)</span>
+            <span>{t('sortear.subtitles_subdivx')}</span>
           </span>
           <ExternalLink className="w-3 h-3 opacity-70" />
         </a>
