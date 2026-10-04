@@ -51,6 +51,11 @@
     "watch_here": "Watch on Cybercafé 24hs",
     "view_last_drawn": "🎬 View last drawn movie",
     "share": "Share",
+    "share_details": "Share Details",
+    "share_details_copied": "Details copied! ✔",
+    "share_player": "Share Server",
+    "share_player_copied": "Server link copied! ✔",
+    "share_server_tooltip": "Copy direct link to play on this server",
     "shared_copied": "Copied! ✔",
     "recommendations": "More like this",
     "extra_ratings": "View extra ratings",
@@ -147,7 +152,9 @@
   "context_menu": {
     "mark_watched": "Watched ✔",
     "unmark_watched": "Remove from watched",
-    "details": "View details"
+    "details": "View details",
+    "share": "Share Details",
+    "share_copied": "Details copied! ✔"
   },
   "watched": {
     "title": "WATCHED MOVIES",

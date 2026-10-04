@@ -51,6 +51,11 @@
     "watch_here": "Ver en Cybercafé 24hs",
     "view_last_drawn": "🎬 Ver última película sorteada",
     "share": "Compartir",
+    "share_details": "Compartir Ficha",
+    "share_details_copied": "¡Ficha copiada! ✔",
+    "share_player": "Compartir Servidor",
+    "share_player_copied": "¡Servidor copiado! ✔",
+    "share_server_tooltip": "Copiar enlace directo para ver en este servidor",
     "shared_copied": "¡Copiado! ✔",
     "recommendations": "Más como esta",
     "extra_ratings": "Ver ratings extra",
@@ -147,7 +152,9 @@
   "context_menu": {
     "mark_watched": "La vi ✔",
     "unmark_watched": "Quitar de vistas",
-    "details": "Ver ficha completa"
+    "details": "Ver ficha completa",
+    "share": "Compartir Ficha",
+    "share_copied": "¡Ficha copiada! ✔"
   },
   "watched": {
     "title": "PELÍCULAS VISTAS",

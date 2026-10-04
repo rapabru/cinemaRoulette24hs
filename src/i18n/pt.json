@@ -51,6 +51,11 @@
     "watch_here": "Assistir no Cybercafé 24hs",
     "view_last_drawn": "🎬 Ver último filme sorteado",
     "share": "Compartilhar",
+    "share_details": "Compartilhar Ficha",
+    "share_details_copied": "Ficha copiada! ✔",
+    "share_player": "Compartilhar Servidor",
+    "share_player_copied": "Link do servidor copiado! ✔",
+    "share_server_tooltip": "Copiar link direto para assistir neste servidor",
     "shared_copied": "Copiado! ✔",
     "recommendations": "Mais como este",
     "extra_ratings": "Ver notas extras",
@@ -147,7 +152,9 @@
   "context_menu": {
     "mark_watched": "Já vi ✔",
     "unmark_watched": "Remover de vistos",
-    "details": "Ver ficha completa"
+    "details": "Ver ficha completa",
+    "share": "Compartilhar Ficha",
+    "share_copied": "Ficha copiada! ✔"
   },
   "watched": {
     "title": "FILMES VISTOS",

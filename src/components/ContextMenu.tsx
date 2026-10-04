@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Info, Download, ExternalLink } from 'lucide-react';
+import { Check, Info, Download, ExternalLink, Share2 } from 'lucide-react';
 import type { MovieSummary } from '../lib/tmdb';
 
 interface ContextMenuProps {
@@ -23,7 +23,39 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   onClose,
 }) => {
   const { t } = useTranslation();
+  const [justShared, setJustShared] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}${window.location.pathname}?movie=${movie.id}`;
+    const year = movie.release_date ? movie.release_date.split('-')[0] : '';
+    const shareText = `🎰 ${movie.title} ${year ? `(${year})` : ''}\n🎬 Ficha en CinemaRoulette 24HS:\n${url}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${movie.title} - CinemaRoulette 24HS`,
+          text: shareText,
+          url,
+        });
+        onClose();
+        return;
+      } catch {
+        // fallback
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setJustShared(true);
+      setTimeout(() => {
+        setJustShared(false);
+        onClose();
+      }, 700);
+    } catch {
+      onClose();
+    }
+  };
 
   // Close on outside click or ESC key
   useEffect(() => {
@@ -94,6 +126,17 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
         >
           <Info className="w-4 h-4 text-[var(--neon-amber)]" />
           <span>{t('context_menu.details')}</span>
+        </button>
+
+        <button
+          onClick={handleShare}
+          className="w-full text-left px-2.5 py-2 rounded text-xs font-mono flex items-center justify-between text-[var(--ink-light)] hover:bg-[var(--neon-cyan)]/20 hover:text-[var(--neon-cyan)] transition-colors cursor-pointer"
+        >
+          <span className="flex items-center gap-2">
+            <Share2 className="w-4 h-4 text-[var(--neon-cyan)]" />
+            <span>{justShared ? t('context_menu.share_copied') : t('context_menu.share')}</span>
+          </span>
+          {justShared && <span className="text-[10px] text-[var(--neon-green)] font-bold">✔</span>}
         </button>
 
         <a

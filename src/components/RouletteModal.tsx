@@ -9,6 +9,8 @@ import { SlotReel } from './SlotReel';
 import { BackgroundAudioPlayer } from './BackgroundAudioPlayer';
 import { VolumeControl } from './VolumeControl';
 import { TorrentioPlayer } from './TorrentioPlayer';
+import { buildShareUrl, buildShareText } from '../lib/share';
+import type { PlayerProvider } from '../lib/share';
 
 interface RouletteModalProps {
   movie: MovieDetails | null;
@@ -19,6 +21,7 @@ interface RouletteModalProps {
   onToggleWatched: (movie: MovieDetails) => void;
   isLoading: boolean;
   initialMode?: 'details' | 'player';
+  initialProvider?: PlayerProvider;
   posterPool?: (string | null)[];
   onSelectMovie?: (id: number) => void;
   canGoBack?: boolean;
@@ -34,6 +37,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   onToggleWatched,
   isLoading,
   initialMode = 'details',
+  initialProvider = 'vidking',
   posterPool = [],
   onSelectMovie,
   canGoBack = false,
@@ -41,8 +45,9 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const [activeView, setActiveView] = useState<'details' | 'player'>(initialMode);
-  const [playerProvider, setPlayerProvider] = useState<'vidking' | 'playimdb' | 'torrentio' | 'trailer'>('vidking');
-  const [justShared, setJustShared] = useState(false);
+  const [playerProvider, setPlayerProvider] = useState<'vidking' | 'playimdb' | 'torrentio' | 'trailer'>(initialProvider);
+  const [justSharedDetails, setJustSharedDetails] = useState(false);
+  const [justSharedPlayer, setJustSharedPlayer] = useState(false);
   const [omdbRatings, setOmdbRatings] = useState<OmdbRatings | null>(null);
   const [omdbStatus, setOmdbStatus] = useState<'idle' | 'loading' | 'done' | 'unavailable'>('idle');
 
@@ -68,11 +73,58 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     setOmdbStatus('idle');
   }, [movie?.id]);
 
-  // Always land back on the ficha (details) for a new movie, instead of staying
-  // stuck on "Reproductor" from whatever the previous movie was showing.
+  // Synchronize view mode with initialMode and initialProvider when props update
   useEffect(() => {
-    setActiveView('details');
+    if (initialMode) setActiveView(initialMode);
+  }, [initialMode]);
+
+  useEffect(() => {
+    if (initialProvider) setPlayerProvider(initialProvider);
+  }, [initialProvider]);
+
+  // Land on details if initialMode is not player when switching movies
+  useEffect(() => {
+    if (initialMode !== 'player') {
+      setActiveView('details');
+    }
   }, [movie?.id]);
+
+  // Synchronize URL query params with current movie and view/provider
+  useEffect(() => {
+    if (!isOpen || !movie) return;
+    const url = new URL(window.location.href);
+    url.searchParams.set('movie', String(movie.id));
+    if (activeView === 'player') {
+      url.searchParams.set('player', playerProvider);
+    } else {
+      url.searchParams.delete('player');
+    }
+    url.searchParams.delete('id');
+    url.searchParams.delete('sorteo');
+    url.searchParams.delete('server');
+    window.history.replaceState({}, '', url.pathname + url.search);
+  }, [isOpen, movie?.id, activeView, playerProvider]);
+
+  // When modal closes, clean up movie/player query params
+  useEffect(() => {
+    if (!isOpen) {
+      const url = new URL(window.location.href);
+      if (
+        url.searchParams.has('movie') ||
+        url.searchParams.has('player') ||
+        url.searchParams.has('id') ||
+        url.searchParams.has('sorteo') ||
+        url.searchParams.has('server')
+      ) {
+        url.searchParams.delete('movie');
+        url.searchParams.delete('player');
+        url.searchParams.delete('id');
+        url.searchParams.delete('sorteo');
+        url.searchParams.delete('server');
+        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+      }
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -131,21 +183,27 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     ? `https://www.playimdb.com/es-es/title/${imdbId}/`
     : `https://www.google.com/search?q=playimdb+${encodeURIComponent(movie.title)}`;
 
-  const handleShare = async () => {
-    const genreNames = movie.genres?.map((g) => g.name).join(', ');
-    const tmdbUrl = `https://www.themoviedb.org/movie/${movie.id}`;
-    const shareText = [
-      `🎰 ${movie.title} (${year})`,
-      movie.vote_average > 0 ? `⭐ ${movie.vote_average.toFixed(1)}/10` : null,
-      genreNames || null,
-      tmdbUrl,
-    ]
-      .filter(Boolean)
-      .join('\n');
+  const handleShareDetails = async () => {
+    const shareUrl = buildShareUrl({ movieId: movie.id, mode: 'details' });
+    const genreNames = movie.genres?.map((g) => g.name) || [];
+    const shareText = buildShareText({
+      title: movie.title,
+      year,
+      rating: movie.vote_average,
+      genres: genreNames,
+      shareUrl,
+      mode: 'details',
+    });
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: movie.title, text: shareText, url: tmdbUrl });
+        await navigator.share({
+          title: `${movie.title} (${year}) - CinemaRoulette 24HS`,
+          text: shareText,
+          url: shareUrl,
+        });
+        setJustSharedDetails(true);
+        setTimeout(() => setJustSharedDetails(false), 2000);
         return;
       } catch {
         // user cancelled or share failed, fall through to clipboard copy
@@ -153,9 +211,45 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     }
 
     try {
-      await navigator.clipboard.writeText(shareText);
-      setJustShared(true);
-      setTimeout(() => setJustShared(false), 1500);
+      await navigator.clipboard.writeText(shareUrl);
+      setJustSharedDetails(true);
+      setTimeout(() => setJustSharedDetails(false), 2000);
+    } catch {
+      // clipboard unavailable, silently ignore
+    }
+  };
+
+  const handleSharePlayer = async (provider?: PlayerProvider) => {
+    const targetProvider = provider || playerProvider;
+    const shareUrl = buildShareUrl({ movieId: movie.id, mode: 'player', provider: targetProvider });
+    const shareText = buildShareText({
+      title: movie.title,
+      year,
+      rating: movie.vote_average,
+      shareUrl,
+      mode: 'player',
+      provider: targetProvider,
+    });
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Ver ${movie.title} (${year}) - CinemaRoulette 24HS`,
+          text: shareText,
+          url: shareUrl,
+        });
+        setJustSharedPlayer(true);
+        setTimeout(() => setJustSharedPlayer(false), 2000);
+        return;
+      } catch {
+        // user cancelled or share failed, fall through to clipboard copy
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setJustSharedPlayer(true);
+      setTimeout(() => setJustSharedPlayer(false), 2000);
     } catch {
       // clipboard unavailable, silently ignore
     }
@@ -262,6 +356,14 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   >
                     <Maximize2 className="w-3.5 h-3.5" />
                     <span>{t('sortear.open_fullscreen_tab')}</span>
+                  </button>
+                  <button
+                    onClick={() => handleSharePlayer(playerProvider)}
+                    className="px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 bg-[var(--bg-void)] text-[var(--neon-magenta)] border border-[var(--neon-magenta)]/50 hover:bg-[var(--neon-magenta)]/15 shadow-sm"
+                    title={t('sortear.share_server_tooltip')}
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>{justSharedPlayer ? t('sortear.share_player_copied') : t('sortear.share_player')}</span>
                   </button>
                   <button
                     onClick={() => setPlayerProvider('vidking')}
@@ -731,11 +833,21 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   </button>
 
                   <button
-                    onClick={handleShare}
-                    className="px-4 py-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border border-[var(--neon-magenta)]/40 text-[var(--neon-magenta)] hover:bg-[var(--neon-magenta)]/20 cursor-pointer"
+                    onClick={handleShareDetails}
+                    className="px-3 sm:px-4 py-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border border-[var(--neon-magenta)]/40 text-[var(--neon-magenta)] hover:bg-[var(--neon-magenta)]/20 cursor-pointer"
+                    title={t('sortear.share_details')}
                   >
                     <Share2 className="w-4 h-4" />
-                    <span>{justShared ? t('sortear.shared_copied') : t('sortear.share')}</span>
+                    <span>{justSharedDetails ? t('sortear.share_details_copied') : t('sortear.share_details')}</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleSharePlayer()}
+                    className="px-3 sm:px-4 py-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border border-[var(--neon-cyan)]/40 text-[var(--neon-cyan)] hover:bg-[var(--neon-cyan)]/20 cursor-pointer"
+                    title={t('sortear.share_player')}
+                  >
+                    <Tv className="w-4 h-4" />
+                    <span>{justSharedPlayer ? t('sortear.share_player_copied') : t('sortear.share_player')}</span>
                   </button>
 
                   <button

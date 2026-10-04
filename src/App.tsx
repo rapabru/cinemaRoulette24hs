@@ -56,6 +56,7 @@ import { DrawHistoryView } from './components/DrawHistoryView';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { GoogleLoginModal } from './components/GoogleLoginModal';
 import { MOCK_GENRES } from './lib/mockMovies';
+import { parseMovieDeepLink } from './lib/share';
 
 export function App() {
   const { t, i18n } = useTranslation();
@@ -120,6 +121,8 @@ export function App() {
   // Back-navigation stack: movies visited before drilling into a recommendation
   // or a marquee title while the modal was already open on a different movie.
   const [movieBackStack, setMovieBackStack] = useState<MovieDetails[]>([]);
+  const [modalInitialMode, setModalInitialMode] = useState<'details' | 'player'>('details');
+  const [modalInitialProvider, setModalInitialProvider] = useState<'vidking' | 'playimdb' | 'torrentio' | 'trailer'>('vidking');
 
   // Context Menu state
   const [contextMenu, setContextMenu] = useState<{
@@ -187,6 +190,8 @@ export function App() {
   // Opens the roulette modal immediately so the slot-machine reel (RouletteModal, isLoading=true)
   // is visible while the real draw resolves, with a minimum spin duration so it always registers.
   const handleSortear = async () => {
+    setModalInitialMode('details');
+    setModalInitialProvider('vidking');
     setIsDrawing(true);
     setIsRouletteOpen(true);
     setMovieBackStack([]);
@@ -261,8 +266,14 @@ export function App() {
   // Open details from card, context menu, recommendations carousel, or marquee.
   // If the modal is already open on a different movie, push it onto the back
   // stack first so the user can return to it with the "Volver" button.
-  const handleSelectMovie = async (movieSummary: MovieSummary | number) => {
+  const handleSelectMovie = async (
+    movieSummary: MovieSummary | number,
+    mode: 'details' | 'player' = 'details',
+    provider: 'vidking' | 'playimdb' | 'torrentio' | 'trailer' = 'vidking'
+  ) => {
     const id = typeof movieSummary === 'number' ? movieSummary : movieSummary.id;
+    setModalInitialMode(mode);
+    setModalInitialProvider(provider);
     try {
       const details = await fetchMovieDetails(id, i18n.language);
       if (isRouletteOpen && drawnMovie && drawnMovie.id !== id) {
@@ -276,6 +287,30 @@ export function App() {
       console.error('Error fetching movie details:', err);
     }
   };
+
+  // Deep link parsing on mount and browser popstate (?movie=123, &player=vidking, etc.)
+  useEffect(() => {
+    const parseUrlAndOpen = () => {
+      const { movieId, mode, provider } = parseMovieDeepLink(window.location.search);
+      if (movieId) {
+        handleSelectMovie(movieId, mode, provider);
+      }
+    };
+
+    parseUrlAndOpen();
+
+    const handlePopState = () => {
+      const { movieId } = parseMovieDeepLink(window.location.search);
+      if (!movieId) {
+        setIsRouletteOpen(false);
+      } else {
+        parseUrlAndOpen();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [i18n.language]);
 
   // Return to the previously viewed movie in the back stack, no re-fetch needed.
   const handleGoBack = () => {
@@ -437,6 +472,8 @@ export function App() {
         isWatched={drawnMovie ? watchedMovieIds.has(drawnMovie.id) : false}
         onToggleWatched={handleToggleWatched}
         isLoading={isDrawing}
+        initialMode={modalInitialMode}
+        initialProvider={modalInitialProvider}
         posterPool={spinPosterPool}
         onSelectMovie={handleSelectMovie}
         canGoBack={movieBackStack.length > 0}
