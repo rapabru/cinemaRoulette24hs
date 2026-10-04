@@ -5,7 +5,7 @@
 [![GitHub Repository](https://img.shields.io/badge/GitHub-rapabru%2FcinemaRoulette24hs-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/rapabru/cinemaRoulette24hs)
 [![TMDB API](https://img.shields.io/badge/TMDB-v4_v3_API-01b4e4?style=for-the-badge&logo=themoviedatabase&logoColor=white)](https://www.themoviedb.org/)
 
-A high-performance, desktop-style web application for movie discovery, advanced filter composition, random draw ("Sortear"), streaming video playback, Spanish subtitle downloads, draw history tracking, and official Google OAuth 2.0 authentication — wrapped in a nostalgic 2 AM neon cybercafé aesthetic.
+A high-performance, desktop-style web application for movie discovery, advanced filter composition, random draw ("Sortear"), streaming video playback, Spanish subtitle downloads, draw history tracking, and an optional profile (Google Sign-In or a local, browser-only profile) — wrapped in a nostalgic 2 AM neon cybercafé aesthetic.
 
 👉 **Live URL**: [https://cinemaroulette.vercel.app](https://cinemaroulette.vercel.app)  
 💬 **Discord Cybercafé 24HS (We watch movies together every night)**: [https://discord.gg/dfSD65dgx](https://discord.gg/dfSD65dgx)
@@ -21,9 +21,10 @@ A high-performance, desktop-style web application for movie discovery, advanced 
 ## 🚀 Key Features
 
 ### 🎬 Built-in Video Players (Multi-Provider)
-- **Opción 1 (VidKing Player)**: High-speed video streaming embed using TMDB IDs (`vidking.net/embed/movie/{id}`).
-- **Opción 2 (PlayIMDB Server)**: Alternative streaming player server using IMDB IDs (`playimdb.com/es-es/title/{imdb_id}/`).
-- **Opción 3 (Torrentio + Webtor)**: Stremio-style flow, fully free and backend-less. Queries the Torrentio addon (`torrentio.strem.fun`) for torrent sources by IMDB ID, lets you pick quality/size/seeders, and plays the magnet in-browser through the Webtor.io embed SDK (free tier: ads and limited bandwidth; x265/HEVC releases may not play). Includes an "Open in Stremio" deep link.
+- **Opción 1 (cinejoy.to)**: Full streaming site keyed by TMDB ID (`cinejoy.to/watch/movie/{id}`). It sends `X-Frame-Options: DENY`, so it can never be embedded in an iframe — selecting it shows an "opens externally" card with a button that opens it in a new tab.
+- **Opción 2 (Torrentio + Webtor)**: Stremio-style flow, fully free and backend-less. Queries the Torrentio addon (`torrentio.strem.fun`) for torrent sources by IMDB ID, lets you pick quality/size/seeders, and plays the magnet in-browser through the Webtor.io embed SDK (free tier: ads and limited bandwidth; x265/HEVC releases may not play). Includes an "Open in Stremio" deep link.
+- **Opción 3 (VidKing Player)**: High-speed video streaming embed using TMDB IDs (`vidking.net/embed/movie/{id}`).
+- **Opción 4 (PlayIMDB Server)**: Alternative streaming player server using IMDB IDs (`playimdb.com/es-es/title/{imdb_id}/`).
 - **SubDivX Subtitles**: One-click download button for Spanish subtitles directly on [SubDivX](https://www.subdivx.com/).
 - **Responsive Player Modal**: Constrained to `92vh` viewports with internal scrolling for all screen resolutions.
 
@@ -41,7 +42,7 @@ A high-performance, desktop-style web application for movie discovery, advanced 
 - **Thousands Separator Formatting**: Clean display (e.g. `1.041.467 Results found`).
 
 ### 🔑 Authentication & Persistence
-- **Official Google OAuth 2.0**: Integrated with Google Identity Services SDK (`20731269197-rsf5lqraj7apqjuvh5ph1ki5l6cqjfeh.apps.googleusercontent.com`).
+- **Optional profile**: Google Sign-In through the official Google Identity Services SDK, or a clearly labelled *local profile* (name + avatar, no account, nothing sent anywhere). Either way the data never leaves the browser's localStorage.
 - **Custom Account Fallback**: Allows visitors to sign in with their own Gmail account and display name.
 - **Draw History ("Historial de Sorteos")**: Automatic logging of every drawn movie with timestamps and search capabilities.
 - **"La vi" (Watched) Tracking**: Right-click context menu and button toggle saved to `localStorage`.
@@ -73,7 +74,7 @@ npm run build
 
 # 🇦🇷 ESPAÑOL — CYBERCAFÉ 24HS — Terminal de Ruleta de Películas
 
-Aplicación web de alto rendimiento estilo terminal para descubrir películas, componer filtros avanzados, realizar sorteos aleatorios ("Sortear"), reproducir películas en vivo, descargar subtítulos en español, guardar historial de sorteos y autenticarse oficialmente con Google OAuth 2.0.
+Aplicación web de alto rendimiento estilo terminal para descubrir películas, componer filtros avanzados, realizar sorteos aleatorios ("Sortear"), reproducir películas en vivo, descargar subtítulos en español, guardar historial de sorteos y, opcionalmente, ponerle nombre a tus datos con Google Sign-In o un perfil local.
 
 👉 **Sitio en Vivo en Vercel**: [https://cinemaroulette.vercel.app](https://cinemaroulette.vercel.app)
 
@@ -82,9 +83,10 @@ Aplicación web de alto rendimiento estilo terminal para descubrir películas, c
 ## 🌟 Características Principales
 
 ### 🎬 Reproductores de Video Integrados (Multi-Servidor)
-- **Opción 1: VidKing**: Reproductor integrado de alta velocidad mediante código TMDB (`vidking.net/embed/movie/{id}`).
-- **Opción 2: PlayIMDB**: Servidor alternativo de streaming por código IMDB (`playimdb.com/es-es/title/{imdb_id}/`).
-- **Opción 3: Torrentio + Webtor**: Flujo estilo Stremio, 100% gratis y sin backend. Consulta el addon Torrentio (`torrentio.strem.fun`) por código IMDB, permite elegir calidad/tamaño/seeds y reproduce el magnet en el navegador mediante el SDK de Webtor.io (plan gratuito: publicidad y velocidad limitada; los x265/HEVC pueden no reproducirse). Incluye enlace "Abrir en Stremio".
+- **Opción 1: cinejoy.to**: Sitio de streaming completo, por código TMDB (`cinejoy.to/watch/movie/{id}`). Su servidor manda `X-Frame-Options: DENY`, así que no se puede insertar en un iframe — al elegirla se muestra una tarjeta "se abre externamente" con un botón que la abre en una pestaña nueva.
+- **Opción 2: Torrentio + Webtor**: Flujo estilo Stremio, 100% gratis y sin backend. Consulta el addon Torrentio (`torrentio.strem.fun`) por código IMDB, permite elegir calidad/tamaño/seeds y reproduce el magnet en el navegador mediante el SDK de Webtor.io (plan gratuito: publicidad y velocidad limitada; los x265/HEVC pueden no reproducirse). Incluye enlace "Abrir en Stremio".
+- **Opción 3: VidKing**: Reproductor integrado de alta velocidad mediante código TMDB (`vidking.net/embed/movie/{id}`).
+- **Opción 4: PlayIMDB**: Servidor alternativo de streaming por código IMDB (`playimdb.com/es-es/title/{imdb_id}/`).
 - **Subtítulos en SubDivX**: Botón directo de búsqueda y descarga de subtítulos en español en [SubDivX](https://www.subdivx.com/).
 - **Modal Adaptativo**: Límite de altura responsivo (`92vh`) con desplazamiento interno para cualquier resolución de pantalla.
 
@@ -102,7 +104,7 @@ Aplicación web de alto rendimiento estilo terminal para descubrir películas, c
 - **Separador de Miles en Resultados**: Formato legible (*ej. `1.041.467 Resultados encontrados`*).
 
 ### 🔑 Autenticación e Historial
-- **Google OAuth 2.0 Oficial**: Integración directa con Google Identity Services SDK (`20731269197-rsf5lqraj7apqjuvh5ph1ki5l6cqjfeh.apps.googleusercontent.com`).
+- **Perfil opcional**: Google Sign-In con el SDK oficial de Google Identity Services, o un *perfil local* claramente identificado (nombre + avatar, sin cuenta, no se envía nada a ningún lado). En ambos casos los datos quedan en el localStorage del navegador.
 - **Ingreso de Cuenta Personalizado**: Permite a cada visitante iniciar sesión con su correo de Gmail y nombre.
 - **Historial de Sorteos**: Registro automático de cada película sorteada con hora, fecha y buscador.
 - **Marcado "La Vi" (Vistas)**: Menú contextual con clic derecho y guardado local.

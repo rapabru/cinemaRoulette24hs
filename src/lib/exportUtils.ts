@@ -5,7 +5,7 @@ export interface ExportableRow {
   dateLabel: string;
 }
 
-function triggerDownload(filename: string, blob: Blob): void {
+export function triggerDownload(filename: string, blob: Blob): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

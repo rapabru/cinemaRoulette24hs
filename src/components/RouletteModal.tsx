@@ -1,19 +1,29 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft, Maximize2, ShieldAlert, Magnet } from 'lucide-react';
+import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft, Maximize2, ShieldAlert, Magnet, Loader2, Clapperboard } from 'lucide-react';
 import { getImageUrl, getTrailerVideo, getWatchProviders } from '../lib/tmdb';
 import type { MovieDetails } from '../lib/tmdb';
 import { fetchOmdbRatings } from '../lib/omdb';
 import type { OmdbRatings } from '../lib/omdb';
-import { SlotReel } from './SlotReel';
+import { SlotReel, LANDING_DURATION_MS } from './SlotReel';
 import { BackgroundAudioPlayer } from './BackgroundAudioPlayer';
 import { VolumeControl } from './VolumeControl';
 import { TorrentioPlayer } from './TorrentioPlayer';
-import { buildShareUrl, buildShareText } from '../lib/share';
-import type { PlayerProvider } from '../lib/share';
+import { useModalA11y } from '../hooks/useModalA11y';
+import { buildMovieLink, buildShareText, replaceUrlParams, MOVIE_PARAM, PLAYER_PARAM } from '../lib/shareLinks';
+import type { PlayerProvider } from '../lib/shareLinks';
+
+/** Whatever is known about a movie before its details arrive (id only, or a card's summary). */
+export interface PendingMovie {
+  id: number;
+  title?: string;
+  poster_path?: string | null;
+  release_date?: string;
+}
 
 interface RouletteModalProps {
   movie: MovieDetails | null;
+  pendingMovie?: PendingMovie | null;
   isOpen: boolean;
   onClose: () => void;
   onRedraw: () => void;
@@ -39,27 +49,30 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   initialMode = 'details',
   initialProvider = 'vidking',
   posterPool = [],
+  pendingMovie = null,
   onSelectMovie,
   canGoBack = false,
   onGoBack,
 }) => {
   const { t } = useTranslation();
   const [activeView, setActiveView] = useState<'details' | 'player'>(initialMode);
-  const [playerProvider, setPlayerProvider] = useState<'vidking' | 'playimdb' | 'torrentio' | 'trailer'>(initialProvider);
+  const [playerProvider, setPlayerProvider] = useState<PlayerProvider>(initialProvider);
   const [justSharedDetails, setJustSharedDetails] = useState(false);
   const [justSharedPlayer, setJustSharedPlayer] = useState(false);
   const [omdbRatings, setOmdbRatings] = useState<OmdbRatings | null>(null);
   const [omdbStatus, setOmdbStatus] = useState<'idle' | 'loading' | 'done' | 'unavailable'>('idle');
+  const dialogRef = useModalA11y<HTMLDivElement>(isOpen, onClose);
 
-  // Brief "landing" beat between the spin ending and the result appearing, so the
-  // cut doesn't always land at a random, sometimes-jarring point mid-blur.
+  // Brief "landing" beat between the spin ending and the result appearing: the
+  // reel plays a short deceleration onto the actual drawn movie's poster (see
+  // SlotReel) instead of just freezing wherever it happened to be.
   const [isLanding, setIsLanding] = useState(false);
   const wasLoadingRef = useRef(isLoading);
 
   useEffect(() => {
     if (wasLoadingRef.current && !isLoading) {
       setIsLanding(true);
-      const timer = setTimeout(() => setIsLanding(false), 250);
+      const timer = setTimeout(() => setIsLanding(false), LANDING_DURATION_MS);
       wasLoadingRef.current = isLoading;
       return () => clearTimeout(timer);
     }
@@ -92,37 +105,25 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   // Synchronize URL query params with current movie and view/provider
   useEffect(() => {
     if (!isOpen || !movie) return;
-    const url = new URL(window.location.href);
-    url.searchParams.set('movie', String(movie.id));
-    if (activeView === 'player') {
-      url.searchParams.set('player', playerProvider);
-    } else {
-      url.searchParams.delete('player');
-    }
-    url.searchParams.delete('id');
-    url.searchParams.delete('sorteo');
-    url.searchParams.delete('server');
-    window.history.replaceState({}, '', url.pathname + url.search);
+    replaceUrlParams({
+      [MOVIE_PARAM]: String(movie.id),
+      [PLAYER_PARAM]: activeView === 'player' ? playerProvider : null,
+      id: null,
+      sorteo: null,
+      server: null,
+    });
   }, [isOpen, movie?.id, activeView, playerProvider]);
 
   // When modal closes, clean up movie/player query params
   useEffect(() => {
     if (!isOpen) {
-      const url = new URL(window.location.href);
-      if (
-        url.searchParams.has('movie') ||
-        url.searchParams.has('player') ||
-        url.searchParams.has('id') ||
-        url.searchParams.has('sorteo') ||
-        url.searchParams.has('server')
-      ) {
-        url.searchParams.delete('movie');
-        url.searchParams.delete('player');
-        url.searchParams.delete('id');
-        url.searchParams.delete('sorteo');
-        url.searchParams.delete('server');
-        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
-      }
+      replaceUrlParams({
+        [MOVIE_PARAM]: null,
+        [PLAYER_PARAM]: null,
+        id: null,
+        sorteo: null,
+        server: null,
+      });
     }
   }, [isOpen]);
 
@@ -132,8 +133,78 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   if (isLoading || isLanding) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in">
-        <div className="relative w-full max-w-sm bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden">
-          <SlotReel posterPaths={posterPool} paused={isLanding} />
+        <div
+          ref={dialogRef}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('sortear.drawing')}
+          className="relative w-full max-w-sm bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden outline-none"
+        >
+          <SlotReel posterPaths={posterPool} landingPosterPath={isLanding ? (movie?.poster_path ?? null) : null} />
+        </div>
+      </div>
+    );
+  }
+
+  // Details still loading (card click, recommendation, marquee): show the
+  // modal chrome with what we already know instead of nothing.
+  if (pendingMovie && (!movie || movie.id !== pendingMovie.id)) {
+    const pendingYear = pendingMovie.release_date ? pendingMovie.release_date.split('-')[0] : '';
+    return (
+      <div
+        onClick={onClose}
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in"
+      >
+        <div
+          ref={dialogRef}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-busy="true"
+          aria-label={pendingMovie.title || t('sortear.loading_details')}
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-4xl bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden outline-none"
+        >
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 bg-[var(--bg-brick)] border-b border-[var(--neon-cyan)]/40">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-3 h-3 rounded-full bg-[var(--neon-amber)] animate-pulse shrink-0" />
+              <h2 className="font-display text-xs sm:text-sm text-[var(--neon-amber)] uppercase tracking-wider line-clamp-1">
+                {pendingMovie.title ? `${pendingMovie.title}${pendingYear ? ` (${pendingYear})` : ''}` : t('sortear.loading_details')}
+              </h2>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1 text-[var(--ink-muted)] hover:text-[var(--neon-magenta)] transition-colors rounded cursor-pointer"
+              title={t('sortear.close')}
+              aria-label={t('sortear.close')}
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <div className="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            <div className="aspect-[2/3] w-full max-w-xs mx-auto rounded-lg overflow-hidden border border-[var(--neon-cyan)]/40 bg-black/60 animate-pulse">
+              {pendingMovie.poster_path && (
+                <img src={getImageUrl(pendingMovie.poster_path, 'w342')} alt="" className="w-full h-full object-cover opacity-70" />
+              )}
+            </div>
+            <div className="md:col-span-2 space-y-4 animate-pulse">
+              <div className="h-7 w-2/3 bg-[var(--bg-brick)] rounded" />
+              <div className="flex gap-3">
+                <div className="h-6 w-20 bg-[var(--bg-brick)] rounded" />
+                <div className="h-6 w-16 bg-[var(--bg-brick)] rounded" />
+              </div>
+              <div className="space-y-2 pt-2">
+                <div className="h-3 w-full bg-[var(--bg-brick)] rounded" />
+                <div className="h-3 w-11/12 bg-[var(--bg-brick)] rounded" />
+                <div className="h-3 w-4/5 bg-[var(--bg-brick)] rounded" />
+              </div>
+              <p className="flex items-center gap-2 text-xs font-mono text-[var(--neon-cyan)] pt-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {t('sortear.loading_details')}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -146,34 +217,56 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   const watchProviders = getWatchProviders(movie);
 
   const year = movie.release_date ? movie.release_date.split('-')[0] : '';
-  const director = movie.credits?.crew?.find((c) => c.job === 'Director')?.name || 'N/A';
-  const topCast = movie.credits?.cast?.slice(0, 4).map((c) => c.name).join(', ') || 'N/A';
+  const director = movie.credits?.crew?.find((c) => c.job === 'Director')?.name || t('sortear.not_available');
+  const topCast = movie.credits?.cast?.slice(0, 4).map((c) => c.name).join(', ') || t('sortear.not_available');
+
+  // TMDB has no synopsis in any language for some titles: build one from the
+  // metadata we do have, in the UI language.
+  const overviewText =
+    movie.overview?.trim() ||
+    t('sortear.generated_overview', {
+      genres: movie.genres?.map((g) => g.name).join(', ') || t('sortear.generated_overview_genre_fallback'),
+      yearPart: year ? t('sortear.generated_overview_year', { year }) : '',
+      directorPart: movie.credits?.crew?.find((c) => c.job === 'Director')?.name
+        ? t('sortear.generated_overview_director', { director: movie.credits.crew.find((c) => c.job === 'Director')!.name })
+        : '',
+      castPart: movie.credits?.cast?.length
+        ? t('sortear.generated_overview_cast', { cast: movie.credits.cast.slice(0, 3).map((c) => c.name).join(', ') })
+        : '',
+    });
   const posterUrl = getImageUrl(movie.poster_path, 'w500');
 
-  // Option 1: VidKing Embed URL (TMDB ID)
+  // Option 1: cinejoy.to (TMDB ID). Its own site sends X-Frame-Options: DENY /
+  // frame-ancestors 'none' on every route, so it can never be embedded in an
+  // iframe — the "new tab" action is the only way to actually watch through it.
+  const cinejoyUrl = `https://cinejoy.to/watch/movie/${movie.id}`;
+
+  // Option 2: Torrentio streams played through Webtor (see TorrentioPlayer).
+  // There's no standalone embed URL for it either, so its "new tab" action
+  // hands the movie to a locally installed Stremio via its deep link instead.
+  const imdbId = movie.imdb_id;
+  const stremioUrl = imdbId ? `stremio://detail/movie/${imdbId}/${imdbId}` : null;
+
+  // Option 3: VidKing Embed URL (TMDB ID)
   const vidkingEmbedUrl = `https://www.vidking.net/embed/movie/${movie.id}?color=35E6FF`;
 
-  // Option 2: PlayIMDB Embed URL (IMDB ID, or fallbacks)
-  const imdbId = movie.imdb_id;
+  // Option 4: PlayIMDB Embed URL (IMDB ID, or fallbacks)
   const playImdbEmbedUrl = imdbId
     ? `https://www.playimdb.com/es-es/title/${imdbId}/`
     : `https://www.playimdb.com/title/tt${movie.id}/`;
 
-  // Option 3: Torrentio streams played through Webtor (see TorrentioPlayer).
-  // There's no standalone embed URL for it, so the "new tab" action hands the
-  // movie to a locally installed Stremio via its deep link instead.
-  const stremioUrl = imdbId ? `stremio://detail/movie/${imdbId}/${imdbId}` : null;
-
   const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${movie.title} ${year} película`)}`;
 
   const currentEmbedUrl =
-    playerProvider === 'vidking'
-      ? vidkingEmbedUrl
-      : playerProvider === 'playimdb'
-        ? playImdbEmbedUrl
-        : playerProvider === 'torrentio'
-          ? stremioUrl
-          : trailerEmbedUrl;
+    playerProvider === 'cinejoy'
+      ? cinejoyUrl
+      : playerProvider === 'vidking'
+        ? vidkingEmbedUrl
+        : playerProvider === 'playimdb'
+          ? playImdbEmbedUrl
+          : playerProvider === 'torrentio'
+            ? stremioUrl
+            : trailerEmbedUrl;
 
   const handleOpenFullscreenTab = () => {
     if (currentEmbedUrl) window.open(currentEmbedUrl, '_blank', 'noopener,noreferrer');
@@ -184,7 +277,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     : `https://www.google.com/search?q=playimdb+${encodeURIComponent(movie.title)}`;
 
   const handleShareDetails = async () => {
-    const shareUrl = buildShareUrl({ movieId: movie.id, mode: 'details' });
+    const shareUrl = buildMovieLink(movie.id, 'details');
     const genreNames = movie.genres?.map((g) => g.name) || [];
     const shareText = buildShareText({
       title: movie.title,
@@ -221,7 +314,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
 
   const handleSharePlayer = async (provider?: PlayerProvider) => {
     const targetProvider = provider || playerProvider;
-    const shareUrl = buildShareUrl({ movieId: movie.id, mode: 'player', provider: targetProvider });
+    const shareUrl = buildMovieLink(movie.id, 'player', targetProvider);
     const shareText = buildShareText({
       title: movie.title,
       year,
@@ -272,8 +365,13 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in"
     >
       <div
+        ref={dialogRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="roulette-modal-title"
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-full max-h-[92vh] flex flex-col bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden animate-result-flash transition-[max-width] ${
+        className={`relative w-full max-h-[92vh] flex flex-col bg-[var(--bg-panel)] border-2 border-[var(--neon-cyan)] rounded-2xl shadow-neon-cyan overflow-hidden animate-result-flash transition-[max-width] outline-none ${
           activeView === 'player' ? 'max-w-6xl' : 'max-w-4xl'
         }`}
       >
@@ -282,7 +380,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-[var(--neon-green)] animate-ping" />
-              <h2 className="font-display text-xs sm:text-sm text-[var(--neon-amber)] uppercase tracking-wider line-clamp-1">
+              <h2 id="roulette-modal-title" className="font-display text-xs sm:text-sm text-[var(--neon-amber)] uppercase tracking-wider line-clamp-1">
                 {movie.title} ({year})
               </h2>
             </div>
@@ -298,7 +396,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                 }`}
               >
                 <Info className="w-3.5 h-3.5" />
-                <span>Ficha</span>
+                <span>{t('sortear.tab_details')}</span>
               </button>
 
               <button
@@ -310,7 +408,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                 }`}
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>▶ Reproductor</span>
+                <span>{t('sortear.tab_player')}</span>
               </button>
             </div>
 
@@ -321,7 +419,8 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
           <button
             onClick={onClose}
             className="absolute top-3 right-4 sm:right-5 p-1 text-[var(--ink-muted)] hover:text-[var(--neon-magenta)] transition-colors rounded cursor-pointer z-10"
-            title="Cerrar"
+            title={t('sortear.close')}
+            aria-label={t('sortear.close')}
           >
             <X className="w-6 h-6" />
           </button>
@@ -341,12 +440,12 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
         {/* Scrollable Modal Body */}
         <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
           {activeView === 'player' ? (
-            /* Video Player View (Option 1: VidKing vs Option 2: PlayIMDB) */
+            /* Video Player View — 4 providers, cinejoy.to first */
             <div className="space-y-4">
               {/* Option Selector Toolbar */}
               <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-[var(--bg-brick)] rounded-lg border border-[var(--neon-cyan)]/30 text-xs font-mono">
                 <span className="text-[var(--ink-muted)] font-bold uppercase tracking-wider">
-                  Servidores de Reproducción:
+                  {t('sortear.servers_label')}
                 </span>
                 <div className="flex items-center gap-2 flex-wrap">
                   <button
@@ -365,28 +464,17 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     <Share2 className="w-3.5 h-3.5" />
                     <span>{justSharedPlayer ? t('sortear.share_player_copied') : t('sortear.share_player')}</span>
                   </button>
-                  <button
-                    onClick={() => setPlayerProvider('vidking')}
-                    className={`px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                      playerProvider === 'vidking'
-                        ? 'bg-[var(--neon-cyan)] text-[var(--bg-void)] shadow-neon-cyan'
-                        : 'bg-[var(--bg-void)] text-[var(--ink-muted)] hover:text-[var(--ink-light)] border border-[var(--ink-muted)]/30'
-                    }`}
-                  >
-                    <Tv className="w-3.5 h-3.5" />
-                    <span>Opción 1: VidKing</span>
-                  </button>
 
                   <button
-                    onClick={() => setPlayerProvider('playimdb')}
+                    onClick={() => setPlayerProvider('cinejoy')}
                     className={`px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                      playerProvider === 'playimdb'
-                        ? 'bg-[var(--neon-amber)] text-[var(--bg-void)] shadow-neon-amber'
+                      playerProvider === 'cinejoy'
+                        ? 'bg-[var(--neon-blue)] text-white shadow-neon-blue'
                         : 'bg-[var(--bg-void)] text-[var(--ink-muted)] hover:text-[var(--ink-light)] border border-[var(--ink-muted)]/30'
                     }`}
                   >
-                    <Film className="w-3.5 h-3.5" />
-                    <span>Opción 2: PlayIMDB</span>
+                    <Clapperboard className="w-3.5 h-3.5" />
+                    <span>{t('sortear.option_n', { n: 1, name: 'cinejoy.to' })}</span>
                   </button>
 
                   <button
@@ -398,7 +486,31 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     }`}
                   >
                     <Magnet className="w-3.5 h-3.5" />
-                    <span>Opción 3: Torrentio</span>
+                    <span>{t('sortear.option_n', { n: 2, name: 'Torrentio' })}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setPlayerProvider('vidking')}
+                    className={`px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      playerProvider === 'vidking'
+                        ? 'bg-[var(--neon-cyan)] text-[var(--bg-void)] shadow-neon-cyan'
+                        : 'bg-[var(--bg-void)] text-[var(--ink-muted)] hover:text-[var(--ink-light)] border border-[var(--ink-muted)]/30'
+                    }`}
+                  >
+                    <Tv className="w-3.5 h-3.5" />
+                    <span>{t('sortear.option_n', { n: 3, name: 'VidKing' })}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setPlayerProvider('playimdb')}
+                    className={`px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      playerProvider === 'playimdb'
+                        ? 'bg-[var(--neon-amber)] text-[var(--bg-void)] shadow-neon-amber'
+                        : 'bg-[var(--bg-void)] text-[var(--ink-muted)] hover:text-[var(--ink-light)] border border-[var(--ink-muted)]/30'
+                    }`}
+                  >
+                    <Film className="w-3.5 h-3.5" />
+                    <span>{t('sortear.option_n', { n: 4, name: 'PlayIMDB' })}</span>
                   </button>
 
                   {trailerEmbedUrl && (
@@ -424,7 +536,23 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
               </p>
 
               {/* Player Iframe Display */}
-              {playerProvider === 'vidking' ? (
+              {playerProvider === 'cinejoy' ? (
+                <div className="relative aspect-video w-full max-h-[75vh] rounded-xl overflow-hidden border-2 border-[var(--neon-blue)] shadow-neon-blue bg-black mx-auto flex flex-col items-center justify-center gap-4 p-6 text-center">
+                  <Clapperboard className="w-10 h-10 text-[var(--neon-blue)]" />
+                  <p className="text-sm font-mono text-[var(--ink-light)] max-w-sm">
+                    {t('sortear.cinejoy_external_hint')}
+                  </p>
+                  <a
+                    href={cinejoyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-5 py-3 rounded-lg font-mono text-sm font-bold bg-[var(--neon-blue)] hover:bg-[var(--neon-blue)]/80 text-white shadow-neon-blue flex items-center gap-2 transition-all cursor-pointer"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>{t('sortear.open_external', { name: 'cinejoy.to' })}</span>
+                  </a>
+                </div>
+              ) : playerProvider === 'vidking' ? (
                 <div className="relative aspect-video w-full max-h-[75vh] rounded-xl overflow-hidden border-2 border-[var(--neon-cyan)] shadow-neon-cyan bg-black mx-auto">
                   <iframe
                     src={vidkingEmbedUrl}
@@ -464,28 +592,34 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
               {/* Status & Subtitle Bar */}
               <div className="flex flex-wrap items-center justify-between text-xs font-mono text-[var(--ink-muted)] px-1 gap-2">
                 <span className={`flex items-center gap-1.5 font-bold ${
-                  playerProvider === 'vidking'
-                    ? 'text-[var(--neon-cyan)]'
-                    : playerProvider === 'playimdb'
-                      ? 'text-[var(--neon-amber)]'
-                      : playerProvider === 'torrentio'
-                        ? 'text-[var(--neon-green)]'
-                        : 'text-[var(--neon-magenta)]'
+                  playerProvider === 'cinejoy'
+                    ? 'text-[var(--neon-blue)]'
+                    : playerProvider === 'vidking'
+                      ? 'text-[var(--neon-cyan)]'
+                      : playerProvider === 'playimdb'
+                        ? 'text-[var(--neon-amber)]'
+                        : playerProvider === 'torrentio'
+                          ? 'text-[var(--neon-green)]'
+                          : 'text-[var(--neon-magenta)]'
                 }`}>
-                  {playerProvider === 'trailer' ? (
+                  {playerProvider === 'cinejoy' ? (
+                    <Clapperboard className="w-4 h-4" />
+                  ) : playerProvider === 'trailer' ? (
                     <Video className="w-4 h-4" />
                   ) : playerProvider === 'torrentio' ? (
                     <Magnet className="w-4 h-4" />
                   ) : (
                     <Tv className="w-4 h-4" />
                   )}
-                  {playerProvider === 'vidking'
-                    ? 'Terminal Opción 1: VidKing Activo'
-                    : playerProvider === 'playimdb'
-                      ? `Terminal Opción 2: PlayIMDB Activo ${imdbId ? `(${imdbId})` : ''}`
-                      : playerProvider === 'torrentio'
-                        ? `Terminal Opción 3: Torrentio + Webtor Activo ${imdbId ? `(${imdbId})` : ''}`
-                        : `${t('sortear.trailer')} — YouTube`}
+                  {playerProvider === 'cinejoy'
+                    ? t('sortear.terminal_active', { n: 1, name: 'cinejoy.to' })
+                    : playerProvider === 'torrentio'
+                      ? `${t('sortear.terminal_active', { n: 2, name: 'Torrentio + Webtor' })} ${imdbId ? `(${imdbId})` : ''}`
+                      : playerProvider === 'vidking'
+                        ? t('sortear.terminal_active', { n: 3, name: 'VidKing' })
+                        : playerProvider === 'playimdb'
+                          ? `${t('sortear.terminal_active', { n: 4, name: 'PlayIMDB' })} ${imdbId ? `(${imdbId})` : ''}`
+                          : `${t('sortear.trailer')} — YouTube`}
                 </span>
 
                 {playerProvider === 'torrentio' && stremioUrl && (
@@ -505,32 +639,23 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     rel="noopener noreferrer"
                     className="text-[var(--neon-amber)] hover:underline flex items-center gap-1 font-bold"
                   >
-                    <span>Abrir en PlayIMDB externa</span>
+                    <span>{t('sortear.open_external', { name: 'PlayIMDB' })}</span>
                     <ExternalLink className="w-3.5 h-3.5" />
                   </a>
                 )}
               </div>
 
-              {/* Bottom Quick Action Bar inside Player View */}
+              {/* Secondary links: subtitles & web search (redraw/share/watched live in the persistent footer below) */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2 border-t border-[var(--bg-brick)]">
-                <button
-                  onClick={onRedraw}
-                  disabled={isLoading}
-                  className="flex-1 bg-[var(--neon-amber)] hover:bg-[var(--neon-amber)]/80 text-[var(--bg-void)] font-bold font-mono text-xs py-2.5 px-4 rounded-lg shadow-neon-amber flex items-center justify-center gap-2 transition-all cursor-pointer"
-                >
-                  <Dices className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                  <span>{isLoading ? t('sortear.drawing') : t('sortear.again')}</span>
-                </button>
-
                 <a
                   href={`https://www.subdivx.com/index.php?buscar=${encodeURIComponent(movie.title)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3.5 py-2.5 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 bg-[var(--neon-magenta)]/20 hover:bg-[var(--neon-magenta)] text-[var(--neon-magenta)] hover:text-white border border-[var(--neon-magenta)]/40 shadow-sm"
-                  title="Buscar y descargar subtítulos en español para esta película en SubDivX"
+                  className="flex-1 px-3.5 py-2.5 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 bg-[var(--neon-magenta)]/20 hover:bg-[var(--neon-magenta)] text-[var(--neon-magenta)] hover:text-white border border-[var(--neon-magenta)]/40 shadow-sm"
+                  title={t('sortear.subtitles_subdivx_title')}
                 >
                   <Download className="w-4 h-4" />
-                  <span>Subtítulos (SubDivX)</span>
+                  <span>{t('sortear.subtitles_subdivx')}</span>
                   <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                 </a>
 
@@ -538,25 +663,13 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   href={googleSearchUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3.5 py-2.5 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 bg-[var(--neon-cyan)]/20 hover:bg-[var(--neon-cyan)] text-[var(--neon-cyan)] hover:text-[var(--bg-void)] border border-[var(--neon-cyan)]/40 shadow-sm"
+                  className="flex-1 px-3.5 py-2.5 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 bg-[var(--neon-cyan)]/20 hover:bg-[var(--neon-cyan)] text-[var(--neon-cyan)] hover:text-[var(--bg-void)] border border-[var(--neon-cyan)]/40 shadow-sm"
                   title={t('sortear.search_google')}
                 >
                   <Search className="w-4 h-4" />
                   <span>{t('sortear.search_google')}</span>
                   <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                 </a>
-
-                <button
-                  onClick={() => onToggleWatched(movie)}
-                  className={`px-4 py-2.5 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer ${
-                    isWatched
-                      ? 'bg-[var(--neon-green)] text-[var(--bg-void)] border-[var(--neon-green)] shadow-neon-green'
-                      : 'border-[var(--neon-cyan)] text-[var(--neon-cyan)] hover:bg-[var(--neon-cyan)]/20'
-                  }`}
-                >
-                  <Check className="w-4 h-4" />
-                  <span>{isWatched ? 'Vista ✔' : t('sortear.watched_action')}</span>
-                </button>
               </div>
             </div>
           ) : (
@@ -574,12 +687,12 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   <div className="w-12 h-12 rounded-full bg-[var(--neon-magenta)] flex items-center justify-center shadow-neon-magenta animate-bounce">
                     <Play className="w-6 h-6 fill-white ml-0.5" />
                   </div>
-                  <span>▶ REPRODUCIR</span>
+                  <span>{t('sortear.play_big')}</span>
                 </button>
 
                 {isWatched && (
                   <div className="absolute top-3 left-3 bg-[var(--neon-green)] text-[var(--bg-void)] font-mono font-bold text-xs px-2.5 py-1 rounded shadow-neon-green flex items-center gap-1 pointer-events-none">
-                    <Check className="w-4 h-4" /> LA VI
+                    <Check className="w-4 h-4" /> {t('sortear.watched_badge')}
                   </div>
                 )}
               </div>
@@ -723,7 +836,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     {t('sortear.overview')}
                   </h4>
                   <p className="text-xs font-mono text-[var(--ink-light)] leading-relaxed max-h-28 overflow-y-auto pr-1">
-                    {movie.overview || `Producción cinematográfica (${year}) dirigida por ${director}. Disponible para explorar en la base de datos.`}
+                    {overviewText}
                   </p>
                 </div>
 
@@ -762,13 +875,24 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   <div className="flex flex-col sm:flex-row gap-2">
                     <button
                       onClick={() => {
+                        setPlayerProvider('cinejoy');
+                        window.open(cinejoyUrl, '_blank', 'noopener,noreferrer');
+                      }}
+                      className="flex-1 bg-[var(--neon-blue)] hover:bg-[var(--neon-blue)]/80 text-white font-mono text-xs font-bold py-2.5 px-3 rounded-lg shadow-neon-blue flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    >
+                      <Clapperboard className="w-4 h-4" />
+                      <span>▶ {t('sortear.option_n', { n: 1, name: 'cinejoy.to' })}</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
                         setPlayerProvider('vidking');
                         setActiveView('player');
                       }}
                       className="flex-1 bg-[var(--neon-cyan)] hover:bg-[var(--neon-cyan)]/80 text-[var(--bg-void)] font-mono text-xs font-bold py-2.5 px-3 rounded-lg shadow-neon-cyan flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
                       <Play className="w-4 h-4 fill-[var(--bg-void)]" />
-                      <span>▶ Opción 1: VidKing</span>
+                      <span>▶ {t('sortear.option_n', { n: 3, name: 'VidKing' })}</span>
                     </button>
 
                     <button
@@ -779,7 +903,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                       className="flex-1 bg-[var(--neon-amber)] hover:bg-[var(--neon-amber)]/80 text-[var(--bg-void)] font-mono text-xs font-bold py-2.5 px-3 rounded-lg shadow-neon-amber flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
                       <Film className="w-4 h-4 fill-[var(--bg-void)]" />
-                      <span>▶ Opción 2: PlayIMDB</span>
+                      <span>▶ {t('sortear.option_n', { n: 4, name: 'PlayIMDB' })}</span>
                     </button>
 
                     {trailerEmbedUrl && (
@@ -801,10 +925,10 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full py-2.5 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 bg-[var(--neon-magenta)]/20 hover:bg-[var(--neon-magenta)] text-[var(--neon-magenta)] hover:text-white border border-[var(--neon-magenta)]/40 shadow-sm"
-                    title="Buscar y descargar subtítulos en español para esta película en SubDivX"
+                    title={t('sortear.subtitles_subdivx_title')}
                   >
                     <Download className="w-4 h-4" />
-                    <span>Descargar Subtítulos en SubDivX</span>
+                    <span>{t('sortear.subtitles_subdivx_long')}</span>
                     <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                   </a>
 
@@ -821,50 +945,58 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   </a>
                 </div>
 
-                {/* Bottom Quick Actions */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-3 border-t border-[var(--bg-brick)]">
-                  <button
-                    onClick={onRedraw}
-                    disabled={isLoading}
-                    className="flex-1 bg-[var(--neon-amber)] hover:bg-[var(--neon-amber)]/80 text-[var(--bg-void)] font-bold font-mono text-xs py-3 px-4 rounded-lg shadow-neon-amber flex items-center justify-center gap-2 transition-all cursor-pointer"
-                  >
-                    <Dices className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-                    <span>{isLoading ? t('sortear.drawing') : t('sortear.again')}</span>
-                  </button>
-
-                  <button
-                    onClick={handleShareDetails}
-                    className="px-3 sm:px-4 py-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border border-[var(--neon-magenta)]/40 text-[var(--neon-magenta)] hover:bg-[var(--neon-magenta)]/20 cursor-pointer"
-                    title={t('sortear.share_details')}
-                  >
-                    <Share2 className="w-4 h-4" />
-                    <span>{justSharedDetails ? t('sortear.share_details_copied') : t('sortear.share_details')}</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleSharePlayer()}
-                    className="px-3 sm:px-4 py-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border border-[var(--neon-cyan)]/40 text-[var(--neon-cyan)] hover:bg-[var(--neon-cyan)]/20 cursor-pointer"
-                    title={t('sortear.share_player')}
-                  >
-                    <Tv className="w-4 h-4" />
-                    <span>{justSharedPlayer ? t('sortear.share_player_copied') : t('sortear.share_player')}</span>
-                  </button>
-
-                  <button
-                    onClick={() => onToggleWatched(movie)}
-                    className={`px-4 py-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer ${
-                      isWatched
-                        ? 'bg-[var(--neon-green)] text-[var(--bg-void)] border-[var(--neon-green)] shadow-neon-green'
-                        : 'border-[var(--neon-cyan)] text-[var(--neon-cyan)] hover:bg-[var(--neon-cyan)]/20'
-                    }`}
-                  >
-                    <Check className="w-4 h-4" />
-                    <span>{isWatched ? 'Vista ✔' : t('sortear.watched_action')}</span>
-                  </button>
-                </div>
               </div>
             </div>
           )}
+        </div>
+
+        {/* Persistent Action Footer — always visible regardless of scroll position or
+            how much content the current movie has above it (recommendations, watch
+            providers, tagline... their length varies a lot movie to movie, which used
+            to push these buttons out of view and force scrolling to reach them). */}
+        <div className="shrink-0 flex items-center gap-2 p-3 sm:p-4 border-t border-[var(--bg-brick)] bg-[var(--bg-panel)]">
+          <button
+            onClick={onRedraw}
+            disabled={isLoading}
+            className="flex-1 bg-[var(--neon-amber)] hover:bg-[var(--neon-amber)]/80 disabled:opacity-70 text-[var(--bg-void)] font-bold font-mono text-xs sm:text-sm py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg shadow-neon-amber flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <Dices className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <span>{isLoading ? t('sortear.drawing') : t('sortear.again')}</span>
+          </button>
+
+          <button
+            onClick={handleShareDetails}
+            title={justSharedDetails ? t('sortear.share_details_copied') : t('sortear.share_details')}
+            aria-label={justSharedDetails ? t('sortear.share_details_copied') : t('sortear.share_details')}
+            className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border border-[var(--neon-magenta)]/40 text-[var(--neon-magenta)] hover:bg-[var(--neon-magenta)]/20 cursor-pointer shrink-0"
+          >
+            <Share2 className="w-4 h-4" />
+            <span className="hidden sm:inline">{justSharedDetails ? t('sortear.share_details_copied') : t('sortear.share_details')}</span>
+          </button>
+
+          <button
+            onClick={() => handleSharePlayer()}
+            title={justSharedPlayer ? t('sortear.share_player_copied') : t('sortear.share_player')}
+            aria-label={justSharedPlayer ? t('sortear.share_player_copied') : t('sortear.share_player')}
+            className="px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border border-[var(--neon-cyan)]/40 text-[var(--neon-cyan)] hover:bg-[var(--neon-cyan)]/20 cursor-pointer shrink-0"
+          >
+            <Tv className="w-4 h-4" />
+            <span className="hidden sm:inline">{justSharedPlayer ? t('sortear.share_player_copied') : t('sortear.share_player')}</span>
+          </button>
+
+          <button
+            onClick={() => onToggleWatched(movie)}
+            title={isWatched ? t('sortear.watched_done') : t('sortear.watched_action')}
+            aria-label={isWatched ? t('sortear.watched_done') : t('sortear.watched_action')}
+            className={`px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer shrink-0 ${
+              isWatched
+                ? 'bg-[var(--neon-green)] text-[var(--bg-void)] border-[var(--neon-green)] shadow-neon-green'
+                : 'border-[var(--neon-cyan)] text-[var(--neon-cyan)] hover:bg-[var(--neon-cyan)]/20'
+            }`}
+          >
+            <Check className="w-4 h-4" />
+            <span className="hidden sm:inline">{isWatched ? t('sortear.watched_done') : t('sortear.watched_action')}</span>
+          </button>
         </div>
       </div>
 

@@ -31,7 +31,11 @@
     "theme_midday": "Midday Mode (12 PM)",
     "sound_on": "Sound on (click to mute)",
     "sound_off": "Sound muted (click to unmute)",
-    "discord_tooltip": "Join Discord — We watch movies together every night!"
+    "discord_tooltip": "Join Discord — We watch movies together every night!",
+    "demo_mode": "Demo mode active — using the local catalog.",
+    "google_login": "Google Login",
+    "google_logout": "Sign out of Google",
+    "local_profile": "Local profile (no account)"
   },
   "sortear": {
     "button": "🎰 RANDOM DRAW MOVIE",
@@ -76,7 +80,29 @@
     "open_in_stremio": "Open in Stremio",
     "torrentio_other_quality": "Other",
     "torrentio_download": "Download torrent",
-    "torrentio_download_hint": "Magnet link: opens in your torrent client (qBittorrent, Transmission, etc.)"
+    "torrentio_download_hint": "Magnet link: opens in your torrent client (qBittorrent, Transmission, etc.)",
+    "tab_details": "Details",
+    "tab_player": "▶ Player",
+    "servers_label": "Playback servers:",
+    "option_n": "Option {{n}}: {{name}}",
+    "terminal_active": "Terminal Option {{n}}: {{name}} active",
+    "open_external": "Open on {{name}}",
+    "subtitles_subdivx": "Subtitles (SubDivX)",
+    "subtitles_subdivx_long": "Download subtitles on SubDivX",
+    "subtitles_subdivx_title": "Search and download Spanish subtitles for this movie on SubDivX",
+    "play_big": "▶ PLAY",
+    "watched_badge": "SEEN IT",
+    "watched_done": "Watched ✔",
+    "close": "Close",
+    "not_available": "N/A",
+    "generated_overview": "A {{genres}} production{{yearPart}}{{directorPart}}{{castPart}}. An essential pick from TMDB's global collection.",
+    "generated_overview_year": " released in {{year}}",
+    "generated_overview_director": ", directed by {{director}}",
+    "generated_overview_cast": " starring {{cast}}",
+    "generated_overview_genre_fallback": "film",
+    "loading_details": "Loading details...",
+    "floating_hint": "Draw a movie",
+    "cinejoy_external_hint": "cinejoy.to can't be shown inside the app; it opens in a new tab."
   },
   "filters": {
     "title": "CONTROL PANEL",
@@ -201,11 +227,79 @@
     "youtube_placeholder": "e.g. AIzaSy...",
     "youtube_save": "Save YouTube Key",
     "youtube_use_demo": "Use official demo key (YouTube)",
-    "youtube_saved": "YouTube key saved successfully."
+    "youtube_saved": "YouTube key saved successfully.",
+    "add_official_demo": "Use the official demo API key"
   },
   "errors": {
     "no_results": "No movies found matching your current filters.",
     "no_results_hint": "Try loosening your filters (expand year range, lower minimum rating, or remove actor).",
-    "no_key": "A TMDB API Key is required to perform searches."
+    "no_key": "A TMDB API Key is required to perform searches.",
+    "details_failed": "Couldn't load the movie details. Please try again."
+  },
+  "catalog": {
+    "previous": "Previous",
+    "next": "Next",
+    "page_of": "Page {{current}} / {{total}}",
+    "page_cap_hint": "(Max. 500 pages per filter out of 1,000,000+ movies on TMDB)",
+    "card_play": "▶ Play",
+    "card_play_hint": "Watch in the terminal player.",
+    "first": "First page",
+    "last": "Last page",
+    "page_prefix": "Page",
+    "go_to_page": "Go to page (Enter)",
+    "pagination_label": "Catalog pagination",
+    "keyboard_hint": "Tip: ← → switch pages"
+  },
+  "login": {
+    "google_title": "Continue with Google",
+    "local_title": "Local profile (no account)",
+    "purpose": "A profile puts a name and avatar on this browser's watched list and history. It's optional.",
+    "google_unavailable": "Couldn't load the Google button (script blocker?). You can use a local profile instead.",
+    "google_error": "Google didn't return a valid identity. Try again or use a local profile.",
+    "google_disclaimer": "Google verifies your identity and shares your name, email and photo. This app sends them to no server of its own: they stay in your browser.",
+    "local_badge": "Local profile · this browser only",
+    "local_name_label": "Name",
+    "local_name_placeholder": "e.g. Alex Cinephile",
+    "local_email_label": "Email (optional, only seeds the avatar)",
+    "local_email_placeholder": "alex@example.com",
+    "local_submit": "Create local profile",
+    "switch_to_local": "No Google account? Create a local profile",
+    "switch_to_google": "« Back to Continue with Google",
+    "storage_note": "Everything is stored in this browser's localStorage. Signing out only removes the profile, not your movies."
+  },
+  "night": {
+    "start": "🌙 Start a movie-night draw (shared link)",
+    "start_hint": "Creates a link with your filters and a seed: everyone who opens it draws the same movie.",
+    "active": "Movie-night draw active · seed {{seed}}",
+    "active_hint": "Everyone opening this link with these filters draws the same movie (\"skip watched\" is ignored). Changing filters breaks the sync.",
+    "copy_link": "Copy link",
+    "exit": "Leave shared draw",
+    "link_copied": "Draw link copied ✔"
+  },
+  "backup": {
+    "title": "Your data (backup)",
+    "description": "Watched movies, draw history and presets live only in this browser. Export a file to move them to another device or keep them safe; importing merges without duplicates.",
+    "export": "Export backup (.json)",
+    "import": "Import backup",
+    "exported": "Backup exported: {{watched}} watched, {{history}} draws.",
+    "imported": "Imported: +{{watchedAdded}} watched, +{{historyAdded}} draws, +{{presetsAdded}} presets.",
+    "invalid": "That file is not a valid Cybercafé 24hs backup."
+  },
+  "marathon": {
+    "open": "🎬 Marathon mode (draw several)",
+    "title": "Marathon mode",
+    "description": "Draw several movies at once to plan the night: all different, using your current filters (and the shared seed if one is active). They're saved to the history.",
+    "how_many": "How many?",
+    "draw_n": "Draw {{count}}",
+    "drawing": "Searching... {{remaining}} to go",
+    "total": "{{count}} movies · {{total}} in total",
+    "ends_at": "Starting now you'd finish ~{{time}} (with 15 min breaks in between)",
+    "order_hint": "Suggested order: longest first, while everyone is still awake.",
+    "empty": "Nothing drawn yet. Pick how many movies you want above.",
+    "redraw_slot": "Swap this movie for another",
+    "remove": "Remove from the list",
+    "copy_list": "Copy list",
+    "list_heading": "🎬 Cybercafé 24hs marathon — {{date}} ({{count}} movies)",
+    "short": "Only {{got}} of {{wanted}} distinct movies were found with these filters."
   }
 }
