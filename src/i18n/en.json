@@ -106,6 +106,16 @@
   },
   "filters": {
     "title": "CONTROL PANEL",
+    "content_type": "CONTENT TYPE / FORMAT",
+    "content_type_hint": "(Filter by movie, series, documentary, etc.)",
+    "types": {
+      "movie": "Movies",
+      "series": "Series",
+      "documentary": "Documentaries",
+      "animation": "Anime / Animation",
+      "short": "Short Films",
+      "all": "All"
+    },
     "genres": "Genres",
     "genre_or_hint": "(Selecting multiple expands the catalog with any of those genres)",
     "all_genres": "All Genres",

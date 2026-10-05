@@ -154,7 +154,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-2.5 flex-wrap">
           {/* 1. Discord Cybercafé 24HS Link */}
           <a
-            href="https://discord.gg/dfSD65dgx"
+            href="https://discord.gg/sK5Dp8msVk"
             target="_blank"
             rel="noopener noreferrer"
             title={t('nav.discord_tooltip')}

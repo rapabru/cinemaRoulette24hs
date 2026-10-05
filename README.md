@@ -2,7 +2,7 @@
 
 [![Release](https://img.shields.io/badge/Release-v1.0.0-00f0ff?style=for-the-badge&logo=github&logoColor=black)](https://github.com/rapabru/cinemaRoulette24hs/releases/tag/v1.0.0)
 [![Vercel Deployment](https://img.shields.io/badge/Vercel-Live_App-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://cinemaroulette.vercel.app)
-[![Discord Community](https://img.shields.io/badge/Discord-Join_Community_24HS-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/dfSD65dgx)
+[![Discord Community](https://img.shields.io/badge/Discord-Join_Community_24HS-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/sK5Dp8msVk)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-rapabru%2FcinemaRoulette24hs-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/rapabru/cinemaRoulette24hs)
 [![TMDB API](https://img.shields.io/badge/TMDB-v4_v3_API-01b4e4?style=for-the-badge&logo=themoviedatabase&logoColor=white)](https://www.themoviedb.org/)
 
@@ -21,7 +21,7 @@
 Aplicación web de alto rendimiento estilo terminal de escritorio para descubrir películas, componer filtros avanzados, realizar sorteos aleatorios ("Sortear"), reproducir películas en vivo, descargar subtítulos en español, guardar historial de sorteos y participar en noches de cine en comunidad con una estética retro neón cybercafé de las 2 AM.
 
 👉 **Sitio en Vivo en Vercel**: [https://cinemaroulette.vercel.app](https://cinemaroulette.vercel.app)  
-💬 **Comunidad Discord 24HS (Vemos pelis todas las noches)**: [https://discord.gg/dfSD65dgx](https://discord.gg/dfSD65dgx)
+💬 **Comunidad Discord 24HS (Vemos pelis todas las noches)**: [https://discord.gg/sK5Dp8msVk](https://discord.gg/sK5Dp8msVk)
 
 ---
 
@@ -123,7 +123,7 @@ npm run build
 A high-performance, desktop terminal-style web application for movie discovery, advanced filter composition, random draws ("Sortear"), streaming video playback, Spanish subtitle downloads, draw history tracking, and communal movie watch nights wrapped in a nostalgic 2 AM neon cybercafé aesthetic.
 
 👉 **Live URL on Vercel**: [https://cinemaroulette.vercel.app](https://cinemaroulette.vercel.app)  
-💬 **Discord Cybercafé 24HS Community (We watch movies together every night)**: [https://discord.gg/dfSD65dgx](https://discord.gg/dfSD65dgx)
+💬 **Discord Cybercafé 24HS Community (We watch movies together every night)**: [https://discord.gg/sK5Dp8msVk](https://discord.gg/sK5Dp8msVk)
 
 ---
 

@@ -106,6 +106,16 @@
   },
   "filters": {
     "title": "PAINEL DE CONTROLE",
+    "content_type": "TIPO DE CONTEÚDO / FORMATO",
+    "content_type_hint": "(Filtrar por filme, série, documentário, etc.)",
+    "types": {
+      "movie": "Filmes",
+      "series": "Séries",
+      "documentary": "Documentários",
+      "animation": "Anime / Animação",
+      "short": "Curtas",
+      "all": "Todos"
+    },
     "genres": "Gêneros",
     "genre_or_hint": "(Selecionar vários amplia o catálogo com qualquer um desses gêneros)",
     "all_genres": "Todos os gêneros",

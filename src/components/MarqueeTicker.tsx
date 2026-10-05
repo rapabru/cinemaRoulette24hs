@@ -104,25 +104,32 @@ export const MarqueeTicker: React.FC<MarqueeTickerProps> = ({ onSelectMovie }) =
                   setHover({ item: movie, rect: e.currentTarget.getBoundingClientRect() });
                 }}
                 onMouseLeave={scheduleClose}
-                className="px-1 font-mono text-[11px] text-[var(--neon-magenta)] tracking-wider hover:text-[var(--neon-cyan)] transition-colors cursor-pointer"
+                className="group px-2 py-0.5 font-mono text-xs sm:text-[13px] md:text-sm font-semibold transition-all cursor-pointer inline-flex items-center gap-1.5"
               >
-                {emoji} {movie.title}
-                {year ? ` (${year})` : ''}
+                <span className="text-xs sm:text-sm select-none">{emoji}</span>
+                <span className="font-bold text-pink-100 group-hover:text-[var(--neon-cyan)] transition-colors tracking-wide drop-shadow-[0_0_6px_rgba(255,100,160,0.35)]">
+                  {movie.title}
+                </span>
+                {year && (
+                  <span className="text-pink-300/80 group-hover:text-[var(--neon-cyan)]/70 font-mono text-[11px] sm:text-xs font-normal">
+                    ({year})
+                  </span>
+                )}
               </button>
-              <span className="px-3 text-[var(--neon-magenta)]/50">•</span>
+              <span className="px-3 text-[var(--neon-magenta)]/60 text-xs sm:text-sm select-none">•</span>
             </span>
           );
         })
       : fallbackPhrases.map((phrase, i) => (
-          <span key={`${keyPrefix}-phrase-${i}`} className="px-1 font-mono text-[11px] text-[var(--neon-magenta)] tracking-wider shrink-0">
-            {phrase}
-            <span className="px-3 text-[var(--neon-magenta)]/50">•</span>
+          <span key={`${keyPrefix}-phrase-${i}`} className="px-2 py-0.5 font-mono text-xs sm:text-[13px] md:text-sm font-semibold text-pink-100 tracking-wide shrink-0 inline-flex items-center gap-1.5">
+            <span>{phrase}</span>
+            <span className="px-3 text-[var(--neon-magenta)]/60 text-xs sm:text-sm select-none">•</span>
           </span>
         ));
 
   const renderRow = (rowKey: string, items: MovieSummary[], emoji: string, label: string, reverse: boolean) => (
     <div
-      className="w-full overflow-hidden bg-[var(--bg-void)] py-1.5"
+      className="w-full overflow-hidden bg-[var(--bg-void)] py-2 sm:py-2.5"
       aria-label={label}
     >
       <div

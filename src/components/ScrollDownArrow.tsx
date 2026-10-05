@@ -17,7 +17,7 @@ export const ScrollDownArrow: React.FC<ScrollDownArrowProps> = ({ targetId }) =>
         title={t('app.scroll_down_hint')}
         className="flex flex-col items-center gap-0.5 text-[var(--neon-cyan)] hover:text-[var(--neon-amber)] transition-colors cursor-pointer group"
       >
-        <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--ink-muted)] group-hover:text-[var(--neon-amber)] transition-colors">
+        <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[var(--ink-light)]/85 group-hover:text-[var(--neon-cyan)] transition-colors">
           {t('app.scroll_down_hint')}
         </span>
         <ChevronDown className="w-9 h-9 animate-bounce" />

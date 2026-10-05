@@ -12,14 +12,14 @@ describe('buildDiscoverParams', () => {
       language: 'es',
       page: 3,
       sort_by: 'popularity.desc',
-      with_original_language: 'en',
       with_origin_country: 'US',
-      'primary_release_date.gte': '2005-01-01',
-      'vote_average.gte': 6,
+      'primary_release_date.gte': '2009-01-01',
+      'vote_average.gte': 7,
       'vote_average.lte': 9,
-      'vote_count.gte': 50,
+      'vote_count.gte': 55,
       'with_runtime.gte': 60,
     });
+    expect(params.with_original_language).toBeUndefined();
     // yearTo defaults to the current year, which means "no upper bound".
     expect(params['primary_release_date.lte']).toBeUndefined();
     // maxRuntime 300 means "300m+", so no upper bound either.
@@ -74,6 +74,12 @@ describe('buildDiscoverParams', () => {
     const params = buildDiscoverParams(withFilters({ minRating: 0, maxRating: 10 }));
     expect(params['vote_average.gte']).toBeUndefined();
     expect(params['vote_average.lte']).toBeUndefined();
+  });
+
+  it('adjusts discover params based on content type (documentary, animation, short)', () => {
+    expect(buildDiscoverParams(withFilters({ contentType: 'documentary' })).with_genres).toBe('99');
+    expect(buildDiscoverParams(withFilters({ contentType: 'animation' })).with_genres).toBe('16');
+    expect(buildDiscoverParams(withFilters({ contentType: 'short' }))['with_runtime.lte']).toBe(45);
   });
 });
 

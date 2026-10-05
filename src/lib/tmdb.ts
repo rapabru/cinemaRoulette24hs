@@ -95,6 +95,8 @@ export const ALL_INDUSTRY_KEYS = [
   'others',
 ];
 
+export type ContentType = 'movie' | 'series' | 'documentary' | 'animation' | 'short' | 'all';
+
 export interface FilterState {
   genreIds: number[];
   actorId: number | null;
@@ -115,6 +117,7 @@ export interface FilterState {
   maxRuntime: number;
   skipWatched: boolean;
   selectedIndustries: string[];
+  contentType?: ContentType;
 }
 
 export const DEFAULT_FILTERS: FilterState = {
@@ -123,17 +126,18 @@ export const DEFAULT_FILTERS: FilterState = {
   actorName: '',
   directorId: null,
   directorName: '',
-  yearFrom: 2005,
+  yearFrom: 2009,
   yearTo: new Date().getFullYear(),
-  language: 'en',
+  language: '',
   country: '',
-  minRating: 6,
+  minRating: 7,
   maxRating: 9,
-  minVotes: 50,
+  minVotes: 55,
   minRuntime: 60,
   maxRuntime: 300,
   skipWatched: true,
   selectedIndustries: ['hollywood'],
+  contentType: 'movie',
 };
 
 export const OFFICIAL_DEMO_KEY =
@@ -318,6 +322,12 @@ function getMockDiscoverResponse(filters: FilterState): DiscoverResponse {
         (includesOtro && (!movie.genre_ids || movie.genre_ids.length === 0));
       if (!hasGenre) return false;
     }
+    if (filters.contentType && filters.contentType !== 'all') {
+      if (filters.contentType === 'documentary' && !movie.genre_ids?.includes(99)) return false;
+      if (filters.contentType === 'animation' && !movie.genre_ids?.includes(16)) return false;
+      if (filters.contentType === 'short' && (movie as any).runtime && (movie as any).runtime > 45) return false;
+      if (filters.contentType === 'series' && (movie as any).media_type !== 'tv' && (movie as any).media_type !== 'series') return false;
+    }
     return true;
   });
 
@@ -418,6 +428,15 @@ export function buildDiscoverParams(filters: FilterState, page: number = 1, lang
     params['with_runtime.lte'] = filters.maxRuntime;
   }
 
+  // Content type specific overrides
+  if (filters.contentType === 'documentary') {
+    params.with_genres = params.with_genres ? `${params.with_genres}|99` : '99';
+  } else if (filters.contentType === 'animation') {
+    params.with_genres = params.with_genres ? `${params.with_genres}|16` : '16';
+  } else if (filters.contentType === 'short') {
+    params['with_runtime.lte'] = 45;
+  }
+
   return params;
 }
 
@@ -432,8 +451,34 @@ export async function discoverMovies(
     return getMockDiscoverResponse(filters);
   }
 
+  const isSeries = filters.contentType === 'series';
+  const endpoint = isSeries ? '/discover/tv' : '/discover/movie';
+  const rawParams = buildDiscoverParams(filters, page, language);
+  const params: Record<string, any> = { ...rawParams };
+
+  if (isSeries) {
+    if (params['primary_release_date.gte']) {
+      params['first_air_date.gte'] = params['primary_release_date.gte'];
+      delete params['primary_release_date.gte'];
+    }
+    if (params['primary_release_date.lte']) {
+      params['first_air_date.lte'] = params['primary_release_date.lte'];
+      delete params['primary_release_date.lte'];
+    }
+  }
+
   try {
-    return await tmdbFetch<DiscoverResponse>('/discover/movie', buildDiscoverParams(filters, page, language), signal);
+    const data = await tmdbFetch<any>(endpoint, params, signal);
+    if (isSeries && Array.isArray(data.results)) {
+      data.results = data.results.map((item: any) => ({
+        ...item,
+        title: item.title || item.name || '',
+        original_title: item.original_title || item.original_name || '',
+        release_date: item.release_date || item.first_air_date || '',
+        media_type: 'tv',
+      }));
+    }
+    return data;
   } catch (err) {
     // A cancelled request must not be mistaken for an outage and served from the demo catalog.
     if (isAbortError(err)) throw err;
@@ -545,6 +590,25 @@ export async function fetchMovieDetails(id: number, language: string = 'es'): Pr
 
     return details;
   } catch (err) {
+    // If not found in /movie, try /tv/${id} (for TV series results)
+    try {
+      const tvData = await tmdbFetch<any>(`/tv/${id}`, {
+        language,
+        append_to_response: 'credits,videos,watch/providers,recommendations',
+      });
+      if (tvData && (tvData.id || tvData.name)) {
+        return {
+          ...tvData,
+          title: tvData.title || tvData.name || '',
+          original_title: tvData.original_title || tvData.original_name || '',
+          release_date: tvData.release_date || tvData.first_air_date || '',
+          runtime: Array.isArray(tvData.episode_run_time) && tvData.episode_run_time.length > 0 ? tvData.episode_run_time[0] : (tvData.runtime || null),
+          media_type: 'tv',
+        } as MovieDetails;
+      }
+    } catch {
+      // ignore and proceed to mock fallback
+    }
     const mock = MOCK_MOVIES.find((m) => m.id === id);
     if (mock) return mock;
     throw err;

@@ -106,6 +106,16 @@
   },
   "filters": {
     "title": "PANEL DE CONTROL",
+    "content_type": "TIPO DE CONTENIDO / FORMATO",
+    "content_type_hint": "(Filtrar por película, serie, documental, etc.)",
+    "types": {
+      "movie": "Películas",
+      "series": "Series",
+      "documentary": "Documentales",
+      "animation": "Anime / Animación",
+      "short": "Cortometrajes",
+      "all": "Todos"
+    },
     "genres": "Géneros",
     "genre_or_hint": "(Seleccionar varios amplía el catálogo con cualquiera de esos géneros)",
     "all_genres": "Todos los géneros",

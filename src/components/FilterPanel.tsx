@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SlidersHorizontal, ChevronDown, ChevronUp, User, Clapperboard, RotateCcw, Check, Search, X, Bookmark, Plus, Film, Loader2 } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown, ChevronUp, User, Clapperboard, RotateCcw, Check, Search, X, Bookmark, Plus, Film, Loader2, Tv, Video, Sparkles, Clock, Layers } from 'lucide-react';
 import { searchPerson, getImageUrl } from '../lib/tmdb';
-import type { Genre, FilterState, PersonResult, MovieSummary } from '../lib/tmdb';
+import type { Genre, FilterState, PersonResult, MovieSummary, ContentType } from '../lib/tmdb';
 import { getPresets, savePreset, deletePreset } from '../lib/presets';
 import type { FilterPreset } from '../lib/presets';
 
@@ -178,6 +178,16 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     { key: 'others', label: t('filters.industries.others') },
   ];
 
+  // Content type options with labels and icons — translated via i18n
+  const contentTypeList: { key: ContentType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { key: 'movie', label: t('filters.types.movie'), icon: Film },
+    { key: 'series', label: t('filters.types.series'), icon: Tv },
+    { key: 'documentary', label: t('filters.types.documentary'), icon: Video },
+    { key: 'animation', label: t('filters.types.animation'), icon: Sparkles },
+    { key: 'short', label: t('filters.types.short'), icon: Clock },
+    { key: 'all', label: t('filters.types.all'), icon: Layers },
+  ];
+
   // Actor search state
   const [actorSearchQuery, setActorSearchQuery] = useState(filters.actorName);
   const [actorResults, setActorResults] = useState<PersonResult[]>([]);
@@ -191,11 +201,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   const directorSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Local string states for numeric inputs so user can delete all digits and type completely from scratch
-  const [yearFromInput, setYearFromInput] = useState<string>(String(filters.yearFrom ?? '1900'));
+  const [yearFromInput, setYearFromInput] = useState<string>(String(filters.yearFrom ?? '2009'));
   const [yearToInput, setYearToInput] = useState<string>(String(filters.yearTo ?? new Date().getFullYear()));
-  const [minRatingInput, setMinRatingInput] = useState<string>(String(filters.minRating ?? '6'));
+  const [minRatingInput, setMinRatingInput] = useState<string>(String(filters.minRating ?? '7'));
   const [maxRatingInput, setMaxRatingInput] = useState<string>(String(filters.maxRating ?? '10'));
-  const [minVotesInput, setMinVotesInput] = useState<string>(String(filters.minVotes ?? '0'));
+  const [minVotesInput, setMinVotesInput] = useState<string>(String(filters.minVotes ?? '55'));
   const [minRuntimeInput, setMinRuntimeInput] = useState<string>(String(filters.minRuntime ?? '60'));
   const [maxRuntimeInput, setMaxRuntimeInput] = useState<string>(String(filters.maxRuntime ?? '300'));
 
@@ -338,6 +348,11 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           </h2>
 
           {/* Active filters badge count */}
+          {filters.contentType && filters.contentType !== 'movie' && (
+            <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-mono bg-[var(--neon-cyan)] text-[var(--bg-void)] font-bold rounded">
+              {t(`filters.types.${filters.contentType}`, { defaultValue: filters.contentType })}
+            </span>
+          )}
           {filters.genreIds.length > 0 && (
             <span className="px-2 py-0.5 text-[10px] font-mono bg-[var(--neon-magenta)] text-white font-bold rounded-full">
               {filters.genreIds.length} {t('filters.genres').toLowerCase()} (OR)
@@ -516,6 +531,45 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       {/* Expanded Controls */}
       {isExpanded && (
         <div className={`p-4 sm:p-6 space-y-6 transition-opacity ${isSearchActive ? 'opacity-40 pointer-events-none' : ''}`}>
+          {/* Format / Content Type (Película, Serie, Documental, etc.) */}
+          <div>
+            <div className="flex flex-wrap items-baseline justify-between mb-2">
+              <label className="text-[13px] font-mono font-bold text-[var(--ink-light)]/90 uppercase tracking-wider">
+                {t('filters.content_type')}
+              </label>
+              <span className="text-[11px] font-mono text-[var(--neon-cyan)] italic">
+                {t('filters.content_type_hint')}
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {contentTypeList.map((item) => {
+                const isSelected = (filters.contentType || 'movie') === item.key;
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => {
+                      const next = isSelected && item.key !== 'all' ? 'all' : item.key;
+                      onChange({ ...filters, contentType: next });
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all flex items-center gap-2 cursor-pointer border ${
+                      isSelected
+                        ? 'bg-[var(--bg-void)] text-[var(--neon-cyan)] border-[var(--neon-cyan)] shadow-neon-cyan font-bold'
+                        : 'bg-[var(--bg-void)] text-[var(--ink-muted)] border-[var(--ink-muted)]/30 opacity-70 hover:opacity-100 hover:border-[var(--neon-cyan)]/50'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{item.label}</span>
+                    {isSelected && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--neon-cyan)] shadow-neon-cyan" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Film Industries & Categories Pre-checked Badges */}
           <div>
             <div className="flex flex-wrap items-baseline justify-between mb-2">
