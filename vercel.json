@@ -1,17 +1,25 @@
 {
-  "rewrites": [
+  "redirects": [
     {
       "source": "/",
       "has": [
         {
           "type": "query",
-          "key": "movie"
+          "key": "movie",
+          "value": "(?<movieId>[0-9]+)"
         }
       ],
-      "destination": "/api/og"
-    },
+      "destination": "/m/:movieId",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
     {
       "source": "/m/:id",
+      "destination": "/api/og?movie=:id"
+    },
+    {
+      "source": "/movie/:id",
       "destination": "/api/og?movie=:id"
     },
     {

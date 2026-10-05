@@ -73,7 +73,7 @@ export function buildMovieLink(
   baseParam?: string
 ): string {
   let mode: 'details' | 'player' = 'details';
-  let base: string = typeof window !== 'undefined' ? window.location.origin + window.location.pathname : 'https://cinemaroulette.vercel.app/';
+  let base: string = typeof window !== 'undefined' ? window.location.origin : 'https://cinemaroulette.vercel.app';
 
   if (typeof modeOrBase === 'string' && (modeOrBase.startsWith('http') || modeOrBase.startsWith('/'))) {
     base = modeOrBase;
@@ -82,8 +82,8 @@ export function buildMovieLink(
     if (baseParam) base = baseParam;
   }
 
-  const url = new URL(base);
-  url.searchParams.set(MOVIE_PARAM, String(movieId));
+  const origin = base.endsWith('/') ? base.slice(0, -1) : base;
+  const url = new URL(`${origin}/m/${movieId}`);
   if (mode === 'player' && provider) {
     url.searchParams.set(PLAYER_PARAM, provider);
   }
@@ -149,10 +149,19 @@ export interface ParsedAppUrl {
   nightDraw: NightDrawLink | null;
 }
 
-export function parseAppUrl(search: string): ParsedAppUrl {
+export function parseAppUrl(search: string, pathname: string = ''): ParsedAppUrl {
   const params = new URLSearchParams(search);
-  const movieRaw = params.get(MOVIE_PARAM) || params.get('id') || params.get('sorteo');
-  const movieId = movieRaw && /^\d+$/.test(movieRaw) ? parseInt(movieRaw, 10) : null;
+
+  let movieId: number | null = null;
+  const pathMatch = pathname.match(/^\/(?:m|movie)\/(\d+)/i);
+  if (pathMatch) {
+    movieId = parseInt(pathMatch[1], 10);
+  }
+
+  if (!movieId) {
+    const movieRaw = params.get(MOVIE_PARAM) || params.get('id') || params.get('sorteo');
+    movieId = movieRaw && /^\d+$/.test(movieRaw) ? parseInt(movieRaw, 10) : null;
+  }
 
   const playerRaw = params.get(PLAYER_PARAM) || params.get('server');
   const validProviders: PlayerProvider[] = ['vidking', 'cinejoy', 'playimdb', 'torrentio', 'trailer'];

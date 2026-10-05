@@ -42,11 +42,48 @@ describe('Vercel Edge API /api/og', () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get('content-type')).toContain('text/html');
+    expect(response.headers.get('vary')).toBe('User-Agent');
     const html = await response.text();
     expect(html).toContain('Al otro lado de la línea (2007) ⭐ 6.5/10 — Cybercafé 24hs');
     expect(html).toContain('https://image.tmdb.org/t/p/w1280/kDACJi8eHur78ycoIc7L8fE6zlG.jpg');
     expect(html).toContain('▶ Ver en cinejoy.to');
     expect(html).toContain('<meta name="twitter:card" content="summary_large_image">');
+  });
+
+  it('supports movie ID from /m/:id pathname', async () => {
+    const mockFetch = vi.fn().mockImplementation((url: string | URL) => {
+      const urlStr = url.toString();
+      if (urlStr.includes('api.themoviedb.org')) {
+        return Promise.resolve(
+          new Response(
+            JSON.stringify({
+              id: 17334,
+              title: 'Al otro lado de la línea',
+              release_date: '2007-03-23',
+              vote_average: 6.5,
+              vote_count: 193,
+              genres: [{ id: 35, name: 'Comedia' }],
+              overview: 'Una divertida comedia romántica.',
+              backdrop_path: '/kDACJi8eHur78ycoIc7L8fE6zlG.jpg',
+            }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } }
+          )
+        );
+      }
+      return Promise.resolve(new Response('<html><body>Index</body></html>', { status: 200 }));
+    });
+    vi.stubGlobal('fetch', mockFetch);
+
+    const request = new Request('https://cinemaroulette.vercel.app/m/17334', {
+      headers: {
+        'user-agent': 'Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com)',
+      },
+    });
+
+    const response = await handler(request);
+    expect(response.status).toBe(200);
+    const html = await response.text();
+    expect(html).toContain('Al otro lado de la línea (2007) ⭐ 6.5/10 — Cybercafé 24hs');
   });
 
   it('serves enriched index.html to human browsers', async () => {

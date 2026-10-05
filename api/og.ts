@@ -11,7 +11,8 @@ export const config = {
 
 export default async function handler(request: Request): Promise<Response> {
   const url = new URL(request.url);
-  const movieId = url.searchParams.get('movie');
+  const pathMatch = url.pathname.match(/^\/(?:m|movie)\/(\d+)/i);
+  const movieId = url.searchParams.get('movie') || pathMatch?.[1];
   const player = url.searchParams.get('player');
   const userAgent = request.headers.get('user-agent') || '';
 
@@ -29,15 +30,17 @@ export default async function handler(request: Request): Promise<Response> {
   }
 
   const isBot = isBotUserAgent(userAgent);
+  const canonicalUrl = `${url.origin}/m/${movieId}${player ? `?player=${player}` : ''}`;
 
   // If requested by a crawler/bot (Discord, WhatsApp, Twitter, etc.), return lightweight, rich HTML
   if (isBot) {
-    const botHtml = generateBotHtml(data, url.toString(), false);
+    const botHtml = generateBotHtml(data, canonicalUrl, false);
     return new Response(botHtml, {
       status: 200,
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800',
+        'Vary': 'User-Agent',
       },
     });
   }
@@ -47,12 +50,13 @@ export default async function handler(request: Request): Promise<Response> {
     const indexRes = await fetch(new URL('/index.html', request.url));
     if (indexRes.ok) {
       const baseHtml = await indexRes.text();
-      const enrichedHtml = injectOgTagsIntoHtml(baseHtml, data, url.toString());
+      const enrichedHtml = injectOgTagsIntoHtml(baseHtml, data, canonicalUrl);
       return new Response(enrichedHtml, {
         status: 200,
         headers: {
           'Content-Type': 'text/html; charset=utf-8',
           'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+          'Vary': 'User-Agent',
         },
       });
     }
@@ -61,11 +65,12 @@ export default async function handler(request: Request): Promise<Response> {
   }
 
   // Fallback for human browsers if base index.html fetch fails: serve bot HTML with instant client redirect
-  const fallbackHtml = generateBotHtml(data, url.toString(), true);
+  const fallbackHtml = generateBotHtml(data, canonicalUrl, true);
   return new Response(fallbackHtml, {
     status: 200,
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
+      'Vary': 'User-Agent',
     },
   });
 }

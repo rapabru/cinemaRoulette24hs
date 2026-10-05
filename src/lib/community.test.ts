@@ -54,8 +54,14 @@ describe('share links', () => {
     const parsed = parseAppUrl(new URL(link).search);
     expect(parsed.nightDraw).toEqual({ seed: 'ABC123', filters: { ...DEFAULT_FILTERS, minRating: 7 }, searchQuery: 'matrix' });
     expect(parseAppUrl('?seed=!!').nightDraw).toBeNull();
-    expect(buildMovieLink(603, 'https://x.test/')).toBe('https://x.test/?movie=603');
-    expect(buildMovieLink(603, 'player', 'cinejoy', 'https://x.test/')).toBe('https://x.test/?movie=603&player=cinejoy');
+    expect(buildMovieLink(603, 'https://x.test')).toBe('https://x.test/m/603');
+    expect(buildMovieLink(603, 'player', 'cinejoy', 'https://x.test')).toBe('https://x.test/m/603?player=cinejoy');
+    expect(parseAppUrl('', '/m/603')).toMatchObject({ movieId: 603 });
+    expect(parseAppUrl('?player=cinejoy', '/m/603')).toMatchObject({
+      movieId: 603,
+      mode: 'player',
+      player: 'cinejoy',
+    });
     expect(parseAppUrl('?movie=603&player=cinejoy')).toMatchObject({
       movieId: 603,
       mode: 'player',

@@ -150,7 +150,7 @@ export function App() {
   // same link (same filters) draw the same sequence of movies.
   // Deep links (?movie=603 opens a card, ?seed=ABC123&f=... joins a night draw)
   // are read once, before any effect gets to rewrite the address bar.
-  const initialUrlRef = useRef(parseAppUrl(window.location.search));
+  const initialUrlRef = useRef(parseAppUrl(window.location.search, window.location.pathname));
   const [nightSeed, setNightSeed] = useState<string | null>(initialUrlRef.current.nightDraw?.seed ?? null);
   const nightRngRef = useRef<(() => number) | null>(null);
 
@@ -431,7 +431,7 @@ export function App() {
   // Browser back/forward button navigation listener
   useEffect(() => {
     const handlePopState = () => {
-      const { movieId, mode, player } = parseAppUrl(window.location.search);
+      const { movieId, mode, player } = parseAppUrl(window.location.search, window.location.pathname);
       if (!movieId) {
         setIsRouletteOpen(false);
       } else {
