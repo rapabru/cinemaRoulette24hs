@@ -1,6 +1,6 @@
 # 🎰 CYBERCAFÉ 24HS — Movie Roulette & Streaming Terminal
 
-[![Release](https://img.shields.io/badge/Release-v1.0.0-00f0ff?style=for-the-badge&logo=github&logoColor=black)](https://github.com/rapabru/cinemaRoulette24hs/releases/tag/v1.0.0)
+[![Release](https://img.shields.io/badge/Release-v1.1.0-00f0ff?style=for-the-badge&logo=github&logoColor=black)](https://github.com/rapabru/cinemaRoulette24hs/releases/tag/v1.1.0)
 [![Vercel Deployment](https://img.shields.io/badge/Vercel-Live_App-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://cinemaroulette.vercel.app)
 [![Discord Community](https://img.shields.io/badge/Discord-Join_Community_24HS-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/sK5Dp8msVk)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-rapabru%2FcinemaRoulette24hs-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/rapabru/cinemaRoulette24hs)
@@ -41,6 +41,12 @@ Aplicación web de alto rendimiento estilo terminal de escritorio para descubrir
 - **Botón en el Reproductor**: Botón *Compartir Servidor* ubicado en la barra superior junto al botón de pantalla completa.
 - **Menú Contextual (Clic Derecho)**: Clic derecho sobre cualquier póster o carrusel para copiar la ficha directa al portapapeles.
 - **Footer de Acciones Persistente**: Barra inferior fija en la ficha con botones para volver a sortear, compartir ficha, compartir reproductor y marcar como vista sin importar la longitud de la ficha.
+
+### 📺 Series y 🔖 Mi Lista
+- **Series en la ruleta**: Elegí "Series" en *Tipo de contenido* para explorar y sortear series de TV con sus propios géneros (TMDB `/discover/tv`). La ficha muestra temporadas, creadores y la etiqueta SERIE.
+- **Servidores para series**: Selector de **temporada y episodio** en el reproductor. VidKing abre el episodio directo, Torrentio busca los torrents de ese episodio (y prioriza los de un solo episodio sobre los packs de temporada), y el link "Abrir en Stremio" apunta al episodio.
+- **Links de series**: `/m/:id?type=tv` (con `&player=...&s=2&e=5` para un episodio concreto), con previsualización Open Graph.
+- **Mi Lista**: Botón 🔖 en cada cartilla, en la ficha y en el menú contextual para guardar películas y series para ver después. Pestaña propia con búsqueda, exportación y **"Sortear de Mi Lista"**. Se incluye en el backup.
 
 ### 🎬 Reproductores de Video Integrados (Multi-Servidor)
 - **Opción 1 (cinejoy.to)**: Catálogo de streaming directo por ID de TMDB (`cinejoy.to/watch/movie/{id}`). Por políticas de seguridad del servidor de origen, incluye un botón directo para apertura en pestaña externa.
@@ -143,6 +149,12 @@ A high-performance, desktop terminal-style web application for movie discovery, 
 - **In-Player Toolbar Share**: Direct "Compartir Servidor" button located right next to the fullscreen toggle in the player view.
 - **Right-Click Context Menu**: Right-click on any movie poster or carousel item to copy the direct card link.
 - **Persistent Action Footer**: Fixed bottom toolbar inside the movie modal with buttons to redraw, share card, share player, and mark as watched regardless of content height.
+
+### 📺 Series & 🔖 My List
+- **Series in the roulette**: Pick "Series" under *Content type* to browse and draw TV series with their own genre list (TMDB `/discover/tv`). The details view shows seasons, creators and a SERIES badge.
+- **Series-ready servers**: **Season and episode** picker in the player. VidKing opens the episode directly, Torrentio looks up that episode's torrents (preferring single-episode releases over season packs), and "Open in Stremio" deep-links to the episode.
+- **Series links**: `/m/:id?type=tv` (plus `&player=...&s=2&e=5` for a specific episode), with Open Graph previews.
+- **My List**: 🔖 button on every card, in the details view and in the context menu to save movies and series for later. Dedicated tab with search, export and **"Draw from My List"**. Included in backups.
 
 ### 🎬 Built-in Video Players (Multi-Provider)
 - **Option 1 (cinejoy.to)**: Full direct streaming catalogue by TMDB ID (`cinejoy.to/watch/movie/{id}`). Due to upstream `X-Frame-Options` policies, includes a quick-launch external button.

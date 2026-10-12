@@ -14,6 +14,7 @@ export default async function handler(request: Request): Promise<Response> {
   const pathMatch = url.pathname.match(/^\/(?:m|movie)\/(\d+)/i);
   const movieId = url.searchParams.get('movie') || pathMatch?.[1];
   const player = url.searchParams.get('player');
+  const isSeries = url.searchParams.get('type') === 'tv';
   const userAgent = request.headers.get('user-agent') || '';
 
   // If no valid movie ID provided, pass through to standard index.html
@@ -22,7 +23,7 @@ export default async function handler(request: Request): Promise<Response> {
   }
 
   // Fetch movie data from TMDB
-  const data = await fetchMovieOgData(movieId, player);
+  const data = await fetchMovieOgData(movieId, player, undefined, fetch, isSeries ? 'tv' : 'movie');
 
   // If movie wasn't found or TMDB failed, serve standard index.html
   if (!data) {
@@ -30,7 +31,11 @@ export default async function handler(request: Request): Promise<Response> {
   }
 
   const isBot = isBotUserAgent(userAgent);
-  const canonicalUrl = `${url.origin}/m/${movieId}${player ? `?player=${player}` : ''}`;
+  const canonicalParams = new URLSearchParams();
+  if (isSeries) canonicalParams.set('type', 'tv');
+  if (player) canonicalParams.set('player', player);
+  const canonicalQuery = canonicalParams.toString();
+  const canonicalUrl = `${url.origin}/m/${movieId}${canonicalQuery ? `?${canonicalQuery}` : ''}`;
 
   // If requested by a crawler/bot (Discord, WhatsApp, Twitter, etc.), return lightweight, rich HTML
   if (isBot) {

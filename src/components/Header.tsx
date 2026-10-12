@@ -1,17 +1,20 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Film, Eye, History, Moon, Sun, Globe, Key, ShieldAlert, LogOut } from 'lucide-react';
+import { Film, Eye, History, Bookmark, Moon, Sun, Globe, Key, ShieldAlert, LogOut } from 'lucide-react';
 import { getStoredApiKey } from '../lib/tmdb';
 import { VolumeControl } from './VolumeControl';
 import type { GoogleUser } from '../lib/auth';
 
+export type AppTab = 'catalog' | 'watchlist' | 'watched' | 'history';
+
 interface HeaderProps {
-  activeTab: 'catalog' | 'watched' | 'history';
-  setActiveTab: (tab: 'catalog' | 'watched' | 'history') => void;
+  activeTab: AppTab;
+  setActiveTab: (tab: AppTab) => void;
   isDark: boolean;
   setIsDark: (dark: boolean) => void;
   onOpenApiKeyModal: () => void;
   watchedCount: number;
+  watchlistCount: number;
   historyCount: number;
   googleUser: GoogleUser | null;
   onOpenGoogleLogin: () => void;
@@ -25,6 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
   setIsDark,
   onOpenApiKeyModal,
   watchedCount,
+  watchlistCount,
   historyCount,
   googleUser,
   onOpenGoogleLogin,
@@ -101,11 +105,11 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Row 2: Tabs (left) + Utilities (right) */}
         <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* View Switcher Tabs: Catálogo | La Vi | Historial */}
-        <div className="h-9 flex items-center gap-1.5 bg-[var(--bg-panel)] p-1 rounded-lg border border-[var(--ink-muted)]/30">
+        {/* View Switcher Tabs: Catálogo | Mi Lista | La Vi | Historial */}
+        <div className="h-9 max-w-full overflow-x-auto flex items-center gap-1.5 bg-[var(--bg-panel)] p-1 rounded-lg border border-[var(--ink-muted)]/30">
           <button
             onClick={() => setActiveTab('catalog')}
-            className={`h-7 flex items-center gap-1.5 px-3 rounded text-xs font-mono font-semibold transition-all cursor-pointer ${
+            className={`h-7 shrink-0 whitespace-nowrap flex items-center gap-1.5 px-3 rounded text-xs font-mono font-semibold transition-all cursor-pointer ${
               activeTab === 'catalog'
                 ? 'bg-[var(--neon-magenta)] text-white shadow-neon-magenta'
                 : 'text-[var(--ink-muted)] hover:text-[var(--ink-light)]'
@@ -116,8 +120,25 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveTab('watchlist')}
+            className={`h-7 shrink-0 whitespace-nowrap flex items-center gap-1.5 px-3 rounded text-xs font-mono font-semibold transition-all relative cursor-pointer ${
+              activeTab === 'watchlist'
+                ? 'bg-[var(--neon-blue)] text-white shadow-neon-blue font-bold'
+                : 'text-[var(--ink-muted)] hover:text-[var(--ink-light)]'
+            }`}
+          >
+            <Bookmark className="w-3.5 h-3.5" />
+            <span>{t('nav.watchlist')}</span>
+            {watchlistCount > 0 && (
+              <span className="ml-1 px-1.5 py-0.2 text-[10px] rounded-full bg-[var(--bg-void)] text-[var(--neon-blue)] font-mono font-bold border border-[var(--neon-blue)]">
+                {watchlistCount}
+              </span>
+            )}
+          </button>
+
+          <button
             onClick={() => setActiveTab('watched')}
-            className={`h-7 flex items-center gap-1.5 px-3 rounded text-xs font-mono font-semibold transition-all relative cursor-pointer ${
+            className={`h-7 shrink-0 whitespace-nowrap flex items-center gap-1.5 px-3 rounded text-xs font-mono font-semibold transition-all relative cursor-pointer ${
               activeTab === 'watched'
                 ? 'bg-[var(--neon-green)] text-[var(--bg-void)] shadow-neon-green font-bold'
                 : 'text-[var(--ink-muted)] hover:text-[var(--ink-light)]'
@@ -134,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveTab('history')}
-            className={`h-7 flex items-center gap-1.5 px-3 rounded text-xs font-mono font-semibold transition-all relative cursor-pointer ${
+            className={`h-7 shrink-0 whitespace-nowrap flex items-center gap-1.5 px-3 rounded text-xs font-mono font-semibold transition-all relative cursor-pointer ${
               activeTab === 'history'
                 ? 'bg-[var(--neon-amber)] text-[var(--bg-void)] shadow-neon-amber font-bold'
                 : 'text-[var(--ink-muted)] hover:text-[var(--ink-light)]'

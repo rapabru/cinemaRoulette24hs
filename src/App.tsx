@@ -10,18 +10,21 @@ import {
   fetchMovieDetails,
   performRandomDraw,
   isAbortError,
+  mediaKey,
+  mediaTypeForFilters,
 } from './lib/tmdb';
 import { playWinChime } from './lib/sound';
 import { showToast } from './lib/toast';
 import { createSeededRng, generateSeed } from './lib/seededRandom';
-import { parseAppUrl, replaceUrlParams, buildNightDrawLink, MOVIE_PARAM, PLAYER_PARAM, SEED_PARAM, FILTERS_PARAM, QUERY_PARAM } from './lib/shareLinks';
-import type { PlayerProvider } from './lib/shareLinks';
+import { parseAppUrl, replaceUrlParams, buildNightDrawLink, MOVIE_PARAM, PLAYER_PARAM, TYPE_PARAM, SEED_PARAM, FILTERS_PARAM, QUERY_PARAM } from './lib/shareLinks';
+import type { PlayerProvider, EpisodeRef } from './lib/shareLinks';
 
 import type {
   Genre,
   FilterState,
   MovieSummary,
   MovieDetails,
+  MediaType,
 } from './lib/tmdb';
 
 import {
@@ -30,6 +33,9 @@ import {
 } from './lib/watched';
 
 import type { WatchedMovie } from './lib/watched';
+
+import { getWatchlist, toggleWatchlist } from './lib/watchlist';
+import type { WatchlistItem } from './lib/watchlist';
 
 import {
   getDrawnHistory,
@@ -47,6 +53,7 @@ import {
 import type { GoogleUser } from './lib/auth';
 
 import { Header } from './components/Header';
+import type { AppTab } from './components/Header';
 import type { PendingMovie } from './components/RouletteModal';
 import { VolumeControl } from './components/VolumeControl';
 import { FloatingSortearButton } from './components/FloatingSortearButton';
@@ -58,6 +65,7 @@ import { CatalogGrid } from './components/CatalogGrid';
 import { ContextMenu } from './components/ContextMenu';
 import { RouletteModal } from './components/RouletteModal';
 import { WatchedView } from './components/WatchedView';
+import { WatchlistView } from './components/WatchlistView';
 import { DrawHistoryView } from './components/DrawHistoryView';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { GoogleLoginModal } from './components/GoogleLoginModal';
@@ -89,7 +97,7 @@ export function App() {
   }, [isDark]);
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<'catalog' | 'watched' | 'history'>('catalog');
+  const [activeTab, setActiveTab] = useState<AppTab>('catalog');
 
   // Filters state
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
@@ -107,10 +115,12 @@ export function App() {
 
   // Watched list state
   const [watchedList, setWatchedList] = useState<WatchedMovie[]>(getWatchedMovies());
-  const watchedMovieIds = useMemo(
-    () => new Set(watchedList.map((m) => m.id)),
-    [watchedList]
-  );
+  // mediaKey() rather than bare ids: a movie and a series can share an id.
+  const watchedKeys = useMemo(() => new Set(watchedList.map(mediaKey)), [watchedList]);
+
+  // "Mi lista" (watch later) state
+  const [watchlist, setWatchlist] = useState<WatchlistItem[]>(getWatchlist());
+  const watchlistKeys = useMemo(() => new Set(watchlist.map(mediaKey)), [watchlist]);
 
   // Draw History state
   const [historyList, setHistoryList] = useState<DrawnHistoryItem[]>(getDrawnHistory());
@@ -131,6 +141,7 @@ export function App() {
   const [movieBackStack, setMovieBackStack] = useState<MovieDetails[]>([]);
   const [modalInitialMode, setModalInitialMode] = useState<'details' | 'player'>('details');
   const [modalInitialProvider, setModalInitialProvider] = useState<PlayerProvider>('vidking');
+  const [modalInitialEpisode, setModalInitialEpisode] = useState<EpisodeRef | null>(null);
   // What the modal shows while a movie's details are still being fetched, so
   // clicking a card gives instant feedback instead of a ~1s dead pause.
   const [pendingMovie, setPendingMovie] = useState<PendingMovie | null>(null);
@@ -160,12 +171,12 @@ export function App() {
   }, [nightSeed]);
 
   useEffect(() => {
-    const { movieId, mode, player, nightDraw } = initialUrlRef.current;
+    const { movieId, mediaType, episode, mode, player, nightDraw } = initialUrlRef.current;
     if (nightDraw) {
       setFilters(nightDraw.filters);
       setSearchQuery(nightDraw.searchQuery);
     }
-    if (movieId) handleSelectMovie(movieId, mode, player);
+    if (movieId) handleSelectMovie({ id: movieId, media_type: mediaType }, mode, player, episode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -173,7 +184,8 @@ export function App() {
   useEffect(() => {
     const shownId = isRouletteOpen && !pendingMovie && drawnMovie ? String(drawnMovie.id) : null;
     const playerVal = isRouletteOpen && !pendingMovie && drawnMovie && modalInitialMode === 'player' ? modalInitialProvider : null;
-    replaceUrlParams({ [MOVIE_PARAM]: shownId, [PLAYER_PARAM]: playerVal });
+    const typeVal = shownId && drawnMovie?.media_type === 'tv' ? 'tv' : null;
+    replaceUrlParams({ [MOVIE_PARAM]: shownId, [TYPE_PARAM]: typeVal, [PLAYER_PARAM]: playerVal });
   }, [isRouletteOpen, pendingMovie, drawnMovie, modalInitialMode, modalInitialProvider]);
 
   const nightDrawLink = nightSeed ? buildNightDrawLink({ seed: nightSeed, filters, searchQuery }) : null;
@@ -188,7 +200,7 @@ export function App() {
   const drawMarathonMovies = async (count: number, keep: MovieDetails[]) => {
     const batchId = ++marathonBatchRef.current;
     const picked = [...keep];
-    const pickedIds = new Set(picked.map((m) => m.id));
+    const pickedKeys = new Set(picked.map(mediaKey));
     setMarathonMovies(picked);
     setMarathonPending(count);
     // Seeded (shared) draws exclude only what's already on the list, so every
@@ -198,7 +210,7 @@ export function App() {
     while (picked.length < keep.length + count && attempts < count * 4) {
       attempts++;
       try {
-        const excluded = seeded ? pickedIds : new Set([...watchedMovieIds, ...pickedIds]);
+        const excluded = seeded ? pickedKeys : new Set([...watchedKeys, ...pickedKeys]);
         const result = await performRandomDraw(
           { ...filters, skipWatched: true },
           excluded,
@@ -208,9 +220,9 @@ export function App() {
           nightRngRef.current ?? Math.random
         );
         if (batchId !== marathonBatchRef.current) return;
-        if (!result || pickedIds.has(result.id)) continue;
+        if (!result || pickedKeys.has(mediaKey(result))) continue;
         picked.push(result);
-        pickedIds.add(result.id);
+        pickedKeys.add(mediaKey(result));
         setMarathonMovies([...picked]);
         setMarathonPending(keep.length + count - picked.length);
         setHistoryList([
@@ -221,6 +233,7 @@ export function App() {
             release_date: result.release_date,
             vote_average: result.vote_average,
             genre_ids: result.genres?.map((g) => g.id),
+            media_type: result.media_type,
           }),
         ]);
       } catch (err: any) {
@@ -257,10 +270,11 @@ export function App() {
     copyNightDrawLink(buildNightDrawLink({ seed, filters, searchQuery }));
   };
 
-  // Load genres on mount or language change
+  // Load genres on mount, language change, or switching between movies and series
+  const catalogMediaType = mediaTypeForFilters(filters);
   useEffect(() => {
-    fetchGenres(i18n.language).then(setGenres);
-  }, [i18n.language]);
+    fetchGenres(i18n.language, catalogMediaType).then(setGenres);
+  }, [i18n.language, catalogMediaType]);
 
   // Load catalog movies whenever filters, search query, page, or language change.
   // Only the most recent request may touch state: typing "mat" → "matrix" fires
@@ -278,7 +292,7 @@ export function App() {
     setIsLoadingCatalog(true);
     try {
       const data = searchQuery.trim()
-        ? await searchMovies(searchQuery, currentPage, i18n.language, controller.signal)
+        ? await searchMovies(searchQuery, currentPage, i18n.language, controller.signal, mediaTypeForFilters(filters))
         : await discoverMovies(filters, currentPage, i18n.language, controller.signal);
       if (!isCurrent()) return;
       setMovies(data.results || []);
@@ -324,7 +338,7 @@ export function App() {
       // Seeded draws ignore "skip watched" on purpose: everyone must land on the same movie.
       const drawFilters = nightRngRef.current ? { ...filters, skipWatched: false } : filters;
       const [result] = await Promise.all([
-        performRandomDraw(drawFilters, watchedMovieIds, i18n.language, 0, searchQuery, nightRngRef.current ?? Math.random),
+        performRandomDraw(drawFilters, watchedKeys, i18n.language, 0, searchQuery, nightRngRef.current ?? Math.random),
         minSpinDelay,
       ]);
 
@@ -340,6 +354,7 @@ export function App() {
           release_date: result.release_date,
           vote_average: result.vote_average,
           genre_ids: result.genres?.map((g) => g.id),
+          media_type: result.media_type,
         });
         setHistoryList([...updatedHistory]);
       } else {
@@ -378,9 +393,24 @@ export function App() {
     poster_path: string | null;
     release_date: string;
     vote_average?: number;
+    media_type?: MediaType;
   }) => {
     const { updatedList } = toggleMovieWatched(movie);
     setWatchedList([...updatedList]);
+  };
+
+  // Add to / remove from "Mi lista"
+  const handleToggleWatchlist = (movie: {
+    id: number;
+    title: string;
+    poster_path: string | null;
+    release_date: string;
+    vote_average?: number;
+    media_type?: MediaType;
+  }) => {
+    const { isNowInList, updatedList } = toggleWatchlist(movie);
+    setWatchlist([...updatedList]);
+    showToast(t(isNowInList ? 'watchlist.added' : 'watchlist.removed', { title: movie.title }), isNowInList ? 'success' : 'info');
   };
 
   // Reopen the last drawn movie's card without drawing again
@@ -391,28 +421,39 @@ export function App() {
   // Open details from card, context menu, recommendations carousel, or marquee.
   // If the modal is already open on a different movie, push it onto the back
   // stack first so the user can return to it with the "Volver" button.
+  // A bare number is a movie id (marquee); anything that can be a series passes
+  // an object carrying its media_type.
   const handleSelectMovie = async (
     movieSummary: PendingMovie | number,
     mode: 'details' | 'player' = 'details',
-    provider: PlayerProvider = 'vidking'
+    provider: PlayerProvider = 'vidking',
+    episode: EpisodeRef | null = null
   ) => {
     const id = typeof movieSummary === 'number' ? movieSummary : movieSummary.id;
+    const mediaType: MediaType = typeof movieSummary === 'number' ? 'movie' : movieSummary.media_type || 'movie';
     const requestId = ++pendingRequestRef.current;
     const wasOpenOn = isRouletteOpen ? drawnMovie : null;
 
     setModalInitialMode(mode);
     setModalInitialProvider(provider);
+    setModalInitialEpisode(episode);
 
     setPendingMovie(
       typeof movieSummary === 'number'
         ? { id }
-        : { id, title: movieSummary.title, poster_path: movieSummary.poster_path, release_date: movieSummary.release_date }
+        : {
+            id,
+            title: movieSummary.title,
+            poster_path: movieSummary.poster_path,
+            release_date: movieSummary.release_date,
+            media_type: mediaType,
+          }
     );
     setIsRouletteOpen(true);
     try {
-      const details = await fetchMovieDetails(id, i18n.language);
+      const details = await fetchMovieDetails(id, i18n.language, mediaType);
       if (requestId !== pendingRequestRef.current) return; // a newer click won
-      if (wasOpenOn && wasOpenOn.id !== id) {
+      if (wasOpenOn && mediaKey(wasOpenOn) !== mediaKey({ id, media_type: mediaType })) {
         setMovieBackStack((stack) => [...stack, wasOpenOn]);
       } else {
         setMovieBackStack([]);
@@ -431,11 +472,11 @@ export function App() {
   // Browser back/forward button navigation listener
   useEffect(() => {
     const handlePopState = () => {
-      const { movieId, mode, player } = parseAppUrl(window.location.search, window.location.pathname);
+      const { movieId, mediaType, episode, mode, player } = parseAppUrl(window.location.search, window.location.pathname);
       if (!movieId) {
         setIsRouletteOpen(false);
       } else {
-        handleSelectMovie(movieId, mode, player);
+        handleSelectMovie({ id: movieId, media_type: mediaType }, mode, player, episode);
       }
     };
 
@@ -463,6 +504,7 @@ export function App() {
           setIsDark={setIsDark}
           onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
           watchedCount={watchedList.length}
+          watchlistCount={watchlist.length}
           historyCount={historyList.length}
           googleUser={googleUser}
           onOpenGoogleLogin={() => setIsGoogleModalOpen(true)}
@@ -542,7 +584,9 @@ export function App() {
               <CatalogGrid
                 movies={movies}
                 isLoading={isLoadingCatalog}
-                watchedMovieIds={watchedMovieIds}
+                watchedKeys={watchedKeys}
+                watchlistKeys={watchlistKeys}
+                onToggleWatchlist={handleToggleWatchlist}
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={(page) => setCurrentPage(page)}
@@ -552,21 +596,28 @@ export function App() {
                 onMovieClick={handleSelectMovie}
               />
             </>
+          ) : activeTab === 'watchlist' ? (
+            /* "Mi lista" View */
+            <WatchlistView
+              watchlist={watchlist}
+              onRemove={handleToggleWatchlist}
+              onSelectMovie={(movie) => handleSelectMovie(movie)}
+            />
           ) : activeTab === 'watched' ? (
             /* Watched List View */
             <WatchedView
               watchedList={watchedList}
-              onUnmark={(id) => handleToggleWatched({ id, title: '', poster_path: '', release_date: '' })}
-              onSelectMovie={handleSelectMovie}
+              onUnmark={handleToggleWatched}
+              onSelectMovie={(movie) => handleSelectMovie(movie)}
             />
           ) : (
             /* Draw History View */
             <DrawHistoryView
               historyList={historyList}
-              watchedMovieIds={watchedMovieIds}
+              watchedKeys={watchedKeys}
               genres={genres}
               onClearHistory={handleClearHistory}
-              onSelectMovie={handleSelectMovie}
+              onSelectMovie={(movie) => handleSelectMovie(movie)}
               onToggleWatched={handleToggleWatched}
               onSortearAgain={handleSortear}
             />
@@ -619,8 +670,10 @@ export function App() {
           x={contextMenu.x}
           y={contextMenu.y}
           movie={contextMenu.movie}
-          isWatched={watchedMovieIds.has(contextMenu.movie.id)}
+          isWatched={watchedKeys.has(mediaKey(contextMenu.movie))}
           onToggleWatched={handleToggleWatched}
+          isInWatchlist={watchlistKeys.has(mediaKey(contextMenu.movie))}
+          onToggleWatchlist={handleToggleWatchlist}
           onViewDetails={handleSelectMovie}
           onClose={() => setContextMenu(null)}
         />
@@ -632,14 +685,17 @@ export function App() {
         isOpen={isRouletteOpen}
         onClose={() => setIsRouletteOpen(false)}
         onRedraw={handleSortear}
-        isWatched={drawnMovie ? watchedMovieIds.has(drawnMovie.id) : false}
+        isWatched={drawnMovie ? watchedKeys.has(mediaKey(drawnMovie)) : false}
         onToggleWatched={handleToggleWatched}
+        isInWatchlist={drawnMovie ? watchlistKeys.has(mediaKey(drawnMovie)) : false}
+        onToggleWatchlist={handleToggleWatchlist}
         isLoading={isDrawing}
         initialMode={modalInitialMode}
         initialProvider={modalInitialProvider}
+        initialEpisode={modalInitialEpisode}
         posterPool={spinPosterPool}
         pendingMovie={pendingMovie}
-        onSelectMovie={handleSelectMovie}
+        onSelectMovie={(movie) => handleSelectMovie(movie)}
         canGoBack={movieBackStack.length > 0}
         onGoBack={handleGoBack}
       />
@@ -658,7 +714,7 @@ export function App() {
           setIsMarathonOpen(false);
           handleSelectMovie(movie);
         }}
-        watchedMovieIds={watchedMovieIds}
+        watchedKeys={watchedKeys}
       />
 
       {/* API Key Modal */}
@@ -668,6 +724,7 @@ export function App() {
         onKeySaved={loadCatalog}
         onDataImported={() => {
           setWatchedList(getWatchedMovies());
+          setWatchlist(getWatchlist());
           setHistoryList(getDrawnHistory());
         }}
       />

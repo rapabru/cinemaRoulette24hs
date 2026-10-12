@@ -35,7 +35,8 @@
     "demo_mode": "Demo mode active — using the local catalog.",
     "google_login": "Google Login",
     "google_logout": "Sign out of Google",
-    "local_profile": "Local profile (no account)"
+    "local_profile": "Local profile (no account)",
+    "watchlist": "My List"
   },
   "sortear": {
     "button": "🎰 RANDOM DRAW MOVIE",
@@ -102,7 +103,15 @@
     "generated_overview_genre_fallback": "film",
     "loading_details": "Loading details...",
     "floating_hint": "Draw a movie",
-    "cinejoy_external_hint": "cinejoy.to can't be shown inside the app; it opens in a new tab."
+    "cinejoy_external_hint": "cinejoy.to can't be shown inside the app; it opens in a new tab.",
+    "season": "Season",
+    "episode": "Episode",
+    "episode_in_player_hint": "On this server, pick the episode inside the player.",
+    "series_badge": "SERIES",
+    "seasons_count_one": "{{count}} season",
+    "seasons_count_other": "{{count}} seasons",
+    "minutes_per_episode": "min/ep",
+    "created_by": "Created by"
   },
   "filters": {
     "title": "CONTROL PANEL",
@@ -191,6 +200,20 @@
     "details": "View details",
     "share": "Share Details",
     "share_copied": "Details copied! ✔"
+  },
+  "watchlist": {
+    "title": "My List",
+    "empty": "Your list is empty",
+    "empty_hint": "Tap the 🔖 bookmark on any card (or in the details view) to save movies and series you want to watch.",
+    "add": "Add to My List",
+    "add_short": "My List",
+    "remove": "Remove from My List",
+    "in_list": "In My List ✔",
+    "added": "\"{{title}}\" added to My List",
+    "removed": "\"{{title}}\" removed from My List",
+    "draw": "Draw from My List",
+    "draw_hint": "Randomly picks something from your list and opens it",
+    "total_count": "Total in list"
   },
   "watched": {
     "title": "WATCHED MOVIES",
@@ -291,8 +314,8 @@
     "description": "Watched movies, draw history and presets live only in this browser. Export a file to move them to another device or keep them safe; importing merges without duplicates.",
     "export": "Export backup (.json)",
     "import": "Import backup",
-    "exported": "Backup exported: {{watched}} watched, {{history}} draws.",
-    "imported": "Imported: +{{watchedAdded}} watched, +{{historyAdded}} draws, +{{presetsAdded}} presets.",
+    "exported": "Backup exported: {{watched}} watched, {{watchlist}} in My List, {{history}} draws.",
+    "imported": "Imported: +{{watchedAdded}} watched, +{{watchlistAdded}} in My List, +{{historyAdded}} draws, +{{presetsAdded}} presets.",
     "invalid": "That file is not a valid Cybercafé 24hs backup."
   },
   "marathon": {

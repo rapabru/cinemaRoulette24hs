@@ -35,7 +35,8 @@
     "demo_mode": "Modo demo ativo — usando catálogo local.",
     "google_login": "Google Login",
     "google_logout": "Sair do Google",
-    "local_profile": "Perfil local (sem conta)"
+    "local_profile": "Perfil local (sem conta)",
+    "watchlist": "Minha Lista"
   },
   "sortear": {
     "button": "🎰 SORTEAR FILME",
@@ -102,7 +103,15 @@
     "generated_overview_genre_fallback": "Cinema",
     "loading_details": "Carregando ficha...",
     "floating_hint": "Sortear um filme",
-    "cinejoy_external_hint": "O cinejoy.to não pode ser exibido dentro do app; ele abre em uma nova aba."
+    "cinejoy_external_hint": "O cinejoy.to não pode ser exibido dentro do app; ele abre em uma nova aba.",
+    "season": "Temporada",
+    "episode": "Episódio",
+    "episode_in_player_hint": "Neste servidor, o episódio é escolhido dentro do player.",
+    "series_badge": "SÉRIE",
+    "seasons_count_one": "{{count}} temporada",
+    "seasons_count_other": "{{count}} temporadas",
+    "minutes_per_episode": "min/ep",
+    "created_by": "Criada por"
   },
   "filters": {
     "title": "PAINEL DE CONTROLE",
@@ -191,6 +200,20 @@
     "details": "Ver ficha completa",
     "share": "Compartilhar Ficha",
     "share_copied": "Ficha copiada! ✔"
+  },
+  "watchlist": {
+    "title": "Minha Lista",
+    "empty": "Sua lista está vazia",
+    "empty_hint": "Toque no marcador 🔖 em qualquer cartão (ou na ficha) para salvar filmes e séries que você quer ver.",
+    "add": "Adicionar à Minha Lista",
+    "add_short": "Minha Lista",
+    "remove": "Remover da Minha Lista",
+    "in_list": "Na Minha Lista ✔",
+    "added": "\"{{title}}\" adicionado à Minha Lista",
+    "removed": "\"{{title}}\" removido da Minha Lista",
+    "draw": "Sortear da Minha Lista",
+    "draw_hint": "Escolhe algo da sua lista ao acaso e abre a ficha",
+    "total_count": "Total na lista"
   },
   "watched": {
     "title": "FILMES VISTOS",
@@ -291,8 +314,8 @@
     "description": "Filmes vistos, histórico de sorteios e presets ficam só neste navegador. Exporte um arquivo para levá-los a outro dispositivo ou guardá-los; importar mescla sem duplicar.",
     "export": "Exportar backup (.json)",
     "import": "Importar backup",
-    "exported": "Backup exportado: {{watched}} vistos, {{history}} sorteios.",
-    "imported": "Importado: +{{watchedAdded}} vistos, +{{historyAdded}} sorteios, +{{presetsAdded}} presets.",
+    "exported": "Backup exportado: {{watched}} vistos, {{watchlist}} na Minha Lista, {{history}} sorteios.",
+    "imported": "Importado: +{{watchedAdded}} vistos, +{{watchlistAdded}} na Minha Lista, +{{historyAdded}} sorteios, +{{presetsAdded}} presets.",
     "invalid": "Esse arquivo não é um backup válido do Cybercafé 24hs."
   },
   "marathon": {

@@ -31,7 +31,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose, onKey
   const handleExportBackup = () => {
     const backup = buildBackup();
     triggerDownload(backupFilename(), new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
-    showToast(t('backup.exported', { watched: backup.watched.length, history: backup.history.length }), 'success');
+    showToast(t('backup.exported', { watched: backup.watched.length, watchlist: backup.watchlist.length, history: backup.history.length }), 'success');
   };
 
   const handleImportBackup = async (file: File | undefined) => {

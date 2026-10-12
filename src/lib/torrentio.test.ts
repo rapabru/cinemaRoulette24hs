@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseTorrentioStream, pickDefaultStream, groupByQuality, buildMagnet } from './torrentio';
+import { parseTorrentioStream, pickDefaultStream, groupByQuality, buildMagnet, torrentioStreamPath } from './torrentio';
 import type { TorrentioStream } from './torrentio';
 
 const HASH_A = '03dd34fea0ff15a451c1723062a901aa3a0ad458';
@@ -15,6 +15,7 @@ const stream = (overrides: Partial<TorrentioStream>): TorrentioStream => ({
   size: '2 GB',
   source: 'YTS',
   isHevc: false,
+  innerPath: null,
   ...overrides,
 });
 
@@ -38,6 +39,7 @@ describe('parseTorrentioStream', () => {
       size: '35.09 GB',
       source: 'RARBG',
       isHevc: true,
+      innerPath: null,
     });
   });
 
@@ -98,5 +100,41 @@ describe('buildMagnet', () => {
     const magnet = buildMagnet(stream({ infoHash: HASH_A }), 'The Matrix (1999)');
     expect(magnet.startsWith(`magnet:?xt=urn:btih:${HASH_A}&dn=The+Matrix+%281999%29`)).toBe(true);
     expect(magnet.match(/&tr=/g)?.length).toBe(4);
+  });
+});
+
+describe('series episodes', () => {
+  it('builds the Stremio series path as imdb:season:episode', () => {
+    expect(torrentioStreamPath('tt0903747')).toBe('/stream/movie/tt0903747.json');
+    expect(torrentioStreamPath('tt0903747', { season: 1, episode: 3 })).toBe('/stream/series/tt0903747%3A1%3A3.json');
+  });
+
+  it('reads the file path that season packs print under the torrent name', () => {
+    const pack = parseTorrentioStream({
+      name: 'Torrentio\n1080p',
+      title:
+        'Breaking.Bad.S01.1080p.BluRay-NOGRP\nBreaking.Bad.S01/Breaking.Bad.S01E03.1080p.mkv\n👤 19 💾 9.24 GB ⚙️ RARBG',
+      infoHash: HASH_A,
+      fileIdx: 2,
+      behaviorHints: { filename: 'Breaking.Bad.S01E03.1080p.mkv' },
+    })!;
+    expect(pack.innerPath).toBe('Breaking.Bad.S01/Breaking.Bad.S01E03.1080p.mkv');
+    expect(pack.seeders).toBe(19);
+
+    const single = parseTorrentioStream({
+      name: 'Torrentio\n1080p',
+      title: 'Breaking.Bad.S01E03.1080p.WEB\n👤 5 💾 1 GB ⚙️ EZTV',
+      infoHash: HASH_B,
+    })!;
+    expect(single.innerPath).toBeNull();
+  });
+
+  it('prefers a single-episode torrent over a better-seeded pack when asked', () => {
+    const pack = stream({ infoHash: HASH_A, seeders: 500, innerPath: 'S01/E03.mkv' });
+    const single = stream({ infoHash: HASH_B, seeders: 5 });
+    expect(pickDefaultStream([pack, single], true)?.infoHash).toBe(HASH_B);
+    expect(pickDefaultStream([pack, single])?.infoHash).toBe(HASH_A);
+    // Only packs available: still picks one.
+    expect(pickDefaultStream([pack], true)?.infoHash).toBe(HASH_A);
   });
 });

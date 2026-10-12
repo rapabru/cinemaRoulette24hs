@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft, Maximize2, ShieldAlert, Magnet, Loader2, Clapperboard } from 'lucide-react';
+import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft, Maximize2, ShieldAlert, Magnet, Loader2, Clapperboard, Bookmark, BookmarkCheck, Layers } from 'lucide-react';
 import { getImageUrl, getTrailerVideo, getWatchProviders } from '../lib/tmdb';
-import type { MovieDetails } from '../lib/tmdb';
+import type { MovieDetails, MediaType } from '../lib/tmdb';
+import { buildPlayerUrls } from '../lib/players';
 import { fetchOmdbRatings } from '../lib/omdb';
 import type { OmdbRatings } from '../lib/omdb';
 import { SlotReel, LANDING_DURATION_MS } from './SlotReel';
@@ -10,8 +11,8 @@ import { BackgroundAudioPlayer } from './BackgroundAudioPlayer';
 import { VolumeControl } from './VolumeControl';
 import { TorrentioPlayer } from './TorrentioPlayer';
 import { useModalA11y } from '../hooks/useModalA11y';
-import { buildMovieLink, buildShareText, replaceUrlParams, MOVIE_PARAM, PLAYER_PARAM } from '../lib/shareLinks';
-import type { PlayerProvider } from '../lib/shareLinks';
+import { buildMovieLink, buildShareText, replaceUrlParams, MOVIE_PARAM, PLAYER_PARAM, TYPE_PARAM, SEASON_PARAM, EPISODE_PARAM } from '../lib/shareLinks';
+import type { PlayerProvider, EpisodeRef } from '../lib/shareLinks';
 
 /** Whatever is known about a movie before its details arrive (id only, or a card's summary). */
 export interface PendingMovie {
@@ -19,6 +20,7 @@ export interface PendingMovie {
   title?: string;
   poster_path?: string | null;
   release_date?: string;
+  media_type?: MediaType;
 }
 
 interface RouletteModalProps {
@@ -29,11 +31,15 @@ interface RouletteModalProps {
   onRedraw: () => void;
   isWatched: boolean;
   onToggleWatched: (movie: MovieDetails) => void;
+  isInWatchlist: boolean;
+  onToggleWatchlist: (movie: MovieDetails) => void;
   isLoading: boolean;
   initialMode?: 'details' | 'player';
   initialProvider?: PlayerProvider;
+  // Series deep links can point at a specific episode (?s=2&e=5).
+  initialEpisode?: EpisodeRef | null;
   posterPool?: (string | null)[];
-  onSelectMovie?: (id: number) => void;
+  onSelectMovie?: (movie: PendingMovie) => void;
   canGoBack?: boolean;
   onGoBack?: () => void;
 }
@@ -45,9 +51,12 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   onRedraw,
   isWatched,
   onToggleWatched,
+  isInWatchlist,
+  onToggleWatchlist,
   isLoading,
   initialMode = 'details',
   initialProvider = 'vidking',
+  initialEpisode = null,
   posterPool = [],
   pendingMovie = null,
   onSelectMovie,
@@ -61,6 +70,8 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   const [justSharedPlayer, setJustSharedPlayer] = useState(false);
   const [omdbRatings, setOmdbRatings] = useState<OmdbRatings | null>(null);
   const [omdbStatus, setOmdbStatus] = useState<'idle' | 'loading' | 'done' | 'unavailable'>('idle');
+  const [season, setSeason] = useState(initialEpisode?.season ?? 1);
+  const [episodeNumber, setEpisodeNumber] = useState(initialEpisode?.episode ?? 1);
   const dialogRef = useModalA11y<HTMLDivElement>(isOpen, onClose);
 
   // Brief "landing" beat between the spin ending and the result appearing: the
@@ -102,24 +113,41 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     }
   }, [movie?.id]);
 
+  // Each series starts on the linked episode, or S1E1 — the first season
+  // TMDB lists, so shows that only have "Specials" still get a valid pick.
+  useEffect(() => {
+    const firstSeason = movie?.seasons?.[0]?.season_number ?? 1;
+    setSeason(initialEpisode?.season ?? firstSeason);
+    setEpisodeNumber(initialEpisode?.episode ?? 1);
+  }, [movie?.id, movie?.media_type]);
+
+  const isSeries = movie?.media_type === 'tv';
+
   // Synchronize URL query params with current movie and view/provider
   useEffect(() => {
     if (!isOpen || !movie) return;
+    const inPlayer = activeView === 'player';
     replaceUrlParams({
       [MOVIE_PARAM]: String(movie.id),
-      [PLAYER_PARAM]: activeView === 'player' ? playerProvider : null,
+      [TYPE_PARAM]: isSeries ? 'tv' : null,
+      [PLAYER_PARAM]: inPlayer ? playerProvider : null,
+      [SEASON_PARAM]: isSeries && inPlayer ? String(season) : null,
+      [EPISODE_PARAM]: isSeries && inPlayer ? String(episodeNumber) : null,
       id: null,
       sorteo: null,
       server: null,
     });
-  }, [isOpen, movie?.id, activeView, playerProvider]);
+  }, [isOpen, movie?.id, isSeries, activeView, playerProvider, season, episodeNumber]);
 
   // When modal closes, clean up movie/player query params
   useEffect(() => {
     if (!isOpen) {
       replaceUrlParams({
         [MOVIE_PARAM]: null,
+        [TYPE_PARAM]: null,
         [PLAYER_PARAM]: null,
+        [SEASON_PARAM]: null,
+        [EPISODE_PARAM]: null,
         id: null,
         sorteo: null,
         server: null,
@@ -217,7 +245,9 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   const watchProviders = getWatchProviders(movie);
 
   const year = movie.release_date ? movie.release_date.split('-')[0] : '';
-  const director = movie.credits?.crew?.find((c) => c.job === 'Director')?.name || t('sortear.not_available');
+  // Series have no single director; TMDB credits their creators instead.
+  const creators = movie.created_by?.map((c) => c.name).join(', ');
+  const director = (isSeries ? creators : movie.credits?.crew?.find((c) => c.job === 'Director')?.name) || t('sortear.not_available');
   const topCast = movie.credits?.cast?.slice(0, 4).map((c) => c.name).join(', ') || t('sortear.not_available');
 
   // TMDB has no synopsis in any language for some titles: build one from the
@@ -236,26 +266,27 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     });
   const posterUrl = getImageUrl(movie.poster_path, 'w500');
 
+  // Episode picker (series only): seasons as TMDB lists them, episodes 1..count.
+  const seasonOptions = movie.seasons || [];
+  const episodeCount = seasonOptions.find((s) => s.season_number === season)?.episode_count || 1;
+  const currentEpisode: EpisodeRef | null = isSeries ? { season, episode: episodeNumber } : null;
+
   // Option 1: cinejoy.to (TMDB ID). Its own site sends X-Frame-Options: DENY /
   // frame-ancestors 'none' on every route, so it can never be embedded in an
   // iframe — the "new tab" action is the only way to actually watch through it.
-  const cinejoyUrl = `https://cinejoy.to/watch/movie/${movie.id}`;
-
   // Option 2: Torrentio streams played through Webtor (see TorrentioPlayer).
   // There's no standalone embed URL for it either, so its "new tab" action
-  // hands the movie to a locally installed Stremio via its deep link instead.
+  // hands the title to a locally installed Stremio via its deep link instead.
+  // Option 3: VidKing embed (TMDB ID; series go straight to the episode).
+  // Option 4: PlayIMDB (IMDb ID, or fallbacks).
   const imdbId = movie.imdb_id;
-  const stremioUrl = imdbId ? `stremio://detail/movie/${imdbId}/${imdbId}` : null;
+  const playerUrls = buildPlayerUrls(movie, currentEpisode);
+  const cinejoyUrl = playerUrls.cinejoy;
+  const stremioUrl = playerUrls.stremio;
+  const vidkingEmbedUrl = playerUrls.vidking;
+  const playImdbEmbedUrl = playerUrls.playimdb;
 
-  // Option 3: VidKing Embed URL (TMDB ID)
-  const vidkingEmbedUrl = `https://www.vidking.net/embed/movie/${movie.id}?color=35E6FF`;
-
-  // Option 4: PlayIMDB Embed URL (IMDB ID, or fallbacks)
-  const playImdbEmbedUrl = imdbId
-    ? `https://www.playimdb.com/es-es/title/${imdbId}/`
-    : `https://www.playimdb.com/title/tt${movie.id}/`;
-
-  const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${movie.title} ${year} película`)}`;
+  const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${movie.title} ${year} ${isSeries ? 'serie' : 'película'}`)}`;
 
   const currentEmbedUrl =
     playerProvider === 'cinejoy'
@@ -272,12 +303,11 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
     if (currentEmbedUrl) window.open(currentEmbedUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const playImdbDirectUrl = imdbId
-    ? `https://www.playimdb.com/es-es/title/${imdbId}/`
-    : `https://www.google.com/search?q=playimdb+${encodeURIComponent(movie.title)}`;
+  const playImdbDirectUrl = playerUrls.playimdbDirect;
+  const mediaType: MediaType = isSeries ? 'tv' : 'movie';
 
   const handleShareDetails = async () => {
-    const shareUrl = buildMovieLink(movie.id, 'details');
+    const shareUrl = buildMovieLink(movie.id, 'details', undefined, undefined, mediaType);
     const genreNames = movie.genres?.map((g) => g.name) || [];
     const shareText = buildShareText({
       title: movie.title,
@@ -314,7 +344,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
 
   const handleSharePlayer = async (provider?: PlayerProvider) => {
     const targetProvider = provider || playerProvider;
-    const shareUrl = buildMovieLink(movie.id, 'player', targetProvider);
+    const shareUrl = buildMovieLink(movie.id, 'player', targetProvider, undefined, mediaType, currentEpisode);
     const shareText = buildShareText({
       title: movie.title,
       year,
@@ -529,6 +559,47 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                 </div>
               </div>
 
+              {/* Season / episode picker (series only) */}
+              {isSeries && (
+                <div className="flex flex-wrap items-center gap-3 p-2 bg-[var(--bg-brick)] rounded-lg border border-[var(--neon-magenta)]/40 text-xs font-mono">
+                  <Layers className="w-4 h-4 text-[var(--neon-magenta)] shrink-0" />
+                  <label className="flex items-center gap-1.5 text-[var(--ink-muted)] font-bold uppercase">
+                    {t('sortear.season')}
+                    <select
+                      value={season}
+                      onChange={(e) => {
+                        setSeason(Number(e.target.value));
+                        setEpisodeNumber(1);
+                      }}
+                      className="bg-[var(--bg-void)] border border-[var(--neon-magenta)]/50 text-[var(--ink-light)] rounded px-2 py-1 outline-none cursor-pointer"
+                    >
+                      {(seasonOptions.length > 0 ? seasonOptions : [{ season_number: 1, episode_count: 1, name: '' }]).map((s) => (
+                        <option key={s.season_number} value={s.season_number}>
+                          {s.season_number === 0 ? s.name || '0' : s.season_number}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex items-center gap-1.5 text-[var(--ink-muted)] font-bold uppercase">
+                    {t('sortear.episode')}
+                    <select
+                      value={episodeNumber}
+                      onChange={(e) => setEpisodeNumber(Number(e.target.value))}
+                      className="bg-[var(--bg-void)] border border-[var(--neon-magenta)]/50 text-[var(--ink-light)] rounded px-2 py-1 outline-none cursor-pointer"
+                    >
+                      {Array.from({ length: Math.max(1, episodeCount) }, (_, i) => i + 1).map((n) => (
+                        <option key={n} value={n}>
+                          {n}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  {(playerProvider === 'cinejoy' || playerProvider === 'playimdb') && (
+                    <span className="text-[11px] text-[var(--ink-muted)] italic">{t('sortear.episode_in_player_hint')}</span>
+                  )}
+                </div>
+              )}
+
               {/* Ad-blocker hint */}
               <p className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--ink-muted)] px-1">
                 <ShieldAlert className="w-3.5 h-3.5 text-[var(--neon-amber)] shrink-0" />
@@ -575,7 +646,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   />
                 </div>
               ) : playerProvider === 'torrentio' ? (
-                <TorrentioPlayer imdbId={imdbId} title={movie.title} year={year} posterUrl={posterUrl} />
+                <TorrentioPlayer imdbId={imdbId} episode={currentEpisode} title={movie.title} year={year} posterUrl={posterUrl} />
               ) : trailerEmbedUrl ? (
                 <div className="relative aspect-video w-full max-h-[75vh] rounded-xl overflow-hidden border-2 border-[var(--neon-magenta)] shadow-neon-magenta bg-black mx-auto">
                   <iframe
@@ -707,6 +778,11 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     <span className="text-sm font-mono text-[var(--neon-amber)] font-bold">
                       ({year})
                     </span>
+                    {isSeries && (
+                      <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded bg-[var(--neon-magenta)] text-white uppercase tracking-wider">
+                        {t('sortear.series_badge')}
+                      </span>
+                    )}
                   </div>
                   {movie.tagline && (
                     <p className="text-xs font-mono text-[var(--neon-cyan)] italic">
@@ -727,7 +803,14 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                   {movie.runtime && movie.runtime > 0 && (
                     <div className="flex items-center gap-1 text-[var(--ink-light)] bg-[var(--bg-void)] px-2.5 py-1 rounded border border-[var(--ink-muted)]/30">
                       <Clock className="w-3.5 h-3.5 text-[var(--neon-cyan)]" />
-                      <span>{movie.runtime} {t('sortear.minutes')}</span>
+                      <span>{movie.runtime} {isSeries ? t('sortear.minutes_per_episode') : t('sortear.minutes')}</span>
+                    </div>
+                  )}
+
+                  {isSeries && movie.number_of_seasons && movie.number_of_seasons > 0 && (
+                    <div className="flex items-center gap-1 text-[var(--ink-light)] bg-[var(--bg-void)] px-2.5 py-1 rounded border border-[var(--neon-magenta)]/40">
+                      <Layers className="w-3.5 h-3.5 text-[var(--neon-magenta)]" />
+                      <span>{t('sortear.seasons_count', { count: movie.number_of_seasons })}</span>
                     </div>
                   )}
 
@@ -823,7 +906,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                 {/* Director & Cast */}
                 <div className="space-y-1 text-xs font-mono text-[var(--ink-light)] border-t border-[var(--bg-brick)] pt-3">
                   <p>
-                    <strong className="text-[var(--neon-amber)]">{t('sortear.director')}:</strong> {director}
+                    <strong className="text-[var(--neon-amber)]">{isSeries ? t('sortear.created_by') : t('sortear.director')}:</strong> {director}
                   </p>
                   <p>
                     <strong className="text-[var(--neon-amber)]">{t('sortear.cast')}:</strong> {topCast}
@@ -850,7 +933,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                       {movie.recommendations.results.slice(0, 10).map((rec) => (
                         <button
                           key={rec.id}
-                          onClick={() => onSelectMovie(rec.id)}
+                          onClick={() => onSelectMovie(rec)}
                           title={rec.title}
                           className="shrink-0 w-16 sm:w-20 text-left cursor-pointer group"
                         >
@@ -982,6 +1065,21 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
           >
             <Tv className="w-4 h-4" />
             <span className="hidden sm:inline">{justSharedPlayer ? t('sortear.share_player_copied') : t('sortear.share_player')}</span>
+          </button>
+
+          <button
+            onClick={() => onToggleWatchlist(movie)}
+            title={isInWatchlist ? t('watchlist.remove') : t('watchlist.add')}
+            aria-label={isInWatchlist ? t('watchlist.remove') : t('watchlist.add')}
+            aria-pressed={isInWatchlist}
+            className={`px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg font-mono text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer shrink-0 ${
+              isInWatchlist
+                ? 'bg-[var(--neon-blue)] text-white border-[var(--neon-blue)] shadow-neon-blue'
+                : 'border-[var(--neon-blue)] text-[var(--neon-blue)] hover:bg-[var(--neon-blue)]/20'
+            }`}
+          >
+            {isInWatchlist ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+            <span className="hidden sm:inline">{isInWatchlist ? t('watchlist.in_list') : t('watchlist.add_short')}</span>
           </button>
 
           <button

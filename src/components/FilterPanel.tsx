@@ -551,7 +551,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                     type="button"
                     onClick={() => {
                       const next = isSelected && item.key !== 'all' ? 'all' : item.key;
-                      onChange({ ...filters, contentType: next });
+                      // Series and movies use different genre ids on TMDB, so a
+                      // selection made for one would match nothing in the other.
+                      const crossesMediaType = (next === 'series') !== (filters.contentType === 'series');
+                      onChange({ ...filters, contentType: next, ...(crossesMediaType ? { genreIds: [] } : {}) });
                     }}
                     className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all flex items-center gap-2 cursor-pointer border ${
                       isSelected

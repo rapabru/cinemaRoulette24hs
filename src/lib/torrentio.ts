@@ -36,14 +36,21 @@ export interface TorrentioStream {
   // x265/HEVC usually can't be decoded by the browser player, flag it so the
   // UI can steer people towards x264 releases.
   isHevc: boolean;
+  // For multi-file torrents (season packs), the file's path inside the torrent,
+  // which Torrentio prints on the line after the torrent name.
+  innerPath: string | null;
 }
 
 export function parseTorrentioStream(raw: RawTorrentioStream): TorrentioStream | null {
   if (!raw.infoHash) return null;
 
   // name: "Torrentio\n1080p"  title: "<release name>\n👤 99 💾 2.1 GB ⚙️ YTS"
+  // Multi-file torrents add the file's path as a second title line:
+  // "<pack name>\n<folder>/<file>.mkv\n👤 49 💾 34 GB ⚙️ 1337x"
   const quality = (raw.name || '').split('\n')[1]?.trim() || '?';
   const titleLines = (raw.title || '').split('\n');
+  const secondLine = titleLines[1]?.trim() || '';
+  const innerPath = secondLine && !secondLine.startsWith('👤') ? secondLine : null;
   const filename = raw.behaviorHints?.filename || titleLines[0]?.trim() || raw.infoHash;
   const meta = titleLines.slice(1).join(' ');
 
@@ -63,19 +70,31 @@ export function parseTorrentioStream(raw: RawTorrentioStream): TorrentioStream |
     size: sizeMatch ? sizeMatch[1] : null,
     source: sourceMatch ? sourceMatch[1] : null,
     isHevc: /x265|hevc|h\.?265/i.test(filename),
+    innerPath,
   };
 }
 
+/** Stremio addon path: movies by IMDb id, series episodes as `tt123:season:episode`. */
+export function torrentioStreamPath(imdbId: string, episode?: { season: number; episode: number } | null): string {
+  return episode
+    ? `/stream/series/${encodeURIComponent(`${imdbId}:${episode.season}:${episode.episode}`)}.json`
+    : `/stream/movie/${encodeURIComponent(imdbId)}.json`;
+}
+
 /**
- * Fetches the list of torrent streams Torrentio knows for a movie.
+ * Fetches the list of torrent streams Torrentio knows for a movie, or for one
+ * episode of a series when `episode` is given.
  * Returns [] on any failure (no id, network error, bad payload) so the caller
  * can show an "empty" state instead of breaking the player view.
  */
-export async function fetchTorrentioStreams(imdbId: string): Promise<TorrentioStream[]> {
+export async function fetchTorrentioStreams(
+  imdbId: string,
+  episode?: { season: number; episode: number } | null
+): Promise<TorrentioStream[]> {
   if (!imdbId) return [];
 
   try {
-    const response = await fetch(`${TORRENTIO_BASE}/stream/movie/${encodeURIComponent(imdbId)}.json`);
+    const response = await fetch(`${TORRENTIO_BASE}${torrentioStreamPath(imdbId, episode)}`);
     if (!response.ok) return [];
 
     const data = await response.json();
@@ -91,13 +110,16 @@ export async function fetchTorrentioStreams(imdbId: string): Promise<TorrentioSt
  * or below, and among those the best seeded one (Webtor pulls from the swarm
  * live, so seeders matter far more than file size for a good start).
  */
-export function pickDefaultStream(streams: TorrentioStream[]): TorrentioStream | null {
+export function pickDefaultStream(streams: TorrentioStream[], preferSingleFile: boolean = false): TorrentioStream | null {
   const is4k = (s: TorrentioStream) => /4k|2160/i.test(s.quality);
+  // For an episode, a torrent holding just that episode starts faster and
+  // can't land on the wrong file the way a whole-season pack can.
+  const base = preferSingleFile && streams.some((s) => !s.innerPath) ? streams.filter((s) => !s.innerPath) : streams;
   const candidates =
-    streams.filter((s) => !s.isHevc && !is4k(s)).length > 0
-      ? streams.filter((s) => !s.isHevc && !is4k(s))
-      : streams.filter((s) => !is4k(s));
-  const pool = candidates.length > 0 ? candidates : streams;
+    base.filter((s) => !s.isHevc && !is4k(s)).length > 0
+      ? base.filter((s) => !s.isHevc && !is4k(s))
+      : base.filter((s) => !is4k(s));
+  const pool = candidates.length > 0 ? candidates : base;
   if (pool.length === 0) return null;
   return pool.reduce((best, s) => ((s.seeders ?? 0) > (best.seeders ?? 0) ? s : best), pool[0]);
 }

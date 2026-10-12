@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Info, Download, ExternalLink, Share2 } from 'lucide-react';
+import { Check, Info, Download, ExternalLink, Share2, Bookmark } from 'lucide-react';
 import type { MovieSummary } from '../lib/tmdb';
+import { buildMovieLink } from '../lib/shareLinks';
 
 interface ContextMenuProps {
   x: number;
@@ -9,6 +10,8 @@ interface ContextMenuProps {
   movie: MovieSummary;
   isWatched: boolean;
   onToggleWatched: (movie: MovieSummary) => void;
+  isInWatchlist: boolean;
+  onToggleWatchlist: (movie: MovieSummary) => void;
   onViewDetails: (movie: MovieSummary) => void;
   onClose: () => void;
 }
@@ -19,6 +22,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   movie,
   isWatched,
   onToggleWatched,
+  isInWatchlist,
+  onToggleWatchlist,
   onViewDetails,
   onClose,
 }) => {
@@ -27,7 +32,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
 
   const handleShare = async () => {
-    const url = `${window.location.origin}${window.location.pathname}?movie=${movie.id}`;
+    const url = buildMovieLink(movie.id, 'details', undefined, undefined, movie.media_type);
     const year = movie.release_date ? movie.release_date.split('-')[0] : '';
     const shareText = `🎰 ${movie.title} ${year ? `(${year})` : ''}\n🎬 Ficha en CinemaRoulette 24HS:\n${url}`;
 
@@ -81,7 +86,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
   const windowWidth = window.innerWidth;
   const windowHeight = window.innerHeight;
   const menuWidth = 240;
-  const menuHeight = 160;
+  const menuHeight = 200;
 
   const posX = x + menuWidth > windowWidth ? windowWidth - menuWidth - 10 : x;
   const posY = y + menuHeight > windowHeight ? windowHeight - menuHeight - 10 : y;
@@ -115,6 +120,20 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
             <span>{isWatched ? t('context_menu.unmark_watched') : t('context_menu.mark_watched')}</span>
           </span>
           {isWatched && <span className="text-[10px] text-[var(--neon-green)] font-bold">✔</span>}
+        </button>
+
+        <button
+          onClick={() => {
+            onToggleWatchlist(movie);
+            onClose();
+          }}
+          className="w-full text-left px-2.5 py-2 rounded text-xs font-mono flex items-center justify-between text-[var(--ink-light)] hover:bg-[var(--neon-blue)]/20 hover:text-[var(--neon-blue)] transition-colors cursor-pointer"
+        >
+          <span className="flex items-center gap-2">
+            <Bookmark className={`w-4 h-4 ${isInWatchlist ? 'text-[var(--neon-blue)] fill-[var(--neon-blue)]' : 'text-[var(--ink-muted)]'}`} />
+            <span>{isInWatchlist ? t('watchlist.remove') : t('watchlist.add')}</span>
+          </span>
+          {isInWatchlist && <span className="text-[10px] text-[var(--neon-blue)] font-bold">✔</span>}
         </button>
 
         <button

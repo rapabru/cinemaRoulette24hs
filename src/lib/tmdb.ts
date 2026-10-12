@@ -5,8 +5,13 @@ export interface Genre {
   name: string;
 }
 
+/** TMDB keeps separate id spaces for movies and series: movie 1399 and series 1399 are different titles. */
+export type MediaType = 'movie' | 'tv';
+
 export interface MovieSummary {
   id: number;
+  // Absent means 'movie' (everything stored before series existed).
+  media_type?: MediaType;
   title: string;
   original_title: string;
   poster_path: string | null;
@@ -54,6 +59,12 @@ export interface WatchProvidersRegion {
   buy?: WatchProviderEntry[];
 }
 
+export interface SeasonSummary {
+  season_number: number;
+  episode_count: number;
+  name: string;
+}
+
 export interface MovieDetails extends MovieSummary {
   genres: Genre[];
   runtime: number | null;
@@ -75,6 +86,29 @@ export interface MovieDetails extends MovieSummary {
   recommendations?: {
     results: MovieSummary[];
   };
+  // Series only
+  number_of_seasons?: number;
+  seasons?: SeasonSummary[];
+  created_by?: { id: number; name: string }[];
+}
+
+/**
+ * Identity of a title across both id spaces, for watched/list/history lookups.
+ * Movies keep the bare id so data saved before series existed still matches.
+ */
+export function mediaKey(item: { id: number; media_type?: MediaType }): string {
+  return item.media_type === 'tv' ? `tv:${item.id}` : String(item.id);
+}
+
+/** Maps a raw TMDB series object onto the movie-shaped fields the UI reads. */
+export function normalizeTvItem<T extends Record<string, any>>(item: T): T & MovieSummary {
+  return {
+    ...item,
+    title: item.title || item.name || '',
+    original_title: item.original_title || item.original_name || '',
+    release_date: item.release_date || item.first_air_date || '',
+    media_type: 'tv',
+  } as T & MovieSummary;
 }
 
 export interface PersonResult {
@@ -249,12 +283,14 @@ let genresCache: Record<string, Genre[]> = {};
 
 const OTHER_GENRE_NAME: Record<string, string> = { en: 'Other', pt: 'Outro', es: 'Otro' };
 
-export async function fetchGenres(language: string = 'es'): Promise<Genre[]> {
+// Series use their own genre ids (e.g. 10759 "Action & Adventure" instead of 28/12).
+export async function fetchGenres(language: string = 'es', mediaType: MediaType = 'movie'): Promise<Genre[]> {
   const langKey = MOCK_GENRES[language] ? language : 'es';
   const otherName = OTHER_GENRE_NAME[language] || OTHER_GENRE_NAME.es;
-  if (genresCache[language]) return genresCache[language];
+  const cacheKey = `${mediaType}:${language}`;
+  if (genresCache[cacheKey]) return genresCache[cacheKey];
   try {
-    const data = await tmdbFetch<{ genres: Genre[] }>('/genre/movie/list', { language });
+    const data = await tmdbFetch<{ genres: Genre[] }>(`/genre/${mediaType}/list`, { language });
     if (data.genres && data.genres.length > 0) {
       const list = data.genres.map((g) => {
         if (language === 'es' && (g.id === 53 || g.name.toLowerCase() === 'suspense')) {
@@ -265,7 +301,7 @@ export async function fetchGenres(language: string = 'es'): Promise<Genre[]> {
       if (!list.some((g) => g.id === 0)) {
         list.push({ id: 0, name: otherName });
       }
-      genresCache[language] = list;
+      genresCache[cacheKey] = list;
       return list;
     }
     return MOCK_GENRES[langKey] || MOCK_GENRES.es;
@@ -440,6 +476,38 @@ export function buildDiscoverParams(filters: FilterState, page: number = 1, lang
   return params;
 }
 
+export function mediaTypeForFilters(filters: FilterState): MediaType {
+  return filters.contentType === 'series' ? 'tv' : 'movie';
+}
+
+/**
+ * Endpoint + params for the catalog. Series go to /discover/tv, which names the
+ * date filter differently and has no cast/crew filters. Runtime filters are
+ * dropped too: the panel's minutes are movie lengths, and applied to episode
+ * length they would hide most series.
+ */
+export function buildDiscoverRequest(
+  filters: FilterState,
+  page: number = 1,
+  language: string = 'es'
+): { endpoint: string; params: TmdbParams } {
+  const params = buildDiscoverParams(filters, page, language);
+  if (mediaTypeForFilters(filters) === 'movie') {
+    return { endpoint: '/discover/movie', params };
+  }
+
+  const renames: Record<string, string> = {
+    'primary_release_date.gte': 'first_air_date.gte',
+    'primary_release_date.lte': 'first_air_date.lte',
+  };
+  const tvParams: TmdbParams = {};
+  for (const [key, value] of Object.entries(params)) {
+    if (key === 'with_cast' || key === 'with_crew' || key.startsWith('with_runtime')) continue;
+    tvParams[renames[key] || key] = value;
+  }
+  return { endpoint: '/discover/tv', params: tvParams };
+}
+
 export async function discoverMovies(
   filters: FilterState,
   page: number = 1,
@@ -451,32 +519,13 @@ export async function discoverMovies(
     return getMockDiscoverResponse(filters);
   }
 
-  const isSeries = filters.contentType === 'series';
-  const endpoint = isSeries ? '/discover/tv' : '/discover/movie';
-  const rawParams = buildDiscoverParams(filters, page, language);
-  const params: Record<string, any> = { ...rawParams };
-
-  if (isSeries) {
-    if (params['primary_release_date.gte']) {
-      params['first_air_date.gte'] = params['primary_release_date.gte'];
-      delete params['primary_release_date.gte'];
-    }
-    if (params['primary_release_date.lte']) {
-      params['first_air_date.lte'] = params['primary_release_date.lte'];
-      delete params['primary_release_date.lte'];
-    }
-  }
+  const { endpoint, params } = buildDiscoverRequest(filters, page, language);
+  const isSeries = endpoint === '/discover/tv';
 
   try {
-    const data = await tmdbFetch<any>(endpoint, params, signal);
+    const data = await tmdbFetch<DiscoverResponse>(endpoint, params, signal);
     if (isSeries && Array.isArray(data.results)) {
-      data.results = data.results.map((item: any) => ({
-        ...item,
-        title: item.title || item.name || '',
-        original_title: item.original_title || item.original_name || '',
-        release_date: item.release_date || item.first_air_date || '',
-        media_type: 'tv',
-      }));
+      data.results = data.results.map(normalizeTvItem);
     }
     return data;
   } catch (err) {
@@ -507,7 +556,8 @@ export async function searchMovies(
   query: string,
   page: number = 1,
   language: string = 'es',
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  mediaType: MediaType = 'movie'
 ): Promise<DiscoverResponse> {
   const trimmed = query.trim();
   if (!trimmed) {
@@ -520,11 +570,15 @@ export async function searchMovies(
   }
 
   try {
-    return await tmdbFetch<DiscoverResponse>(
-      '/search/movie',
+    const data = await tmdbFetch<DiscoverResponse>(
+      `/search/${mediaType}`,
       { query: trimmed, page, language, include_adult: false },
       signal
     );
+    if (mediaType === 'tv' && Array.isArray(data.results)) {
+      data.results = data.results.map(normalizeTvItem);
+    }
+    return data;
   } catch (err) {
     if (isAbortError(err)) throw err;
     console.warn('TMDB search request failed. Falling back to local demo catalog.', err);
@@ -560,7 +614,48 @@ export async function fetchPopularMovies(language: string = 'es', region: string
   }
 }
 
-export async function fetchMovieDetails(id: number, language: string = 'es'): Promise<MovieDetails> {
+async function fetchTvDetails(id: number, language: string): Promise<MovieDetails> {
+  const tvData = await tmdbFetch<any>(`/tv/${id}`, {
+    language,
+    append_to_response: 'credits,videos,watch/providers,recommendations,external_ids',
+  });
+
+  if (!tvData.overview || tvData.overview.trim().length === 0) {
+    try {
+      const enData = await tmdbFetch<any>(`/tv/${id}`, { language: 'en-US' });
+      if (enData.overview && enData.overview.trim().length > 0) tvData.overview = enData.overview;
+    } catch {
+      // ignore
+    }
+  }
+
+  const runTimes: number[] = Array.isArray(tvData.episode_run_time) ? tvData.episode_run_time : [];
+  // Season 0 is "Specials"; keep it only for shows that have nothing else.
+  const allSeasons: SeasonSummary[] = (tvData.seasons || []).map((s: any) => ({
+    season_number: s.season_number,
+    episode_count: s.episode_count || 0,
+    name: s.name || '',
+  }));
+  const regularSeasons = allSeasons.filter((s) => s.season_number > 0);
+
+  return {
+    ...normalizeTvItem(tvData),
+    runtime: runTimes.length > 0 ? runTimes[0] : null,
+    imdb_id: tvData.external_ids?.imdb_id || null,
+    seasons: regularSeasons.length > 0 ? regularSeasons : allSeasons,
+    recommendations: tvData.recommendations
+      ? { results: (tvData.recommendations.results || []).map(normalizeTvItem) }
+      : undefined,
+  } as MovieDetails;
+}
+
+export async function fetchMovieDetails(
+  id: number,
+  language: string = 'es',
+  mediaType: MediaType = 'movie'
+): Promise<MovieDetails> {
+  if (mediaType === 'tv') return fetchTvDetails(id, language);
+
   const apiKey = getStoredApiKey();
   if (!apiKey) {
     const mock = MOCK_MOVIES.find((m) => m.id === id);
@@ -590,25 +685,6 @@ export async function fetchMovieDetails(id: number, language: string = 'es'): Pr
 
     return details;
   } catch (err) {
-    // If not found in /movie, try /tv/${id} (for TV series results)
-    try {
-      const tvData = await tmdbFetch<any>(`/tv/${id}`, {
-        language,
-        append_to_response: 'credits,videos,watch/providers,recommendations',
-      });
-      if (tvData && (tvData.id || tvData.name)) {
-        return {
-          ...tvData,
-          title: tvData.title || tvData.name || '',
-          original_title: tvData.original_title || tvData.original_name || '',
-          release_date: tvData.release_date || tvData.first_air_date || '',
-          runtime: Array.isArray(tvData.episode_run_time) && tvData.episode_run_time.length > 0 ? tvData.episode_run_time[0] : (tvData.runtime || null),
-          media_type: 'tv',
-        } as MovieDetails;
-      }
-    } catch {
-      // ignore and proceed to mock fallback
-    }
     const mock = MOCK_MOVIES.find((m) => m.id === id);
     if (mock) return mock;
     throw err;
@@ -625,7 +701,8 @@ export async function fetchMovieDetails(id: number, language: string = 'es'): Pr
  */
 export async function performRandomDraw(
   filters: FilterState,
-  watchedMovieIds: Set<number>,
+  // mediaKey() of every title to skip
+  watchedKeys: Set<string>,
   language: string = 'es',
   retryCount: number = 0,
   searchQuery: string = '',
@@ -633,8 +710,11 @@ export async function performRandomDraw(
   rng: () => number = Math.random
 ): Promise<MovieDetails | null> {
   const trimmedQuery = searchQuery.trim();
+  const mediaType = mediaTypeForFilters(filters);
   const fetchPage = (page: number) =>
-    trimmedQuery ? searchMovies(trimmedQuery, page, language) : discoverMovies(filters, page, language);
+    trimmedQuery
+      ? searchMovies(trimmedQuery, page, language, undefined, mediaType)
+      : discoverMovies(filters, page, language);
 
   const initial = await fetchPage(1);
 
@@ -660,9 +740,9 @@ export async function performRandomDraw(
   const randomIndex = Math.floor(rng() * targetPageResults.length);
   const selectedMovieSummary = targetPageResults[randomIndex];
 
-  if (filters.skipWatched && watchedMovieIds.has(selectedMovieSummary.id) && retryCount < 5) {
-    return performRandomDraw(filters, watchedMovieIds, language, retryCount + 1, searchQuery, rng);
+  if (filters.skipWatched && watchedKeys.has(mediaKey(selectedMovieSummary)) && retryCount < 5) {
+    return performRandomDraw(filters, watchedKeys, language, retryCount + 1, searchQuery, rng);
   }
 
-  return fetchMovieDetails(selectedMovieSummary.id, language);
+  return fetchMovieDetails(selectedMovieSummary.id, language, selectedMovieSummary.media_type);
 }

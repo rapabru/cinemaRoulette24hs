@@ -89,12 +89,12 @@ describe('backup', () => {
     })!;
     const summary = importBackup(incoming);
 
-    expect(summary).toEqual({ watchedAdded: 1, historyAdded: 1, presetsAdded: 1 });
+    expect(summary).toEqual({ watchedAdded: 1, watchlistAdded: 0, historyAdded: 1, presetsAdded: 1 });
     expect(getWatchedMovies().map((m) => m.id).sort()).toEqual([1, 2]);
     expect(getDrawnHistory().map((m) => m.id)).toEqual([11, 10]);
     expect(getPresets().map((p) => p.name)).toEqual(['Terror']);
     // Importing the same backup again adds nothing.
-    expect(importBackup(incoming)).toEqual({ watchedAdded: 0, historyAdded: 0, presetsAdded: 0 });
+    expect(importBackup(incoming)).toEqual({ watchedAdded: 0, watchlistAdded: 0, historyAdded: 0, presetsAdded: 0 });
   });
 
   it('rejects files from other apps or versions', () => {

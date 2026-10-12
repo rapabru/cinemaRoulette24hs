@@ -6,6 +6,8 @@ import type { TorrentioStream, QualityGroup } from '../lib/torrentio';
 
 interface TorrentioPlayerProps {
   imdbId: string | null | undefined;
+  // Set for series: which episode to look up.
+  episode?: { season: number; episode: number } | null;
   title: string;
   year: string;
   posterUrl: string | null;
@@ -39,7 +41,7 @@ function buildWebtorSrcDoc(config: Record<string, unknown>): string {
   return `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
 }
 
-export const TorrentioPlayer: React.FC<TorrentioPlayerProps> = ({ imdbId, title, year, posterUrl }) => {
+export const TorrentioPlayer: React.FC<TorrentioPlayerProps> = ({ imdbId, episode = null, title, year, posterUrl }) => {
   const { t, i18n } = useTranslation();
   const [streams, setStreams] = useState<TorrentioStream[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
@@ -59,10 +61,10 @@ export const TorrentioPlayer: React.FC<TorrentioPlayerProps> = ({ imdbId, title,
     setStatus('loading');
     setSelected(null);
 
-    fetchTorrentioStreams(imdbId)
+    fetchTorrentioStreams(imdbId, episode)
       .then((result) => {
         if (cancelled) return;
-        const defaultStream = pickDefaultStream(result);
+        const defaultStream = pickDefaultStream(result, !!episode);
         setStreams(result);
         setSelected(defaultStream);
         setActiveGroup(defaultStream ? qualityGroupOf(defaultStream) : null);
@@ -77,7 +79,7 @@ export const TorrentioPlayer: React.FC<TorrentioPlayerProps> = ({ imdbId, title,
     return () => {
       cancelled = true;
     };
-  }, [imdbId]);
+  }, [imdbId, episode?.season, episode?.episode]);
 
   // The auto-picked default is rarely the first row, so make sure it's visible.
   useEffect(() => {
@@ -86,7 +88,10 @@ export const TorrentioPlayer: React.FC<TorrentioPlayerProps> = ({ imdbId, title,
 
   const groups = useMemo(() => groupByQuality(streams), [streams]);
   const visibleStreams = (activeGroup && groups.get(activeGroup)) || [];
-  const displayName = `${title} (${year})`;
+  const isEpisode = !!episode;
+  const displayName = episode
+    ? `${title} S${String(episode.season).padStart(2, '0')}E${String(episode.episode).padStart(2, '0')}`
+    : `${title} (${year})`;
 
   const srcDoc = useMemo(() => {
     if (!selected) return null;
@@ -96,6 +101,8 @@ export const TorrentioPlayer: React.FC<TorrentioPlayerProps> = ({ imdbId, title,
       imdbId: imdbId || null,
       poster: posterUrl,
       title: displayName,
+      // Season packs: point Webtor at the episode's file instead of the first video.
+      ...(isEpisode && selected.innerPath ? { path: `/${selected.innerPath}` } : {}),
       lang: i18n.language,
       // Webtor looks up OpenSubtitles by imdbId; userLang picks which language it prefers.
       userLang: i18n.language,
@@ -103,7 +110,7 @@ export const TorrentioPlayer: React.FC<TorrentioPlayerProps> = ({ imdbId, title,
       height: '100%',
       features: { embed: false },
     });
-  }, [selected, imdbId, displayName, posterUrl, i18n.language]);
+  }, [selected, imdbId, displayName, posterUrl, i18n.language, isEpisode]);
 
   const containerClass =
     'relative aspect-video w-full max-h-[75vh] rounded-xl overflow-hidden border-2 border-[var(--neon-green)] shadow-neon-green bg-black mx-auto';

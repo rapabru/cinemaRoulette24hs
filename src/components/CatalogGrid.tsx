@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { mediaKey } from '../lib/tmdb';
 import type { MovieSummary } from '../lib/tmdb';
 import { MovieCard } from './MovieCard';
 import { AlertTriangle, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
@@ -7,7 +8,10 @@ import { AlertTriangle, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight }
 interface CatalogGridProps {
   movies: MovieSummary[];
   isLoading: boolean;
-  watchedMovieIds: Set<number>;
+  // mediaKey() sets
+  watchedKeys: Set<string>;
+  watchlistKeys: Set<string>;
+  onToggleWatchlist: (movie: MovieSummary) => void;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -18,7 +22,9 @@ interface CatalogGridProps {
 export const CatalogGrid: React.FC<CatalogGridProps> = ({
   movies,
   isLoading,
-  watchedMovieIds,
+  watchedKeys,
+  watchlistKeys,
+  onToggleWatchlist,
   currentPage,
   totalPages,
   onPageChange,
@@ -91,9 +97,11 @@ export const CatalogGrid: React.FC<CatalogGridProps> = ({
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
         {movies.map((movie, index) => (
           <MovieCard
-            key={movie.id}
+            key={mediaKey(movie)}
             movie={movie}
-            isWatched={watchedMovieIds.has(movie.id)}
+            isWatched={watchedKeys.has(mediaKey(movie))}
+            isInWatchlist={watchlistKeys.has(mediaKey(movie))}
+            onToggleWatchlist={onToggleWatchlist}
             onContextMenu={onContextMenu}
             onClick={onMovieClick}
             entranceDelayMs={Math.min(index * 30, 400)}

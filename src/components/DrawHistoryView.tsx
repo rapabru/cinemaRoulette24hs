@@ -2,17 +2,17 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { History, Search, Trash2, Calendar, Star, Check, Dices, BarChart3 } from 'lucide-react';
 import type { DrawnHistoryItem } from '../lib/history';
-import { getGridPosterSources } from '../lib/tmdb';
+import { getGridPosterSources, mediaKey } from '../lib/tmdb';
 import type { Genre } from '../lib/tmdb';
 import { ExportButtons } from './ExportButtons';
 
 interface DrawHistoryViewProps {
   historyList: DrawnHistoryItem[];
-  watchedMovieIds: Set<number>;
+  watchedKeys: Set<string>;
   genres: Genre[];
   onClearHistory: () => void;
-  onSelectMovie: (id: number) => void;
-  onToggleWatched: (movie: { id: number; title: string; poster_path: string | null; release_date: string }) => void;
+  onSelectMovie: (movie: DrawnHistoryItem) => void;
+  onToggleWatched: (movie: DrawnHistoryItem) => void;
   onSortearAgain: () => void;
 }
 
@@ -40,7 +40,7 @@ function useCountUp(target: number, durationMs = 700): number {
 
 export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
   historyList,
-  watchedMovieIds,
+  watchedKeys,
   genres,
   onClearHistory,
   onSelectMovie,
@@ -190,16 +190,16 @@ export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
           const poster = getGridPosterSources(movie.poster_path);
           const year = movie.release_date ? movie.release_date.split('-')[0] : '';
           const drawnDate = new Date(movie.drawnAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-          const isWatched = watchedMovieIds.has(movie.id);
+          const isWatched = watchedKeys.has(mediaKey(movie));
 
           return (
             <div
-              key={`${movie.id}_${movie.drawnAt}`}
+              key={`${mediaKey(movie)}_${movie.drawnAt}`}
               className="crt-monitor group relative bg-[var(--bg-panel)] border border-[var(--neon-amber)]/30 rounded-lg overflow-hidden flex flex-col justify-between"
             >
               {/* Poster Image */}
               <div
-                onClick={() => onSelectMovie(movie.id)}
+                onClick={() => onSelectMovie(movie)}
                 className="relative aspect-[2/3] w-full overflow-hidden cursor-pointer bg-black/60"
               >
                 <img src={poster.src}
@@ -224,7 +224,7 @@ export const DrawHistoryView: React.FC<DrawHistoryViewProps> = ({
               <div className="p-3 bg-[var(--bg-panel)] border-t border-[var(--bg-brick)] flex flex-col justify-between flex-1">
                 <div>
                   <h3
-                    onClick={() => onSelectMovie(movie.id)}
+                    onClick={() => onSelectMovie(movie)}
                     className="font-mono font-semibold text-xs text-[var(--ink-light)] line-clamp-1 hover:text-[var(--neon-amber)] cursor-pointer"
                   >
                     {movie.title}

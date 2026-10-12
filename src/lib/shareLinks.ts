@@ -1,5 +1,5 @@
 import { DEFAULT_FILTERS } from './tmdb';
-import type { FilterState } from './tmdb';
+import type { FilterState, MediaType } from './tmdb';
 
 // URL state for things worth sharing in the Discord: a movie's details
 // (?movie=603) and a "sorteo de la noche" (?seed=ABC123&f=<filters>&q=<search>).
@@ -9,6 +9,15 @@ export const PLAYER_PARAM = 'player';
 export const SEED_PARAM = 'seed';
 export const FILTERS_PARAM = 'f';
 export const QUERY_PARAM = 'q';
+// Series links: /m/1399?type=tv (movie and series ids overlap on TMDB).
+export const TYPE_PARAM = 'type';
+export const SEASON_PARAM = 's';
+export const EPISODE_PARAM = 'e';
+
+export interface EpisodeRef {
+  season: number;
+  episode: number;
+}
 
 export type PlayerProvider = 'vidking' | 'playimdb' | 'torrentio' | 'cinejoy' | 'trailer';
 
@@ -70,7 +79,9 @@ export function buildMovieLink(
   movieId: number,
   modeOrBase: 'details' | 'player' | string = 'details',
   provider?: PlayerProvider,
-  baseParam?: string
+  baseParam?: string,
+  mediaType: MediaType = 'movie',
+  episode?: EpisodeRef | null
 ): string {
   let mode: 'details' | 'player' = 'details';
   let base: string = typeof window !== 'undefined' ? window.location.origin : 'https://cinemaroulette.vercel.app';
@@ -84,8 +95,13 @@ export function buildMovieLink(
 
   const origin = base.endsWith('/') ? base.slice(0, -1) : base;
   const url = new URL(`${origin}/m/${movieId}`);
+  if (mediaType === 'tv') url.searchParams.set(TYPE_PARAM, 'tv');
   if (mode === 'player' && provider) {
     url.searchParams.set(PLAYER_PARAM, provider);
+    if (mediaType === 'tv' && episode) {
+      url.searchParams.set(SEASON_PARAM, String(episode.season));
+      url.searchParams.set(EPISODE_PARAM, String(episode.episode));
+    }
   }
   return url.toString();
 }
@@ -144,6 +160,8 @@ export function buildNightDrawLink(link: NightDrawLink, base: string = typeof wi
 
 export interface ParsedAppUrl {
   movieId: number | null;
+  mediaType: MediaType;
+  episode: EpisodeRef | null;
   mode: 'details' | 'player';
   player: PlayerProvider;
   nightDraw: NightDrawLink | null;
@@ -176,7 +194,13 @@ export function parseAppUrl(search: string, pathname: string = ''): ParsedAppUrl
     const filters = (params.get(FILTERS_PARAM) && decodeFilters(params.get(FILTERS_PARAM)!)) || DEFAULT_FILTERS;
     nightDraw = { seed, filters, searchQuery: params.get(QUERY_PARAM) || '' };
   }
-  return { movieId, mode, player, nightDraw };
+  const mediaType: MediaType = params.get(TYPE_PARAM) === 'tv' ? 'tv' : 'movie';
+  const seasonNum = parseInt(params.get(SEASON_PARAM) || '', 10);
+  const episodeNum = parseInt(params.get(EPISODE_PARAM) || '', 10);
+  const episode =
+    mediaType === 'tv' && seasonNum >= 0 && episodeNum > 0 ? { season: seasonNum, episode: episodeNum } : null;
+
+  return { movieId, mediaType, episode, mode, player, nightDraw };
 }
 
 /** Rewrites the address bar without adding history entries. */

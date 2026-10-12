@@ -104,7 +104,8 @@ export async function fetchMovieOgData(
   movieId: number | string,
   providerKey?: string | null,
   apiKey?: string,
-  fetchFn: typeof fetch = fetch
+  fetchFn: typeof fetch = fetch,
+  mediaType: 'movie' | 'tv' = 'movie'
 ): Promise<MovieOgData | null> {
   const token = apiKey || OFFICIAL_DEMO_KEY;
   const headers = {
@@ -113,7 +114,7 @@ export async function fetchMovieOgData(
   };
 
   try {
-    const res = await fetchFn(`https://api.themoviedb.org/3/movie/${movieId}?language=es-ES`, { headers });
+    const res = await fetchFn(`https://api.themoviedb.org/3/${mediaType}/${movieId}?language=es-ES`, { headers });
     if (!res.ok) return null;
 
     const data = await res.json();
@@ -122,7 +123,7 @@ export async function fetchMovieOgData(
     // If Spanish synopsis is empty, fallback to English
     if (!overview.trim()) {
       try {
-        const enRes = await fetchFn(`https://api.themoviedb.org/3/movie/${movieId}?language=en-US`, { headers });
+        const enRes = await fetchFn(`https://api.themoviedb.org/3/${mediaType}/${movieId}?language=en-US`, { headers });
         if (enRes.ok) {
           const enData = await enRes.json();
           if (enData.overview && enData.overview.trim()) {
@@ -134,7 +135,10 @@ export async function fetchMovieOgData(
       }
     }
 
-    const year = data.release_date ? data.release_date.slice(0, 4) : '';
+    // Series name their fields differently (name / first_air_date / episode_run_time).
+    const releaseDate = data.release_date || data.first_air_date || '';
+    const year = releaseDate ? releaseDate.slice(0, 4) : '';
+    const runtime = data.runtime ?? (Array.isArray(data.episode_run_time) ? data.episode_run_time[0] ?? null : null);
     const genres = Array.isArray(data.genres) ? data.genres.map((g: any) => g.name).filter(Boolean) : [];
     const hasBackdrop = Boolean(data.backdrop_path);
     const imageUrl = data.backdrop_path
@@ -147,12 +151,12 @@ export async function fetchMovieOgData(
 
     return {
       id: Number(data.id),
-      title: data.title || data.original_title || 'Película',
-      originalTitle: data.original_title || '',
+      title: data.title || data.name || data.original_title || data.original_name || (mediaType === 'tv' ? 'Serie' : 'Película'),
+      originalTitle: data.original_title || data.original_name || '',
       year,
       voteAverage: Number(data.vote_average) || 0,
       voteCount: Number(data.vote_count) || 0,
-      runtime: data.runtime ?? null,
+      runtime,
       genres,
       overview,
       imageUrl,

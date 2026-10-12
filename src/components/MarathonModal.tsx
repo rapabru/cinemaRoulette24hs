@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Clapperboard, Dices, Loader2, RefreshCw, Trash2, Copy, Check, Clock, Star, Info } from 'lucide-react';
-import { getImageUrl } from '../lib/tmdb';
+import { getImageUrl, mediaKey } from '../lib/tmdb';
 import type { MovieDetails } from '../lib/tmdb';
 import { orderForMarathon, totalRuntimeMinutes, estimatedEndTime, formatMinutes, marathonToText } from '../lib/marathon';
 import { ExportButtons } from './ExportButtons';
@@ -18,7 +18,7 @@ interface MarathonModalProps {
   onRedrawSlot: (movieId: number) => void;
   onRemove: (movieId: number) => void;
   onOpenMovie: (movie: MovieDetails) => void;
-  watchedMovieIds: Set<number>;
+  watchedKeys: Set<string>;
 }
 
 const SIZE_OPTIONS = [3, 5, 7];
@@ -34,7 +34,7 @@ export const MarathonModal: React.FC<MarathonModalProps> = ({
   onRedrawSlot,
   onRemove,
   onOpenMovie,
-  watchedMovieIds,
+  watchedKeys,
 }) => {
   const { t, i18n } = useTranslation();
   const [justCopied, setJustCopied] = useState(false);
@@ -172,7 +172,7 @@ export const MarathonModal: React.FC<MarathonModalProps> = ({
                           </span>
                         )}
                         {m.genres?.slice(0, 2).map((g) => g.name).join(' · ')}
-                        {watchedMovieIds.has(m.id) && (
+                        {watchedKeys.has(mediaKey(m)) && (
                           <span className="text-[var(--neon-green)] font-bold">{t('sortear.watched_badge')}</span>
                         )}
                       </div>

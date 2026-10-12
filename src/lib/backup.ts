@@ -3,6 +3,9 @@ import type { WatchedMovie } from './watched';
 import { getDrawnHistory, saveDrawnHistory } from './history';
 import type { DrawnHistoryItem } from './history';
 import { getPresets, savePreset } from './presets';
+import { getWatchlist, saveWatchlist } from './watchlist';
+import type { WatchlistItem } from './watchlist';
+import { mediaKey } from './tmdb';
 import type { FilterPreset } from './presets';
 
 // Everything the app remembers lives in this browser's localStorage. A backup
@@ -15,10 +18,13 @@ export interface BackupFile {
   watched: WatchedMovie[];
   history: DrawnHistoryItem[];
   presets: FilterPreset[];
+  // Added after v1 shipped; older backup files simply don't have it.
+  watchlist: WatchlistItem[];
 }
 
 export interface ImportSummary {
   watchedAdded: number;
+  watchlistAdded: number;
   historyAdded: number;
   presetsAdded: number;
 }
@@ -31,6 +37,7 @@ export function buildBackup(): BackupFile {
     watched: getWatchedMovies(),
     history: getDrawnHistory(),
     presets: getPresets(),
+    watchlist: getWatchlist(),
   };
 }
 
@@ -48,6 +55,7 @@ export function parseBackup(json: unknown): BackupFile | null {
   const watched = Array.isArray(json.watched) ? (json.watched as WatchedMovie[]) : [];
   const history = Array.isArray(json.history) ? (json.history as DrawnHistoryItem[]) : [];
   const presets = Array.isArray(json.presets) ? (json.presets as FilterPreset[]) : [];
+  const watchlist = Array.isArray(json.watchlist) ? (json.watchlist as WatchlistItem[]) : [];
   const validId = (item: { id?: unknown }) => typeof item?.id === 'number';
   return {
     app: 'cybercafe24hs',
@@ -56,6 +64,7 @@ export function parseBackup(json: unknown): BackupFile | null {
     watched: watched.filter(validId),
     history: history.filter(validId),
     presets: presets.filter((p) => typeof p?.name === 'string' && isRecord(p.filters)),
+    watchlist: watchlist.filter(validId),
   };
 }
 
@@ -66,13 +75,18 @@ export function parseBackup(json: unknown): BackupFile | null {
  */
 export function importBackup(backup: BackupFile): ImportSummary {
   const watched = getWatchedMovies();
-  const watchedIds = new Set(watched.map((m) => m.id));
-  const newWatched = backup.watched.filter((m) => !watchedIds.has(m.id));
+  const watchedKeys = new Set(watched.map(mediaKey));
+  const newWatched = backup.watched.filter((m) => !watchedKeys.has(mediaKey(m)));
   if (newWatched.length > 0) saveWatchedMovies([...watched, ...newWatched]);
 
+  const watchlist = getWatchlist();
+  const watchlistKeys = new Set(watchlist.map(mediaKey));
+  const newWatchlist = backup.watchlist.filter((m) => !watchlistKeys.has(mediaKey(m)));
+  if (newWatchlist.length > 0) saveWatchlist([...watchlist, ...newWatchlist]);
+
   const history = getDrawnHistory();
-  const historyIds = new Set(history.map((m) => m.id));
-  const newHistory = backup.history.filter((m) => !historyIds.has(m.id));
+  const historyKeys = new Set(history.map(mediaKey));
+  const newHistory = backup.history.filter((m) => !historyKeys.has(mediaKey(m)));
   if (newHistory.length > 0) {
     const merged = [...history, ...newHistory]
       .sort((a, b) => (b.drawnAt || '').localeCompare(a.drawnAt || ''))
@@ -84,5 +98,9 @@ export function importBackup(backup: BackupFile): ImportSummary {
   const newPresets = backup.presets.filter((p) => !presetNames.has(p.name));
   newPresets.forEach((p) => savePreset(p.name, p.filters));
 
-  return { watchedAdded: newWatched.length, historyAdded: newHistory.length, presetsAdded: newPresets.length };
+  return {
+    watchedAdded: newWatched.length,
+    watchlistAdded: newWatchlist.length,
+    historyAdded: newHistory.length, presetsAdded: newPresets.length,
+  };
 }

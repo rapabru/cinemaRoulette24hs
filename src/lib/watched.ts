@@ -1,4 +1,6 @@
 import { readJson, writeJson, runMigrationOnce } from './storage';
+import { mediaKey } from './tmdb';
+import type { MediaType } from './tmdb';
 
 export interface WatchedMovie {
   id: number;
@@ -6,6 +8,7 @@ export interface WatchedMovie {
   poster_path: string | null;
   release_date: string;
   vote_average?: number;
+  media_type?: MediaType;
   dateWatched: string;
 }
 
@@ -34,9 +37,10 @@ export function saveWatchedMovies(list: WatchedMovie[]): void {
   writeJson(WATCHED_STORAGE_KEY, list);
 }
 
-export function isMovieWatched(id: number, list?: WatchedMovie[]): boolean {
+export function isMovieWatched(item: { id: number; media_type?: MediaType }, list?: WatchedMovie[]): boolean {
   const currentList = list || getWatchedMovies();
-  return currentList.some((m) => m.id === id);
+  const key = mediaKey(item);
+  return currentList.some((m) => mediaKey(m) === key);
 }
 
 export function toggleMovieWatched(movie: {
@@ -45,9 +49,11 @@ export function toggleMovieWatched(movie: {
   poster_path: string | null;
   release_date: string;
   vote_average?: number;
+  media_type?: MediaType;
 }): { isNowWatched: boolean; updatedList: WatchedMovie[] } {
   const list = getWatchedMovies();
-  const index = list.findIndex((m) => m.id === movie.id);
+  const key = mediaKey(movie);
+  const index = list.findIndex((m) => mediaKey(m) === key);
 
   if (index >= 0) {
     // Unmark
@@ -63,6 +69,7 @@ export function toggleMovieWatched(movie: {
     poster_path: movie.poster_path,
     release_date: movie.release_date || '',
     vote_average: movie.vote_average,
+    ...(movie.media_type === 'tv' ? { media_type: 'tv' as const } : {}),
     dateWatched: new Date().toISOString(),
   };
   list.unshift(newItem);

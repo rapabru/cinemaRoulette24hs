@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Eye, Search, Trash2, Calendar, Star } from 'lucide-react';
 import type { WatchedMovie } from '../lib/watched';
-import { getGridPosterSources } from '../lib/tmdb';
+import { getGridPosterSources, mediaKey } from '../lib/tmdb';
 import { ExportButtons } from './ExportButtons';
 
 interface WatchedViewProps {
   watchedList: WatchedMovie[];
-  onUnmark: (id: number) => void;
-  onSelectMovie: (id: number) => void;
+  onUnmark: (movie: WatchedMovie) => void;
+  onSelectMovie: (movie: WatchedMovie) => void;
 }
 
 export const WatchedView: React.FC<WatchedViewProps> = ({
@@ -91,12 +91,12 @@ export const WatchedView: React.FC<WatchedViewProps> = ({
 
           return (
             <div
-              key={movie.id}
+              key={mediaKey(movie)}
               className="crt-monitor group relative bg-[var(--bg-panel)] border border-[var(--neon-green)]/40 rounded-lg overflow-hidden flex flex-col justify-between"
             >
               {/* Image & Remove Hover Action */}
               <div
-                onClick={() => onSelectMovie(movie.id)}
+                onClick={() => onSelectMovie(movie)}
                 className="relative aspect-[2/3] w-full overflow-hidden cursor-pointer bg-black/60"
               >
                 <img src={poster.src}
@@ -114,7 +114,7 @@ export const WatchedView: React.FC<WatchedViewProps> = ({
               <div className="p-3 bg-[var(--bg-panel)] border-t border-[var(--bg-brick)] flex flex-col justify-between flex-1">
                 <div>
                   <h3
-                    onClick={() => onSelectMovie(movie.id)}
+                    onClick={() => onSelectMovie(movie)}
                     className="font-mono font-semibold text-xs text-[var(--ink-light)] line-clamp-1 hover:text-[var(--neon-green)] cursor-pointer"
                   >
                     {movie.title}
@@ -128,7 +128,7 @@ export const WatchedView: React.FC<WatchedViewProps> = ({
                 </div>
 
                 <button
-                  onClick={() => onUnmark(movie.id)}
+                  onClick={() => onUnmark(movie)}
                   className="mt-3 w-full py-1 px-2 rounded bg-[var(--bg-void)] border border-red-500/30 hover:border-red-500 text-red-400 text-[10px] font-mono flex items-center justify-center gap-1 transition-colors"
                 >
                   <Trash2 className="w-3 h-3" />

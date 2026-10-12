@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Star, Check, Play } from 'lucide-react';
+import { Star, Check, Play, Bookmark, BookmarkCheck } from 'lucide-react';
 import { getGridPosterSources } from '../lib/tmdb';
 import type { MovieSummary } from '../lib/tmdb';
 
 interface MovieCardProps {
   movie: MovieSummary;
   isWatched: boolean;
+  isInWatchlist: boolean;
+  onToggleWatchlist: (movie: MovieSummary) => void;
   onContextMenu: (e: React.MouseEvent, movie: MovieSummary) => void;
   onClick: (movie: MovieSummary) => void;
   entranceDelayMs?: number;
@@ -15,6 +17,8 @@ interface MovieCardProps {
 export const MovieCard: React.FC<MovieCardProps> = ({
   movie,
   isWatched,
+  isInWatchlist,
+  onToggleWatchlist,
   onContextMenu,
   onClick,
   entranceDelayMs = 0,
@@ -84,6 +88,26 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           </div>
         )}
 
+        {/* "Mi lista" toggle — above the hover overlay, and doesn't open the card */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleWatchlist(movie);
+          }}
+          onKeyDown={(e) => e.stopPropagation()}
+          title={isInWatchlist ? t('watchlist.remove') : t('watchlist.add')}
+          aria-label={isInWatchlist ? t('watchlist.remove') : t('watchlist.add')}
+          aria-pressed={isInWatchlist}
+          className={`absolute bottom-2 right-2 z-20 w-8 h-8 rounded-full flex items-center justify-center border transition-all cursor-pointer shadow-md ${
+            isInWatchlist
+              ? 'bg-[var(--neon-blue)] border-[var(--neon-blue)] text-white shadow-neon-blue'
+              : 'bg-black/70 border-[var(--neon-blue)]/60 text-[var(--ink-light)] hover:bg-[var(--neon-blue)] hover:text-white'
+          }`}
+        >
+          {isInWatchlist ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
+        </button>
+
         {/* Hover Cyber Play Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30 opacity-0 group-hover:opacity-100 transition-opacity p-3 flex flex-col items-center justify-center text-center">
           <div className="w-10 h-10 rounded-full bg-[var(--neon-cyan)] text-[var(--bg-void)] flex items-center justify-center shadow-neon-cyan mb-2 transform group-hover:scale-110 transition-transform">
@@ -104,7 +128,14 @@ export const MovieCard: React.FC<MovieCardProps> = ({
           {movie.title}
         </h3>
         <div className="flex items-center justify-between text-[10px] font-mono text-[var(--ink-muted)] mt-1">
-          <span>{year}</span>
+          <span className="flex items-center gap-1.5">
+            {year}
+            {movie.media_type === 'tv' && (
+              <span className="px-1 rounded bg-[var(--neon-magenta)] text-white text-[9px] font-bold tracking-wider">
+                {t('sortear.series_badge')}
+              </span>
+            )}
+          </span>
           <span className="uppercase tracking-widest">{movie.original_language}</span>
         </div>
       </div>

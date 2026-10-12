@@ -1,4 +1,6 @@
 import { readJson, writeJson, removeKey, runMigrationOnce } from './storage';
+import { mediaKey } from './tmdb';
+import type { MediaType } from './tmdb';
 
 export interface DrawnHistoryItem {
   id: number;
@@ -7,6 +9,7 @@ export interface DrawnHistoryItem {
   release_date: string;
   vote_average?: number;
   genre_ids?: number[];
+  media_type?: MediaType;
   drawnAt: string;
 }
 
@@ -43,6 +46,7 @@ export function addMovieToHistory(movie: {
   release_date: string;
   vote_average?: number;
   genre_ids?: number[];
+  media_type?: MediaType;
 }): DrawnHistoryItem[] {
   const list = getDrawnHistory();
 
@@ -53,11 +57,13 @@ export function addMovieToHistory(movie: {
     release_date: movie.release_date || '',
     vote_average: movie.vote_average,
     genre_ids: movie.genre_ids,
+    ...(movie.media_type === 'tv' ? { media_type: 'tv' as const } : {}),
     drawnAt: new Date().toISOString(),
   };
 
   // Prepend, dropping any earlier draw of the same movie, capped to the last N.
-  const filtered = list.filter((item) => item.id !== movie.id);
+  const key = mediaKey(movie);
+  const filtered = list.filter((item) => mediaKey(item) !== key);
   const updated = [newItem, ...filtered].slice(0, MAX_HISTORY_ITEMS);
 
   saveDrawnHistory(updated);
