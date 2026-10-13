@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { X, Dices, Check, Star, Clock, Play, Info, Tv, Download, ExternalLink, Film, Video, Share2, Search, ArrowLeft, Maximize2, ShieldAlert, Magnet, Loader2, Clapperboard, Bookmark, BookmarkCheck, Layers } from 'lucide-react';
 import { getImageUrl, getTrailerVideo, getWatchProviders } from '../lib/tmdb';
 import type { MovieDetails, MediaType } from '../lib/tmdb';
-import { buildPlayerUrls } from '../lib/players';
+import { buildPlayerUrls, EXTERNAL_SERVERS, EXTERNAL_SERVER_IDS, isExternalServerId } from '../lib/players';
 import { fetchOmdbRatings } from '../lib/omdb';
 import type { OmdbRatings } from '../lib/omdb';
 import { SlotReel, LANDING_DURATION_MS } from './SlotReel';
@@ -285,6 +285,9 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
   const stremioUrl = playerUrls.stremio;
   const vidkingEmbedUrl = playerUrls.vidking;
   const playImdbEmbedUrl = playerUrls.playimdb;
+  // New-tab-only servers come from the registry in lib/players.ts.
+  const externalServer = isExternalServerId(playerProvider) ? EXTERNAL_SERVERS[playerProvider] : null;
+  const externalServerUrl = externalServer ? externalServer.buildUrl(movie, currentEpisode) : null;
 
   const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${movie.title} ${year} ${isSeries ? 'serie' : 'película'}`)}`;
 
@@ -297,7 +300,7 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
           ? playImdbEmbedUrl
           : playerProvider === 'torrentio'
             ? stremioUrl
-            : trailerEmbedUrl;
+            : externalServerUrl ?? trailerEmbedUrl;
 
   const handleOpenFullscreenTab = () => {
     if (currentEmbedUrl) window.open(currentEmbedUrl, '_blank', 'noopener,noreferrer');
@@ -543,6 +546,21 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                     <span>{t('sortear.option_n', { n: 4, name: 'PlayIMDB' })}</span>
                   </button>
 
+                  {EXTERNAL_SERVER_IDS.map((id) => (
+                    <button
+                      key={id}
+                      onClick={() => setPlayerProvider(id)}
+                      className={`px-3 py-1.5 rounded font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        playerProvider === id
+                          ? 'bg-[var(--neon-red-glow)] text-white shadow-neon-red'
+                          : 'bg-[var(--bg-void)] text-[var(--ink-muted)] hover:text-[var(--ink-light)] border border-[var(--ink-muted)]/30'
+                      }`}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>{EXTERNAL_SERVERS[id].name}</span>
+                    </button>
+                  ))}
+
                   {trailerEmbedUrl && (
                     <button
                       onClick={() => setPlayerProvider('trailer')}
@@ -647,6 +665,22 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                 </div>
               ) : playerProvider === 'torrentio' ? (
                 <TorrentioPlayer imdbId={imdbId} episode={currentEpisode} title={movie.title} year={year} posterUrl={posterUrl} />
+              ) : externalServer && externalServerUrl ? (
+                <div className="relative aspect-video w-full max-h-[75vh] rounded-xl overflow-hidden border-2 border-[var(--neon-red-glow)] shadow-neon-red bg-black mx-auto flex flex-col items-center justify-center gap-4 p-6 text-center">
+                  <ExternalLink className="w-10 h-10 text-[var(--neon-red-glow)]" />
+                  <p className="text-sm font-mono text-[var(--ink-light)] max-w-sm">
+                    {t('sortear.external_server_hint', { name: externalServer.name })}
+                  </p>
+                  <a
+                    href={externalServerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-5 py-3 rounded-lg font-mono text-sm font-bold bg-[var(--neon-red-glow)] hover:bg-[var(--neon-red-glow)]/80 text-white shadow-neon-red flex items-center gap-2 transition-all cursor-pointer"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>{t('sortear.open_external', { name: externalServer.name })}</span>
+                  </a>
+                </div>
               ) : trailerEmbedUrl ? (
                 <div className="relative aspect-video w-full max-h-[75vh] rounded-xl overflow-hidden border-2 border-[var(--neon-magenta)] shadow-neon-magenta bg-black mx-auto">
                   <iframe
@@ -690,7 +724,9 @@ export const RouletteModal: React.FC<RouletteModalProps> = ({
                         ? t('sortear.terminal_active', { n: 3, name: 'VidKing' })
                         : playerProvider === 'playimdb'
                           ? `${t('sortear.terminal_active', { n: 4, name: 'PlayIMDB' })} ${imdbId ? `(${imdbId})` : ''}`
-                          : `${t('sortear.trailer')} — YouTube`}
+                          : externalServer
+                            ? externalServer.name
+                            : `${t('sortear.trailer')} — YouTube`}
                 </span>
 
                 {playerProvider === 'torrentio' && stremioUrl && (

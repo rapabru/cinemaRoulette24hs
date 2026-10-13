@@ -1,5 +1,7 @@
 import { DEFAULT_FILTERS } from './tmdb';
 import type { FilterState, MediaType } from './tmdb';
+import { EXTERNAL_SERVERS, EXTERNAL_SERVER_IDS } from './players';
+import type { ExternalServerId } from './players';
 
 // URL state for things worth sharing in the Discord: a movie's details
 // (?movie=603) and a "sorteo de la noche" (?seed=ABC123&f=<filters>&q=<search>).
@@ -19,15 +21,22 @@ export interface EpisodeRef {
   episode: number;
 }
 
-export type PlayerProvider = 'vidking' | 'playimdb' | 'torrentio' | 'cinejoy' | 'trailer';
+export type PlayerProvider = 'vidking' | 'playimdb' | 'torrentio' | 'cinejoy' | 'trailer' | ExternalServerId;
 
-export const SERVER_DISPLAY_NAMES: Record<PlayerProvider, string> = {
+const BUILT_IN_SERVER_NAMES = {
   vidking: 'VidKing',
   cinejoy: 'CineJoy',
   playimdb: 'PlayIMDB',
   torrentio: 'Stremio / Torrentio',
   trailer: 'Tráiler',
-};
+} as const;
+
+export const SERVER_DISPLAY_NAMES: Record<PlayerProvider, string> = {
+  ...BUILT_IN_SERVER_NAMES,
+  ...Object.fromEntries(EXTERNAL_SERVER_IDS.map((id) => [id, EXTERNAL_SERVERS[id].name])),
+} as Record<PlayerProvider, string>;
+
+const VALID_PROVIDERS: readonly string[] = [...Object.keys(BUILT_IN_SERVER_NAMES), ...EXTERNAL_SERVER_IDS];
 
 export interface NightDrawLink {
   seed: string;
@@ -182,8 +191,7 @@ export function parseAppUrl(search: string, pathname: string = ''): ParsedAppUrl
   }
 
   const playerRaw = params.get(PLAYER_PARAM) || params.get('server');
-  const validProviders: PlayerProvider[] = ['vidking', 'cinejoy', 'playimdb', 'torrentio', 'trailer'];
-  const player: PlayerProvider = playerRaw && validProviders.includes(playerRaw as PlayerProvider)
+  const player: PlayerProvider = playerRaw && VALID_PROVIDERS.includes(playerRaw)
     ? (playerRaw as PlayerProvider)
     : 'vidking';
   const mode: 'details' | 'player' = playerRaw ? 'player' : 'details';

@@ -33,6 +33,7 @@ export default {
         'neon-magenta': '0 0 15px rgba(255, 31, 122, 0.6), 0 0 30px rgba(255, 31, 122, 0.3)',
         'neon-green': '0 0 15px rgba(57, 255, 106, 0.6), 0 0 30px rgba(57, 255, 106, 0.3)',
         'neon-blue': '0 0 15px rgba(33, 81, 255, 0.6), 0 0 30px rgba(33, 81, 255, 0.3)',
+        'neon-red': '0 0 15px rgba(255, 59, 31, 0.6), 0 0 30px rgba(255, 59, 31, 0.3)',
       },
     },
   },

@@ -11,6 +11,34 @@ export interface PlayerTarget {
   title: string;
 }
 
+// Servers that can only be opened in a new tab (their site can't be framed and
+// has no TMDB-keyed page). To add one: add its id here and an entry below; the
+// toolbar, share links, Open Graph names and validation pick it up from here.
+export const EXTERNAL_SERVER_IDS = ['cinearar'] as const;
+export type ExternalServerId = (typeof EXTERNAL_SERVER_IDS)[number];
+
+export interface ExternalServer {
+  name: string;
+  // Neon token from index.css (without the var wrapper) for its button and card.
+  accent: 'neon-red-glow';
+  buildUrl: (target: PlayerTarget, episode?: EpisodeRef | null) => string;
+}
+
+export const EXTERNAL_SERVERS: Record<ExternalServerId, ExternalServer> = {
+  // cine.ar (ARSAT) doesn't index titles by TMDB id, so the link is a search
+  // restricted to its player domain rather than a direct title page.
+  cinearar: {
+    name: 'cine.ar',
+    accent: 'neon-red-glow',
+    buildUrl: (target) =>
+      `https://www.google.com/search?q=${encodeURIComponent(`site:play.cine.ar ${target.title}`)}`,
+  },
+};
+
+export function isExternalServerId(value: string): value is ExternalServerId {
+  return (EXTERNAL_SERVER_IDS as readonly string[]).includes(value);
+}
+
 export interface PlayerUrls {
   cinejoy: string;
   vidking: string;

@@ -53,6 +53,7 @@ Aplicación web de alto rendimiento estilo terminal de escritorio para descubrir
 - **Opción 2 (Torrentio + Webtor)**: Flujo estilo Stremio, 100% gratuito y sin backend. Consulta el addon Torrentio (`torrentio.strem.fun`) por código IMDB, permite elegir calidad/tamaño/peers y reproduce el magnet en el navegador mediante el SDK de Webtor.io. Incluye enlace directo "Abrir en Stremio".
 - **Opción 3 (VidKing)**: Reproductor integrado de alta velocidad mediante código TMDB (`vidking.net/embed/movie/{id}`).
 - **Opción 4 (PlayIMDB)**: Servidor alternativo de streaming por código IMDB (`playimdb.com/es-es/title/{imdb_id}/`).
+- **cine.ar (externo)**: Plataforma pública argentina. No tiene páginas por código TMDB, así que abre una búsqueda del título restringida a `play.cine.ar` en una pestaña nueva. Puede elegirse como primer servidor con `?player=cinearar`.
 - **Tráiler Oficial**: Reproductor de tráilers de YouTube con sonido y pantalla completa.
 - **Subtítulos en SubDivX**: Botón directo de búsqueda y descarga de subtítulos en español en [SubDivX](https://www.subdivx.com/).
 - **Modal Adaptativo**: Límite de altura responsivo (`92vh`) con desplazamiento interno para cualquier resolución de pantalla.
@@ -161,6 +162,7 @@ A high-performance, desktop terminal-style web application for movie discovery, 
 - **Option 2 (Torrentio + Webtor)**: Stremio-style flow, 100% free and backend-less. Queries the Torrentio addon (`torrentio.strem.fun`) by IMDB ID, allows selecting quality/size/seeders, and plays the magnet directly in-browser via the Webtor.io embed SDK. Includes an "Open in Stremio" deep link.
 - **Option 3 (VidKing Player)**: High-speed video streaming embed using TMDB IDs (`vidking.net/embed/movie/{id}`).
 - **Option 4 (PlayIMDB Server)**: Alternative streaming server using IMDB IDs (`playimdb.com/es-es/title/{imdb_id}/`).
+- **cine.ar (external)**: Argentine public streaming platform. It has no TMDB-keyed pages, so it opens a title search restricted to `play.cine.ar` in a new tab. It can be set as the first server with `?player=cinearar`.
 - **Official YouTube Trailer**: Embedded trailer player with sound and fullscreen toggles.
 - **SubDivX Subtitles**: One-click download button for Spanish subtitles directly on [SubDivX](https://www.subdivx.com/).
 - **Responsive Player Modal**: Constrained to `92vh` viewports with internal scrolling for all screen resolutions.

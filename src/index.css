@@ -175,6 +175,14 @@ body {
   opacity: 0.6;
 }
 
+/* Scroll containers that should look like plain tab rows: no visible scrollbar */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Scrollbar customization */
 ::-webkit-scrollbar {
   width: 8px;

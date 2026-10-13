@@ -1,4 +1,5 @@
 import { OFFICIAL_DEMO_KEY } from './tmdb';
+import { EXTERNAL_SERVERS, EXTERNAL_SERVER_IDS } from './players';
 
 export interface MovieOgData {
   id: number;
@@ -22,6 +23,7 @@ const PROVIDER_NAMES: Record<string, string> = {
   playimdb: 'PlayIMDB',
   torrentio: 'Torrentio (Stremio)',
   trailer: 'Tráiler Oficial',
+  ...Object.fromEntries(EXTERNAL_SERVER_IDS.map((id) => [id, EXTERNAL_SERVERS[id].name])),
 };
 
 const BOT_USER_AGENTS_REGEX =

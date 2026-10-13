@@ -106,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Row 2: Tabs (left) + Utilities (right) */}
         <div className="flex flex-wrap items-center justify-between gap-3">
         {/* View Switcher Tabs: Catálogo | Mi Lista | La Vi | Historial */}
-        <div className="h-9 max-w-full overflow-x-auto flex items-center gap-1.5 bg-[var(--bg-panel)] p-1 rounded-lg border border-[var(--ink-muted)]/30">
+        <div className="h-9 max-w-full overflow-x-auto no-scrollbar flex items-center gap-1.5 bg-[var(--bg-panel)] p-1 rounded-lg border border-[var(--ink-muted)]/30">
           <button
             onClick={() => setActiveTab('catalog')}
             className={`h-7 shrink-0 whitespace-nowrap flex items-center gap-1.5 px-3 rounded text-xs font-mono font-semibold transition-all cursor-pointer ${
